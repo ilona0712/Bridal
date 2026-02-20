@@ -1,8 +1,5 @@
-import Queen from "./Queen";
-import "./App.css";
+import LoginPage from "./pages/login/LoginPage";
 
-function App() {
-  return <Queen />;
+export default function App() {
+  return <LoginPage />;
 }
-
-export default App;
