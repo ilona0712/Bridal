@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Sparkles, Send, User } from "lucide-react";
+import { Send, User } from "lucide-react";
 import Header from "../components/Header";
 
 type ChatMessage = {
