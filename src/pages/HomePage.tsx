@@ -1,39 +1,13 @@
 import { Sparkles, Heart, MessageCircle, Palette, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
+import Header from "../components/Header";
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100">
       {/* Header */}
-      <header className="border-b border-stone-200/50 bg-white/60 backdrop-blur-sm">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 rounded-full flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-stone-600" />
-            </div>
-            <div>
-              <h1 className="font-serif text-xl text-stone-800">Bride Me Up</h1>
-              <p className="text-xs text-stone-500">Your Dream Gown Awaits</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <Link to="#" className="text-sm text-stone-600 hover:text-stone-800">
-              About
-            </Link>
-            <Link to="#" className="text-sm text-stone-600 hover:text-stone-800">
-              Gallery
-            </Link>
-            <Link
-              to="/login"
-              className="px-6 py-2 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 text-stone-700 rounded-full text-sm hover:shadow-lg transition-all"
-            >
-              Sign In
-            </Link>
-          </div>
-        </div>
-      </header>
+      <Header subtitle="Your Dream Gown Awaits" />
 
       {/* Hero Section */}
       <section className="container mx-auto px-6 py-20">

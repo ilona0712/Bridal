@@ -2,9 +2,17 @@ import { createBrowserRouter } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";
 import SignupPage from "./pages/SignupPage";
+import GalleryPage from "./pages/GalleryPage";
+import IsabellaPage from "./pages/IsabellaPage";
+import ChatWithOwnerPage from "./pages/ChatWithOwnerPage";
+import AdminPage from "./pages/AdminPage";
 
 export const router = createBrowserRouter([
   { path: "/", element: <HomePage /> },
   { path: "/login", element: <LoginPage /> },
   { path: "/signup", element: <SignupPage /> },
+  { path: "/gallery", element: <GalleryPage /> },
+  { path: "/isabella", element: <IsabellaPage /> },
+  { path: "/chat", element: <ChatWithOwnerPage /> },
+  { path: "/admin", element: <AdminPage /> },
 ]);
