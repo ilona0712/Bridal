@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Sparkles } from "lucide-react";
-import GoogleLogo from "../../assets/google.svg";
-import FacebookLogo from "../../assets/facebook.svg";
+import GoogleLogo from "../assets/google.svg";
+import FacebookLogo from "../assets/facebook.svg";
+import { Link } from "react-router-dom";
+import { ImageWithFallback } from "../figma/ImageWithFallback";
 
 export default function LoginPage() {
   const [email, setEmail] = useState<string>("");
@@ -14,7 +16,7 @@ export default function LoginPage() {
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-br from-pink-50/30 to-transparent rounded-3xl" />
             <div className="aspect-[3/4] rounded-3xl overflow-hidden shadow-2xl">
-              <img
+              <ImageWithFallback
                 src="https://images.unsplash.com/photo-1770757588092-6fd47f8a2985?auto=format&fit=crop&w=1080&q=80"
                 alt="Bridal Gown"
                 className="w-full h-full object-cover"
@@ -82,9 +84,9 @@ export default function LoginPage() {
                 <span>Remember me</span>
               </label>
 
-              <a href="#" className="text-stone-600 hover:text-stone-800">
+              <Link to="#" className="text-stone-600 hover:text-stone-800">
                 Forgot password
-              </a>
+              </Link>
             </div>
             <button
               type="button"
@@ -122,9 +124,9 @@ export default function LoginPage() {
             </div>
             <div className="text-center text-sm text-stone-600">
               Don&apos;t have an account?{" "}
-              <a href="#" className="text-stone-700 hover:text-stone-900">
+              <Link to="/signup" className="text-stone-700 hover:text-stone-900">
                 Create one
-              </a>
+              </Link>
             </div>
           </div>
         </div>
