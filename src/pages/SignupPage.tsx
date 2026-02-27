@@ -11,6 +11,8 @@ export default function Signup() {
   const [dressSize, setDressSize] = useState<string>("");
   const [dateOfBirth, setDateOfBirth] = useState<string>("");
   const [agreed, setAgreed] = useState<boolean>(false);
+  const passwordRegex =/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  const isPasswordValid = passwordRegex.test(password);
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 flex items-center justify-center p-6">
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
@@ -115,9 +117,15 @@ export default function Signup() {
                   type="password"
                   placeholder="••••••••"
                   value={password}
+                  minLength={8}
+                  autoComplete="new-password"
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 placeholder:text-stone-400"
                 />
+                {password && !isPasswordValid && (
+                  <p className="text-xs text-red-500">
+                    Must be at least 8 characters and include: uppercase, lowercase, number, and a special character.
+                    </p>)}
               </div>
 
               {/* Dress Size */}
@@ -182,7 +190,7 @@ export default function Signup() {
                   !firstName ||
                   !lastName ||
                   !email ||
-                  !password ||
+                  !isPasswordValid ||
                   !dressSize ||
                   !agreed
                 }
