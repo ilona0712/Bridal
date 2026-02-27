@@ -1,15 +1,17 @@
 import { ImageWithFallback } from "../figma/ImageWithFallback";
-import { Sparkles, Upload, User } from "lucide-react";
+import { Sparkles, Upload, User, Eye, EyeOff, Check } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 
 export default function Signup() {
+  const [passwordTouched, setPasswordTouched] = useState(false);
   const [firstName, setFirstName] = useState<string>("");
   const [lastName, setLastName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [dressSize, setDressSize] = useState<string>("");
   const [dateOfBirth, setDateOfBirth] = useState<string>("");
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const [agreed, setAgreed] = useState<boolean>(false);
   const passwordRegex =/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
   const isPasswordValid = passwordRegex.test(password);
@@ -113,20 +115,41 @@ export default function Signup() {
                 <label className="text-sm text-stone-700">
                   Password <span className="text-pink-400/60">*</span>
                 </label>
+                <div className="relative">
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={password}
                   minLength={8}
                   autoComplete="new-password"
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 placeholder:text-stone-400"
-                />
-                {password && !isPasswordValid && (
+                  onBlur={() => setPasswordTouched(true)}
+                  className="w-full px-4 py-3 pr-20 bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 placeholder:text-stone-400"
+                  />
+                  {password && isPasswordValid && (
+                    <Check className="absolute right-12 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 z-10" />
+                  )}
+                  <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-3 flex items-center text-sm text-stone-500"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+              
+          
+                {passwordTouched && password.length > 0 && !isPasswordValid && (
                   <p className="text-xs text-red-500">
                     Must be at least 8 characters and include: uppercase, lowercase, number, and a special character.
-                    </p>)}
-              </div>
+                  </p>
+                )}
+                </div>
+        
 
               {/* Dress Size */}
               <div className="space-y-2">
