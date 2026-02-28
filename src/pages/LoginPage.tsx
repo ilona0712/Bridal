@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Eye, EyeOff, Check } from "lucide-react";
 import GoogleLogo from "../assets/google.svg";
 import FacebookLogo from "../assets/facebook.svg";
 import { Link } from "react-router-dom";
@@ -8,7 +8,17 @@ import { ImageWithFallback } from "../figma/ImageWithFallback";
 export default function LoginPage() {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+
   const [rememberMe, setRememberMe] = useState<boolean>(false);
+
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [passwordTouched, setPasswordTouched] = useState<boolean>(false);
+
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+  const isPasswordValid = passwordRegex.test(password);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 flex items-center justify-center p-6">
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
@@ -24,24 +34,23 @@ export default function LoginPage() {
             </div>
           </div>
         </div>
+
         <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 p-12">
           <div className="max-w-md mx-auto space-y-8">
             <div className="text-center space-y-3">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 rounded-full">
                 <Sparkles className="w-8 h-8 text-stone-600" />
               </div>
-              <h1 className="font-serif text-4xl text-stone-800">
-                Bride Me Up
-              </h1>
+              <h1 className="font-serif text-4xl text-stone-800">Bride Me Up</h1>
               <p className="text-stone-500">
                 Your journey to the perfect gown begins here
               </p>
             </div>
+
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm text-stone-700">
                 Email Address
               </label>
-
               <input
                 id="email"
                 type="email"
@@ -49,26 +58,57 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl
-               focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50
-               text-stone-800 placeholder:text-stone-400"
+                focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50
+                text-stone-800 placeholder:text-stone-400"
               />
             </div>
+
+            {/* Password (with show/hide + validation UI) */}
             <div className="space-y-2">
               <label htmlFor="password" className="text-sm text-stone-700">
                 Password
               </label>
 
-              <input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl
-               focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50
-               text-stone-800 placeholder:text-stone-400"
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={password}
+                  minLength={8}
+                  autoComplete="current-password"
+                  onChange={(e) => setPassword(e.target.value)}
+                  onBlur={() => setPasswordTouched(true)}
+                  className="w-full px-4 py-3 pr-20 bg-stone-50/50 border border-stone-200 rounded-xl
+                  focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50
+                  text-stone-800 placeholder:text-stone-400"
+                />
+
+                {password && isPasswordValid && (
+                  <Check className="absolute right-12 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 z-10" />
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-3 flex items-center text-sm text-stone-500"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+
+              {passwordTouched && password.length > 0 && !isPasswordValid && (
+                <p className="text-xs text-red-500">
+                  Must be at least 8 characters and include: uppercase, lowercase,
+                  number, and a special character.
+                </p>
+              )}
             </div>
+
             <div className="flex items-center justify-between text-sm">
               <label
                 htmlFor="remember"
@@ -88,23 +128,26 @@ export default function LoginPage() {
                 Forgot password
               </Link>
             </div>
+
             <button
               type="button"
-              className="w-full py-3 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 text-stone-700 rounded-xl hover:shadow-lg transition-all duration-300"
+              disabled={!email || !password || !isPasswordValid}
+              className="w-full py-3 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 text-stone-700 rounded-xl hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Sign In
             </button>
+
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-stone-200" />
               </div>
-
               <div className="relative flex justify-center text-sm">
                 <span className="px-4 bg-white/60 text-stone-500">
                   or continue with
                 </span>
               </div>
             </div>
+
             <div className="grid grid-cols-2 gap-4">
               <button
                 type="button"
@@ -122,6 +165,7 @@ export default function LoginPage() {
                 Facebook
               </button>
             </div>
+
             <div className="text-center text-sm text-stone-600">
               Don&apos;t have an account?{" "}
               <Link to="/signup" className="text-stone-700 hover:text-stone-900">
