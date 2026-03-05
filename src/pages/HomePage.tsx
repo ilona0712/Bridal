@@ -2,6 +2,7 @@ import { Sparkles, Heart, MessageCircle, Palette, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
 import Header from "../components/Header";
+import { isAdmin } from "../auth";
 
 export default function HomePage() {
   return (

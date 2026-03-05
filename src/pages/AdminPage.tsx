@@ -106,6 +106,19 @@ export default function AdminPage() {
           </div>
         </div>
 
+        <div className="mb-8">
+  <Link
+    to="/gallery?mode=admin"
+    className="inline-flex items-center gap-2 px-5 py-3 bg-stone-800 text-white rounded-2xl hover:bg-stone-700 transition-colors font-medium"
+  >
+    Manage Dresses in Gallery (Edit / Delete)
+  </Link>
+
+  <p className="text-sm text-stone-500 mt-3">
+    You will be redirected to the Gallery with admin controls enabled.
+  </p>
+</div>
+
         {/* Form */}
         <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 p-8 md:p-12">
           <form onSubmit={handleSubmit} className="space-y-8">

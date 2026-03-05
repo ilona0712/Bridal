@@ -2,10 +2,11 @@ import { createBrowserRouter } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";
 import SignupPage from "./pages/SignupPage";
-import GalleryPage from "./pages/GalleryPage";
 import IsabellaPage from "./pages/IsabellaPage";
 import ChatWithOwnerPage from "./pages/ChatWithOwnerPage";
 import AdminPage from "./pages/AdminPage";
+import GalleryPage from "./pages/GalleryPage";
+import AdminRoute from "./AdminRoute";
 
 export const router = createBrowserRouter([
   { path: "/", element: <HomePage /> },
@@ -14,5 +15,12 @@ export const router = createBrowserRouter([
   { path: "/gallery", element: <GalleryPage /> },
   { path: "/isabella", element: <IsabellaPage /> },
   { path: "/chat", element: <ChatWithOwnerPage /> },
-  { path: "/admin", element: <AdminPage /> },
+  { 
+    path: "/admin", 
+    element: (
+    <AdminRoute>
+      <AdminPage />
+    </AdminRoute>
+    )
+  }
 ]);
