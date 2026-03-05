@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Send, Sparkles } from "lucide-react";
 import Header from "../components/Header";
+import { ImageWithFallback } from "../figma/ImageWithFallback";
 
 interface DressData {
   id: number;
@@ -30,31 +31,45 @@ export default function IsabellaPage() {
 
   const customizationQuestions = [
     {
-      text: `Perfect choice! I love the ${dressFromGallery?.name || "dress you selected"}! ✨\n\nLet's customize it to make it uniquely yours. First, how would you like to change the neckline? The current style is ${dressFromGallery?.neckline || "classic"}, but we can try sweetheart, V-neck, off-shoulder, or anything else you're drawn to!`,
+      text: `Perfect choice! I love the ${
+        dressFromGallery?.name || "dress you selected"
+      }! ✨\n\nLet's customize it to make it uniquely yours. First, how would you like to change the neckline? The current style is ${
+        dressFromGallery?.neckline || "classic"
+      }, but we can try sweetheart, V-neck, off-shoulder, or anything else you're drawn to!`,
       response: "That neckline is going to look absolutely stunning on you! 💕",
     },
     {
-      text: `Wonderful! Now let's talk about the silhouette. This dress currently has a ${dressFromGallery?.silhouette || "beautiful"} silhouette. Would you like to keep it, or explore something different like ball gown, A-line, mermaid, or sheath?`,
+      text: `Wonderful! Now let's talk about the silhouette. This dress currently has a ${
+        dressFromGallery?.silhouette || "beautiful"
+      } silhouette. Would you like to keep it, or explore something different like ball gown, A-line, mermaid, or sheath?`,
       response:
         "Perfect! That silhouette will be absolutely perfect for you! ✨",
     },
     {
-      text: `Excellent choice! Let's discuss the fabric. Right now it's ${dressFromGallery?.fabric || "beautiful fabric"}, but we have so many options! Would you prefer luxurious satin, delicate lace, flowing chiffon, romantic tulle, or perhaps a combination?`,
+      text: `Excellent choice! Let's discuss the fabric. Right now it's ${
+        dressFromGallery?.fabric || "beautiful fabric"
+      }, but we have so many options! Would you prefer luxurious satin, delicate lace, flowing chiffon, romantic tulle, or perhaps a combination?`,
       response:
         "Exquisite choice! That fabric will feel amazing and look even better. 💕",
     },
     {
-      text: `Now, about the train - this is such a special detail! The current train is ${dressFromGallery?.trainLength || "elegant"}. Would you like to keep it, go more dramatic with a cathedral train, or perhaps something shorter?`,
+      text: `Now, about the train - this is such a special detail! The current train is ${
+        dressFromGallery?.trainLength || "elegant"
+      }. Would you like to keep it, go more dramatic with a cathedral train, or perhaps something shorter?`,
       response:
         "That's going to look absolutely breathtaking as you walk down the aisle! ✨",
     },
     {
-      text: `Almost done! The sleeves are currently ${dressFromGallery?.sleeveStyle || "beautiful"}. Would you like to change them? We can do sleeveless, delicate cap sleeves, romantic long sleeves, or anything you envision!`,
+      text: `Almost done! The sleeves are currently ${
+        dressFromGallery?.sleeveStyle || "beautiful"
+      }. Would you like to change them? We can do sleeveless, delicate cap sleeves, romantic long sleeves, or anything you envision!`,
       response: "Perfect! That will complement the entire look beautifully. 💕",
     },
     {
       text: "Last question - are there any other special details or embellishments you'd love to add? Maybe beading, embroidery, buttons, a specific back design, or anything else that would make this gown uniquely yours?",
-      response: `Thank you so much for customizing the ${dressFromGallery?.name || "gown"} with me! Based on all your choices, I can already see how stunning this dress will be on your special day.\n\nYour customized gown will be truly one-of-a-kind - a perfect reflection of your personal style. The changes you've made will create something absolutely magical! ✨💕\n\nWould you like me to save these customizations, or would you like to explore more options?`,
+      response: `Thank you so much for customizing the ${
+        dressFromGallery?.name || "gown"
+      } with me! Based on all your choices, I can already see how stunning this dress will be on your special day.\n\nYour customized gown will be truly one-of-a-kind - a perfect reflection of your personal style. The changes you've made will create something absolutely magical! ✨💕\n\nWould you like me to save these customizations, or would you like to explore more options?`,
     },
   ];
 
@@ -98,12 +113,12 @@ export default function IsabellaPage() {
     ? customizationQuestions
     : generalQuestions;
 
-  // Start conversation when page opens (or when questions change)
   useEffect(() => {
     setCurrentQuestion(0);
     setMessages([{ type: "bot", text: questions[0].text }]);
     setInputValue("");
-  }, [dressFromGallery]); // if user comes from gallery with a dress, re-init
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dressFromGallery]);
 
   const handleSendMessage = () => {
     const trimmed = inputValue.trim();
@@ -112,14 +127,12 @@ export default function IsabellaPage() {
     setMessages((prev) => [...prev, { type: "user", text: trimmed }]);
     setInputValue("");
 
-    // bot response
     setTimeout(() => {
       setMessages((prev) => [
         ...prev,
         { type: "bot", text: questions[currentQuestion].response },
       ]);
 
-      // next question
       if (currentQuestion < questions.length - 1) {
         setTimeout(() => {
           const next = currentQuestion + 1;
@@ -140,84 +153,171 @@ export default function IsabellaPage() {
     }
   };
 
+  const DressSidebar = () => {
+    if (!dressFromGallery) return null;
+
+    return (
+      <div className="lg:sticky lg:top-24 space-y-4">
+        <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-2xl border border-stone-200/50 overflow-hidden">
+          <div className="px-5 py-4 border-b border-stone-200/50 bg-gradient-to-r from-stone-200 via-pink-100/30 to-stone-200">
+            <p className="text-xs text-stone-600">Selected dress</p>
+            <h3 className="font-serif text-lg text-stone-800 leading-tight">
+              {dressFromGallery.name}
+            </h3>
+          </div>
+
+          <div className="p-5 space-y-4">
+            <div className="relative aspect-[3/4] rounded-2xl overflow-hidden">
+              <ImageWithFallback
+                src={dressFromGallery.image}
+                alt={dressFromGallery.name}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute top-3 left-3 px-3 py-1 bg-stone-800/70 backdrop-blur-sm rounded-full">
+                <span className="text-xs text-white">
+                  {dressFromGallery.collection}
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm text-stone-700">
+                <span className="text-stone-500">Neckline:</span>{" "}
+                {dressFromGallery.neckline}
+              </p>
+              <p className="text-sm text-stone-700">
+                <span className="text-stone-500">Silhouette:</span>{" "}
+                {dressFromGallery.silhouette}
+              </p>
+              <p className="text-sm text-stone-700">
+                <span className="text-stone-500">Fabric:</span>{" "}
+                {dressFromGallery.fabric}
+              </p>
+              <p className="text-sm text-stone-700">
+                <span className="text-stone-500">Train:</span>{" "}
+                {dressFromGallery.trainLength}
+              </p>
+              <p className="text-sm text-stone-700">
+                <span className="text-stone-500">Sleeves:</span>{" "}
+                {dressFromGallery.sleeveStyle}
+              </p>
+              <p className="text-sm text-stone-700">
+                <span className="text-stone-500">Sizes:</span>{" "}
+                {dressFromGallery.sizes[0]}-
+                {dressFromGallery.sizes[dressFromGallery.sizes.length - 1]}
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between pt-2 border-t border-stone-200/50">
+              <p className="font-medium text-stone-800">
+                ${dressFromGallery.price.toLocaleString()}
+              </p>
+
+              <Link
+                to="/gallery"
+                className="text-xs text-stone-600 hover:text-stone-800 underline underline-offset-4"
+              >
+                Change dress
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100">
       <Header subtitle="Your Personal Bridal Consultant" />
 
-      <div className="container mx-auto px-6 py-8 max-w-5xl">
-        <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-2xl border border-stone-200/50 overflow-hidden">
-          {/* Chat Header */}
-          <div className="bg-gradient-to-r from-stone-200 via-pink-100/30 to-stone-200 px-6 py-5 border-b border-stone-200/50">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-white/80 rounded-full flex items-center justify-center">
-                <Sparkles className="w-7 h-7 text-stone-600" />
-              </div>
-              <div>
-                <h2 className="font-serif text-2xl text-stone-800">Isabella</h2>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-pink-300/60 rounded-full animate-pulse" />
-                  <span className="text-sm text-stone-600">Online now</span>
-                </div>
-              </div>
+      <div className="container mx-auto px-6 py-8 max-w-7xl">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {dressFromGallery && (
+            <div className="hidden lg:block lg:col-span-1">
+              <DressSidebar />
             </div>
-          </div>
+          )}
 
-          {/* Messages */}
-          <div className="h-[500px] overflow-y-auto p-6 space-y-4 bg-stone-50/30">
-            {messages.map((message, index) => (
-              <div
-                key={index}
-                className={`flex gap-3 ${message.type === "user" ? "justify-end" : ""}`}
-              >
-                {message.type === "bot" && (
-                  <div className="w-10 h-10 bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 rounded-full flex-shrink-0 flex items-center justify-center">
-                    <Sparkles className="w-5 h-5 text-stone-600" />
+          <div className={dressFromGallery ? "lg:col-span-2" : ""}>
+            <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-2xl border border-stone-200/50 overflow-hidden">
+              {/* Chat Header */}
+              <div className="bg-gradient-to-r from-stone-200 via-pink-100/30 to-stone-200 px-6 py-5 border-b border-stone-200/50">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 bg-white/80 rounded-full flex items-center justify-center">
+                    <Sparkles className="w-7 h-7 text-stone-600" />
                   </div>
-                )}
+                  <div>
+                    <h2 className="font-serif text-2xl text-stone-800">
+                      Isabella
+                    </h2>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-pink-300/60 rounded-full animate-pulse" />
+                      <span className="text-sm text-stone-600">Online now</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-                <div
-                  className={`rounded-2xl px-5 py-4 max-w-[80%] ${
-                    message.type === "bot"
-                      ? "bg-white/90 border border-stone-200/50 rounded-tl-none"
-                      : "bg-gradient-to-br from-stone-300 via-pink-200/40 to-stone-300 rounded-tr-none"
-                  }`}
-                >
-                  <p className="text-sm text-stone-800 leading-relaxed whitespace-pre-line">
-                    {message.text}
-                  </p>
+              {/* Messages */}
+              <div className="h-[500px] overflow-y-auto p-6 space-y-4 bg-stone-50/30">
+                {messages.map((message, index) => (
+                  <div
+                    key={index}
+                    className={`flex gap-3 ${
+                      message.type === "user" ? "justify-end" : ""
+                    }`}
+                  >
+                    {message.type === "bot" && (
+                      <div className="w-10 h-10 bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 rounded-full flex-shrink-0 flex items-center justify-center">
+                        <Sparkles className="w-5 h-5 text-stone-600" />
+                      </div>
+                    )}
+
+                    <div
+                      className={`rounded-2xl px-5 py-4 max-w-[80%] ${
+                        message.type === "bot"
+                          ? "bg-white/90 border border-stone-200/50 rounded-tl-none"
+                          : "bg-gradient-to-br from-stone-300 via-pink-200/40 to-stone-300 rounded-tr-none"
+                      }`}
+                    >
+                      <p className="text-sm text-stone-800 leading-relaxed whitespace-pre-line">
+                        {message.text}
+                      </p>
+                    </div>
+
+                    {message.type === "user" && (
+                      <div className="w-10 h-10 bg-stone-200 rounded-full flex-shrink-0" />
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Input */}
+              <div className="border-t border-stone-200/50 p-6 bg-white/40">
+                <div className="flex gap-3 items-end">
+                  <textarea
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Type your answer here..."
+                    rows={1}
+                    className="flex-1 bg-white/90 border border-stone-200 rounded-2xl px-5 py-4 text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 resize-none"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={handleSendMessage}
+                    className="w-12 h-12 bg-gradient-to-br from-stone-300 via-pink-200/40 to-stone-300 rounded-full flex items-center justify-center hover:shadow-lg transition-all flex-shrink-0"
+                  >
+                    <Send className="w-5 h-5 text-stone-700" />
+                  </button>
                 </div>
 
-                {message.type === "user" && (
-                  <div className="w-10 h-10 bg-stone-200 rounded-full flex-shrink-0" />
-                )}
+                <p className="text-xs text-stone-500 mt-3 text-center">
+                  Press Enter to send • Shift + Enter for new line
+                </p>
               </div>
-            ))}
-          </div>
-
-          {/* Input */}
-          <div className="border-t border-stone-200/50 p-6 bg-white/40">
-            <div className="flex gap-3 items-end">
-              <textarea
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Type your answer here..."
-                rows={1}
-                className="flex-1 bg-white/90 border border-stone-200 rounded-2xl px-5 py-4 text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 resize-none"
-              />
-
-              <button
-                type="button"
-                onClick={handleSendMessage}
-                className="w-12 h-12 bg-gradient-to-br from-stone-300 via-pink-200/40 to-stone-300 rounded-full flex items-center justify-center hover:shadow-lg transition-all flex-shrink-0"
-              >
-                <Send className="w-5 h-5 text-stone-700" />
-              </button>
             </div>
-
-            <p className="text-xs text-stone-500 mt-3 text-center">
-              Press Enter to send • Shift + Enter for new line
-            </p>
           </div>
         </div>
       </div>
