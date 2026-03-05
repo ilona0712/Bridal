@@ -15,6 +15,7 @@ export const router = createBrowserRouter([
   { path: "/gallery", element: <GalleryPage /> },
   { path: "/isabella", element: <IsabellaPage /> },
   { path: "/chat", element: <ChatWithOwnerPage /> },
+  { path: "/home", element: <HomePage /> },
   { 
     path: "/admin", 
     element: (
