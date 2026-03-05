@@ -1,6 +1,7 @@
 import { Sparkles, Heart, MessageCircle, Palette, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
+import { isAdmin } from "../auth";
 
 export default function HomePage() {
   return (
@@ -19,19 +20,30 @@ export default function HomePage() {
           </div>
 
           <div className="flex items-center gap-4">
-            <Link to="#" className="text-sm text-stone-600 hover:text-stone-800">
-              About
-            </Link>
-            <Link to="#" className="text-sm text-stone-600 hover:text-stone-800">
-              Gallery
-            </Link>
-            <Link
-              to="/login"
-              className="px-6 py-2 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 text-stone-700 rounded-full text-sm hover:shadow-lg transition-all"
-            >
-              Sign In
-            </Link>
-          </div>
+  <Link to="#" className="text-sm text-stone-600 hover:text-stone-800">
+    About
+  </Link>
+
+  <Link to="/gallery" className="text-sm text-stone-600 hover:text-stone-800">
+    Gallery
+  </Link>
+
+  {isAdmin && (
+    <Link
+      to="/admin"
+      className="px-6 py-2 bg-white/70 border border-stone-200/50 text-stone-700 rounded-full text-sm hover:bg-white/90 hover:shadow-lg transition-all"
+    >
+      Admin
+    </Link>
+  )}
+
+  <Link
+    to="/login"
+    className="px-6 py-2 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 text-stone-700 rounded-full text-sm hover:shadow-lg transition-all"
+  >
+    Sign In
+  </Link>
+</div>
         </div>
       </header>
 

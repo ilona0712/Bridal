@@ -1,7 +1,8 @@
 import { Navigate } from "react-router-dom";
+import { isAdmin } from "./auth";
+import type { JSX } from "react";
 
 export default function AdminRoute({ children }: { children: JSX.Element }) {
-  const isAdmin = true; // temporary (later from database or login)
 
   if (!isAdmin) {
     return <Navigate to="/" />;
