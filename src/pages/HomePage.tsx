@@ -5,7 +5,6 @@ import HowItWorksSection from "../components/home/HowItWorksSection";
 import CollectionSection from "../components/home/CollectionSection";
 import HomeCtaSection from "../components/home/HomeCtaSection";
 import HomeFooter from "../components/home/HomeFooter";
-import { isAdmin } from "../auth";
 
 export default function HomePage() {
   return (
