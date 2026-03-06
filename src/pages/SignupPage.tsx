@@ -1,7 +1,10 @@
-import { ImageWithFallback } from "../figma/ImageWithFallback";
-import { Sparkles, Upload, User, Eye, EyeOff, Check } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import AuthImagePanel from "../components/authentication/AuthImagePanel";
+import PasswordInput from "../components/authentication/PasswordInput";
+import ProfilePhotoUpload from "../components/authentication/ProfilePhotoUpload";
+import NameFields from "../components/authentication/NameFields";
 
 export default function Signup() {
   const [passwordTouched, setPasswordTouched] = useState(false);
@@ -11,26 +14,19 @@ export default function Signup() {
   const [password, setPassword] = useState<string>("");
   const [dressSize, setDressSize] = useState<string>("");
   const [dateOfBirth, setDateOfBirth] = useState<string>("");
-  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false); 
   const [agreed, setAgreed] = useState<boolean>(false);
-  const passwordRegex =/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
   const isPasswordValid = passwordRegex.test(password);
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 flex items-center justify-center p-6">
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
         {/* Left Side - Image */}
-        <div className="hidden lg:block">
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-pink-50/30 to-transparent rounded-3xl"></div>
-            <div className="aspect-[3/4] rounded-3xl overflow-hidden shadow-2xl">
-              <ImageWithFallback
-                src="https://images.unsplash.com/photo-1766104797322-3826d7158c64?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3ZWRkaW5nJTIwZHJlc3MlMjBmaXR0aW5nJTIwYnJpZGV8ZW58MXx8fHwxNzcwODk2NjM5fDA&ixlib=rb-4.1.0&q=80&w=1080"
-                alt="Bridal Fitting"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
-        </div>
+        <AuthImagePanel
+          src="https://images.unsplash.com/photo-1766104797322-3826d7158c64?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3ZWRkaW5nJTIwZHJlc3MlMjBmaXR0aW5nJTIwYnJpZGV8ZW58MXx8fHwxNzcwODk2NjM5fDA&ixlib=rb-4.1.0&q=80&w=1080"
+          alt="Bridal Fitting"
+        />
 
         {/* Right Side - Signup Form */}
         <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 p-12">
@@ -51,50 +47,18 @@ export default function Signup() {
             {/* Signup Form */}
             <div className="space-y-6">
               {/* Profile Picture Upload */}
-              <div className="flex justify-center">
-                <div className="relative">
-                  <div className="w-24 h-24 bg-stone-100/70 border-2 border-dashed border-stone-300 rounded-full flex items-center justify-center cursor-pointer hover:bg-stone-200/50 transition-colors">
-                    <div className="text-center">
-                      <User className="w-8 h-8 text-stone-400 mx-auto" />
-                      <p className="text-xs text-stone-500 mt-1">Photo</p>
-                    </div>
-                  </div>
-                  <div className="absolute bottom-0 right-0 w-8 h-8 bg-gradient-to-br from-stone-300 via-pink-200/40 to-stone-300 rounded-full flex items-center justify-center cursor-pointer shadow-lg">
-                    <Upload className="w-4 h-4 text-stone-700" />
-                  </div>
-                </div>
-              </div>
+              <ProfilePhotoUpload />
               <p className="text-xs text-center text-stone-500">
                 Optional: Upload your photo
               </p>
 
               {/* Name Fields */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm text-stone-700">
-                    First Name <span className="text-pink-400/60">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Emma"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 placeholder:text-stone-400"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm text-stone-700">
-                    Last Name <span className="text-pink-400/60">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Johnson"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 placeholder:text-stone-400"
-                  />
-                </div>
-              </div>
+              <NameFields
+                firstName={firstName}
+                lastName={lastName}
+                onFirstNameChange={setFirstName}
+                onLastNameChange={setLastName}
+              />
 
               {/* Email */}
               <div className="space-y-2">
@@ -111,45 +75,23 @@ export default function Signup() {
               </div>
 
               {/* Password */}
-              <div className="space-y-2">
-                <label className="text-sm text-stone-700">
-                  Password <span className="text-pink-400/60">*</span>
-                </label>
-                <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  value={password}
-                  minLength={8}
-                  autoComplete="new-password"
-                  onChange={(e) => setPassword(e.target.value)}
-                  onBlur={() => setPasswordTouched(true)}
-                  className="w-full px-4 py-3 pr-20 bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 placeholder:text-stone-400"
-                  />
-                  {password && isPasswordValid && (
-                    <Check className="absolute right-12 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 z-10" />
-                  )}
-                  <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-3 flex items-center text-sm text-stone-500"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
-                  </button>
-                </div>
-              
-          
-                {passwordTouched && password.length > 0 && !isPasswordValid && (
-                  <p className="text-xs text-red-500">
-                    Must be at least 8 characters and include: uppercase, lowercase, number, and a special character.
-                  </p>
-                )}
-                </div>
-        
+              <PasswordInput
+                password={password}
+                showPassword={showPassword}
+                passwordTouched={passwordTouched}
+                isPasswordValid={isPasswordValid}
+                onPasswordChange={setPassword}
+                onToggleShowPassword={() => setShowPassword(!showPassword)}
+                onBlur={() => setPasswordTouched(true)}
+                label={
+                  <>
+                    Password <span className="text-pink-400/60">*</span>
+                  </>
+                }
+                id="signup-password"
+                placeholder="••••••••"
+                autoComplete="new-password"
+              />
 
               {/* Dress Size */}
               <div className="space-y-2">

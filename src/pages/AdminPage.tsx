@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Sparkles, Upload, ArrowLeft, Plus } from "lucide-react";
-import Header from "../components/Header";
+import Header from "../components/common/Header";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
 
 export default function AdminPage() {

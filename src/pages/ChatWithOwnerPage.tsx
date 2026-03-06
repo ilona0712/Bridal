@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Send, User } from "lucide-react";
-import Header from "../components/Header";
+import Header from "../components/common/Header";
 
 type ChatMessage = {
   type: "owner" | "user";

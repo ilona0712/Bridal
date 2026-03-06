@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Send, Sparkles } from "lucide-react";
-import Header from "../components/Header";
+import Header from "../components/common/Header";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
 
 interface DressData {

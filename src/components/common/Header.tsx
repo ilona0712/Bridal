@@ -1,5 +1,6 @@
 import { Sparkles, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
+import { isAdmin } from "../../auth";
 
 interface HeaderProps {
   subtitle?: string;
@@ -28,6 +29,11 @@ export default function Header({
         </Link>
 
         <div className="flex items-center gap-4">
+          {isAdmin && (
+            <Link to="/admin" className="text-sm text-stone-600 hover:text-stone-800">
+              Admin
+            </Link>
+          )}
           <Link
             to="/"
             className="text-sm text-stone-600 hover:text-stone-800 hidden sm:block"
@@ -35,11 +41,17 @@ export default function Header({
             Home
           </Link>
 
-          <Link to="/gallery" className="text-sm text-stone-600 hover:text-stone-800">
+          <Link
+            to="/gallery"
+            className="text-sm text-stone-600 hover:text-stone-800"
+          >
             Gallery
           </Link>
 
-          <Link to="/isabella" className="text-sm text-stone-600 hover:text-stone-800">
+          <Link
+            to="/isabella"
+            className="text-sm text-stone-600 hover:text-stone-800"
+          >
             Consultant
           </Link>
 

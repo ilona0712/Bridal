@@ -1,1 +1,1 @@
-export const isAdmin = true; // change to false to test non-admin
+export const isAdmin = true; // change to false to test non-admin   
