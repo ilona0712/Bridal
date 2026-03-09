@@ -6,7 +6,7 @@ type CreateCollectionModalProps = {
   dresses: Dress[];
   existingCollections: string[];
   onClose: () => void;
-  onCreateCollection: (name: string, selectedDressIds: number[]) => void;
+  onCreateCollection: (name: string, selectedDressIds: string[]) => void;
 };
 
 export default function CreateCollectionModal({
@@ -16,9 +16,9 @@ export default function CreateCollectionModal({
   onCreateCollection,
 }: CreateCollectionModalProps) {
   const [collectionName, setCollectionName] = useState("");
-  const [selectedDressIds, setSelectedDressIds] = useState<number[]>([]);
+  const [selectedDressIds, setSelectedDressIds] = useState<string[]>([]);
 
-  const toggleDressSelection = (dressId: number) => {
+  const toggleDressSelection = (dressId: string) => {
     setSelectedDressIds((prev) =>
       prev.includes(dressId)
         ? prev.filter((id) => id !== dressId)
