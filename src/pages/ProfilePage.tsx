@@ -1,8 +1,11 @@
 import { useState, useRef } from 'react';
 import { Sparkles, User, LogOut, Camera, Save } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
+import { isAdmin } from "../auth";
+
 
 export default function Profile() {
+    
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -121,6 +124,11 @@ export default function Profile() {
                 <div className="flex-1 text-center sm:text-left">
                   <h2 className="font-serif text-3xl text-stone-800">{firstName} {lastName}</h2>
                   <p className="text-stone-500 mt-1">{email}</p>
+                  {isAdmin && (
+    <span className="inline-block mt-2 px-3 py-1 text-xs font-semibold bg-yellow-200 text-yellow-900 rounded-full">
+      Administrator
+    </span>
+  )}
                 </div>
                 <button
                   onClick={() => setIsEditing(!isEditing)}
@@ -213,43 +221,46 @@ export default function Profile() {
                 </div>
 
                 {/* Dress Size Section - Highlighted */}
-                <div className="pt-6 border-t border-stone-200/50">
-                  <h3 className="font-serif text-xl text-stone-800 mb-4">Dress Preferences</h3>
-                  <div className="space-y-2">
-                    <label className="text-sm text-stone-700">
-                      Current Dress Size <span className="text-pink-400/60">*</span>
-                    </label>
-                    {isEditing ? (
-                      <select
-                        value={dressSize}
-                        onChange={(e) => handleSizeChange(e.target.value)}
-                        className="w-full px-4 py-3 bg-stone-50/50 border border-pink-300/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 cursor-pointer"
-                      >
-                        <option value="0">0</option>
-                        <option value="2">2</option>
-                        <option value="4">4</option>
-                        <option value="6">6</option>
-                        <option value="8">8</option>
-                        <option value="10">10</option>
-                        <option value="12">12</option>
-                        <option value="14">14</option>
-                        <option value="16">16</option>
-                        <option value="18">18</option>
-                        <option value="20">20</option>
-                        <option value="22">22</option>
-                        <option value="24">24</option>
-                        <option value="26">26</option>
-                      </select>
-                    ) : (
-                      <div className="px-4 py-3 bg-gradient-to-r from-pink-50/50 via-stone-50/50 to-pink-50/50 border border-pink-200/50 rounded-xl">
-                        <p className="text-stone-800">Size {dressSize}</p>
-                        <p className="text-xs text-stone-500 mt-1">
-                          This size will be used to filter gowns in the gallery
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                {!isAdmin && (
+  <div className="pt-6 border-t border-stone-200/50">
+    <h3 className="font-serif text-xl text-stone-800 mb-4">Dress Preferences</h3>
+    <div className="space-y-2">
+      <label className="text-sm text-stone-700">
+        Current Dress Size <span className="text-pink-400/60">*</span>
+      </label>
+
+      {isEditing ? (
+        <select
+          value={dressSize}
+          onChange={(e) => handleSizeChange(e.target.value)}
+          className="w-full px-4 py-3 bg-stone-50/50 border border-pink-300/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 cursor-pointer"
+        >
+          <option value="0">0</option>
+          <option value="2">2</option>
+          <option value="4">4</option>
+          <option value="6">6</option>
+          <option value="8">8</option>
+          <option value="10">10</option>
+          <option value="12">12</option>
+          <option value="14">14</option>
+          <option value="16">16</option>
+          <option value="18">18</option>
+          <option value="20">20</option>
+          <option value="22">22</option>
+          <option value="24">24</option>
+          <option value="26">26</option>
+        </select>
+      ) : (
+        <div className="px-4 py-3 bg-gradient-to-r from-pink-50/50 via-stone-50/50 to-pink-50/50 border border-pink-200/50 rounded-xl">
+          <p className="text-stone-800">Size {dressSize}</p>
+          <p className="text-xs text-stone-500 mt-1">
+            This size will be used to filter gowns in the gallery
+          </p>
+        </div>
+      )}
+    </div>
+  </div>
+)}
 
                 {/* Save Button */}
                 {isEditing && hasChanges && (

@@ -8,6 +8,7 @@ interface HeaderProps {
 }
 export default function Header({ subtitle = "Your Dream Gown Awaits", fixed = false }: HeaderProps) {
   const profileImage = null; 
+  const unreadCount = 3;
   return (
     <header
       className={`border-b border-stone-200/50 bg-white/60 backdrop-blur-sm ${
@@ -52,7 +53,21 @@ export default function Header({ subtitle = "Your Dream Gown Awaits", fixed = fa
             Consultant
           </Link>
 
-          {!isAdmin && (
+          {isAdmin ? (
+  <Link
+    to="/chat"
+    className="relative flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 border border-stone-200/50 text-stone-700 rounded-full text-sm hover:shadow-md transition-all"
+  >
+    <MessageCircle className="w-4 h-4" />
+    <span className="hidden sm:inline">Client Chats</span>
+
+    {unreadCount > 0 && (
+      <span className="absolute -top-2 -right-2 min-w-[20px] h-5 px-1 flex items-center justify-center rounded-full bg-pink-500 text-white text-xs font-medium shadow-sm">
+        {unreadCount}
+      </span>
+    )}
+  </Link>
+) : (
   <Link
     to="/chat"
     className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-100/60 via-amber-50/40 to-amber-100/60 border border-amber-200/50 text-stone-700 rounded-full text-sm hover:shadow-md transition-all"
