@@ -1,4 +1,4 @@
-import { Sparkles, MessageCircle } from "lucide-react";
+import { Sparkles, MessageCircle, User } from 'lucide-react';
 import { Link } from "react-router-dom";
 import { isAdmin } from "../../auth";
 
@@ -6,11 +6,8 @@ interface HeaderProps {
   subtitle?: string;
   fixed?: boolean;
 }
-
-export default function Header({
-  subtitle = "Your Dream Gown Awaits",
-  fixed = false,
-}: HeaderProps) {
+export default function Header({ subtitle = "Your Dream Gown Awaits", fixed = false }: HeaderProps) {
+  const profileImage = null; 
   return (
     <header
       className={`border-b border-stone-200/50 bg-white/60 backdrop-blur-sm ${
@@ -55,13 +52,15 @@ export default function Header({
             Consultant
           </Link>
 
-          <Link
-            to="/chat"
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-100/60 via-amber-50/40 to-amber-100/60 border border-amber-200/50 text-stone-700 rounded-full text-sm hover:shadow-md transition-all"
-          >
-            <MessageCircle className="w-4 h-4" />
-            <span className="hidden sm:inline">Chat with Owner</span>
-          </Link>
+          {!isAdmin && (
+  <Link
+    to="/chat"
+    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-100/60 via-amber-50/40 to-amber-100/60 border border-amber-200/50 text-stone-700 rounded-full text-sm hover:shadow-md transition-all"
+  >
+    <MessageCircle className="w-4 h-4" />
+    <span className="hidden sm:inline">Chat with Owner</span>
+  </Link>
+)}
 
           <Link
             to="/login"
@@ -69,8 +68,20 @@ export default function Header({
           >
             Sign In
           </Link>
+          <Link 
+            to="/profile" 
+            className="w-10 h-10 rounded-full overflow-hidden border-2 border-stone-300/50 hover:border-pink-300/50 transition-all hover:shadow-md flex items-center justify-center bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300"
+            title="View Profile"
+          >
+            {profileImage ? (
+              <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              <User className="w-5 h-5 text-stone-600" />
+            )}
+          </Link>
         </div>
       </div>
     </header>
+    
   );
 }

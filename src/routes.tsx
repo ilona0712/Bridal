@@ -7,6 +7,7 @@ import ChatWithOwnerPage from "./pages/ChatWithOwnerPage";
 import AdminPage from "./pages/AdminPage";
 import GalleryPage from "./pages/GalleryPage";
 import AdminRoute from "./AdminRoute";
+import ProfilePage from "./pages/ProfilePage";
 
 export const router = createBrowserRouter([
   { path: "/", element: <HomePage /> },
@@ -15,6 +16,7 @@ export const router = createBrowserRouter([
   { path: "/gallery", element: <GalleryPage /> },
   { path: "/isabella", element: <IsabellaPage /> },
   { path: "/chat", element: <ChatWithOwnerPage /> },
+  { path: "/profile", element: <ProfilePage /> },
   { path: "/home", element: <HomePage /> },
   { 
     path: "/admin", 
