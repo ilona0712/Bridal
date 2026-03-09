@@ -38,7 +38,7 @@ export default function DressCard({
           <Heart className="w-5 h-5 text-stone-600" />
         </div>
         <div className="absolute top-3 left-3 px-3 py-1 bg-stone-800/70 backdrop-blur-sm rounded-full">
-          <span className="text-xs text-white">{dress.collection}</span>
+          <span className="text-xs text-white">{dress.collections[0]}</span>
         </div>
       </div>
 

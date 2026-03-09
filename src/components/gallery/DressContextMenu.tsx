@@ -49,7 +49,7 @@ export default function DressContextMenu({
       <div className="px-4 py-3 space-y-2">
         <div className="flex justify-between items-center">
           <span className="text-xs text-stone-500">Collection</span>
-          <span className="text-xs text-stone-800">{dress.collection}</span>
+          <span className="text-xs text-stone-800">{dress.collections.join(" • ")}</span>
         </div>
         <div className="flex justify-between items-center">
           <span className="text-xs text-stone-500">Neckline</span>

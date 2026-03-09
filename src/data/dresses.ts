@@ -4,7 +4,7 @@ export const dresses: Dress[] = [
   {
     id: 1,
     name: "Ethereal Grace",
-    collection: "Classic Romance",
+    collections: ["Classic Romance"],
     price: 3850,
     image:
       "https://images.unsplash.com/photo-1770757588092-6fd47f8a2985?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGVnYW50JTIwd2hpdGUlMjB3ZWRkaW5nJTIwZHJlc3N8ZW58MXx8fHwxNzcwODk2NjM4fDA&ixlib=rb-4.1.0&q=80&w=1080",
@@ -19,7 +19,7 @@ export const dresses: Dress[] = [
   {
     id: 2,
     name: "Royal Elegance",
-    collection: "Royal Collection",
+    collections: ["Royal Collection"],
     price: 5200,
     image:
       "https://images.unsplash.com/photo-1768586471676-6af1d219e99e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGVnYW50JTIwYmFsbGdvd24lMjB3ZWRkaW5nJTIwZHJlc3N8ZW58MXx8fHwxNzcxOTUwMzM2fDA&ixlib=rb-4.1.0&q=80&w=1080",
@@ -34,7 +34,7 @@ export const dresses: Dress[] = [
   {
     id: 3,
     name: "Modern Muse",
-    collection: "Contemporary",
+    collections: ["Contemporary"],
     price: 4100,
     image:
       "https://images.unsplash.com/photo-1732950217690-dca11b6f7353?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtZXJtYWxpZCUyMHdlZGRpbmclMjBkcmVzcyUyMGZpdHRlJTIwcmV2aWV3JTIwZGV0YWlscyUyMGxhY2V8ZW58MXx8fHwxNzcxOTUwMzM3fDA&ixlib=rb-4.1.0&q=80&w=1080",
@@ -49,7 +49,7 @@ export const dresses: Dress[] = [
   {
     id: 4,
     name: "Bohemian Dream",
-    collection: "Boho Chic",
+    collections: ["Boho Chic"],
     price: 3200,
     image:
       "https://images.unsplash.com/photo-1581357421952-cbe61a77b7a1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxib2hlbWlhbiUyMHdlZGRpbmclMjBkcmVzcyUyMGxhY2V8ZW58MXx8fHwxNzcxOTUwMzM3fDA&ixlib=rb-4.1.0&q=80&w=1080",
@@ -64,7 +64,7 @@ export const dresses: Dress[] = [
   {
     id: 5,
     name: "Vintage Romance",
-    collection: "Vintage Collection",
+    collections: ["Vintage Collection"],
     price: 4500,
     image:
       "https://images.unsplash.com/photo-1681714552617-fe3f4cf4be47?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx2aW50YWdlJTIwd2VkZGluZyUyMGRyZXNzJTIwYmVhZGVkfGVufDF8fHx8MTc3MTk1MDMzN3ww&ixlib=rb-4.1.0&q=80&w=1080",
@@ -79,7 +79,7 @@ export const dresses: Dress[] = [
   {
     id: 6,
     name: "Minimalist Bride",
-    collection: "Contemporary",
+    collections: ["Contemporary"],
     price: 3650,
     image:
       "https://images.unsplash.com/photo-1689247004420-5ac544f3cf29?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjB3ZWRkaW5nJTIwZHJlc3MlMjBzbGVla3xlbnwxfHx8fDE3NzE5NTAzMzh8MA&ixlib=rb-4.1.0&q=80&w=1080",
@@ -94,7 +94,7 @@ export const dresses: Dress[] = [
   {
     id: 7,
     name: "Timeless Beauty",
-    collection: "Classic Romance",
+    collections: ["Classic Romance"],
     price: 4800,
     image:
       "https://images.unsplash.com/photo-1735712954543-67a25a6998c8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjBicmlkYWwlMjBib3V0aXF1ZXxlbnwxfHx8fDE3NzA4OTY2Mzl8MA&ixlib=rb-4.1.0&q=80&w=1080",
@@ -109,7 +109,7 @@ export const dresses: Dress[] = [
   {
     id: 8,
     name: "Garden Party",
-    collection: "Boho Chic",
+    collections: ["Boho Chic"],
     price: 3400,
     image:
       "https://images.unsplash.com/photo-1766104797322-3826d7158c64?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3ZWRkaW5nJTIwZHJlc3MlMjBmaXR0aW5nJTIwYnJpZGV8ZW58MXx8fHwxNzcwODk2NjM5fDA&ixlib=rb-4.1.0&q=80&w=1080",
@@ -124,7 +124,7 @@ export const dresses: Dress[] = [
   {
     id: 9,
     name: "Regal Princess",
-    collection: "Royal Collection",
+    collections: ["Royal Collection"],
     price: 5800,
     image:
       "https://images.unsplash.com/photo-1759893362613-8bb8bb057af1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxicmlkYWwlMjBnb3duJTIwZGV0YWlscyUyMGxhY2V8ZW58MXx8fHwxNzcwODk2NjM4fDA&ixlib=rb-4.1.0&q=80&w=1080",
@@ -139,7 +139,7 @@ export const dresses: Dress[] = [
   {
     id: 10,
     name: "Sophisticated Lady",
-    collection: "Contemporary",
+    collections: ["Contemporary"],
     price: 4300,
     image:
       "https://images.unsplash.com/photo-1681490395226-36e00f9bbd2b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxicmlkYWwlMjB2ZWlsJTIwZGVsaWNhdGV8ZW58MXx8fHwxNzcwODk2OTAwfDA&ixlib=rb-4.1.0&q=80&w=1080",
@@ -154,7 +154,7 @@ export const dresses: Dress[] = [
   {
     id: 11,
     name: "Enchanted Evening",
-    collection: "Vintage Collection",
+    collections: ["Vintage Collection"],
     price: 4700,
     image:
       "https://images.unsplash.com/photo-1761671613669-3b17b4a71bb9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxicmlkZSUyMHNtaWxpbmclMjBoYXBweSUyMGVsZWdhbnR8ZW58MXx8fHwxNzcwODk2ODk5fDA&ixlib=rb-4.1.0&q=80&w=1080",
@@ -169,7 +169,7 @@ export const dresses: Dress[] = [
   {
     id: 12,
     name: "Free Spirit",
-    collection: "Boho Chic",
+    collections: ["Boho Chic"],
     price: 2950,
     image:
       "https://images.unsplash.com/photo-1770757588092-6fd47f8a2985?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGVnYW50JTIwd2hpdGUlMjB3ZWRkaW5nJTIwZHJlc3N8ZW58MXx8fHwxNzcwODk2NjM4fDA&ixlib=rb-4.1.0&q=80&w=1080",

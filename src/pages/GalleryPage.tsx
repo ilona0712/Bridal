@@ -21,8 +21,13 @@ import GalleryFilters from "../components/gallery/GalleryFilters";
 import DressCard from "../components/gallery/DressCard";
 import DressDetailsModal from "../components/gallery/DressDetailsModal";
 import DressContextMenu from "../components/gallery/DressContextMenu";
+import CreateCollectionModal from "../components/gallery/CreateCollectionModal";
 
 export default function GalleryPage() {
+  //creating state for 'create collection' feature
+  const [allCollections, setAllCollections] = useState<string[]>(collections);
+  const [showCreateCollectionModal, setShowCreateCollectionModal] =
+    useState(false);
   //creating state for dresses for hide/show + deleting dresses feature
   const [allDresses, setAllDresses] = useState<Dress[]>(initialDresses);
   const visibleBaseDresses = isAdmin
@@ -60,7 +65,10 @@ export default function GalleryPage() {
   };
   //filtering from visibleBaseDresses instead of dresses
   const filteredDresses = visibleBaseDresses.filter((dress) => {
-    if (selectedCollection !== "All" && dress.collection !== selectedCollection)
+    if (
+      selectedCollection !== "All" &&
+      !dress.collections.includes(selectedCollection)
+    )
       return false;
     if (selectedSize !== null && !dress.sizes.includes(selectedSize))
       return false;
@@ -105,6 +113,62 @@ export default function GalleryPage() {
       setContextMenu({ visible: false, x: 0, y: 0, dress: null });
     }
   };
+  //3 custom functions for creating collections
+  const addCollection = (newCollectionName: string) => {
+    const trimmed = newCollectionName.trim();
+    if (!trimmed) return;
+
+    setAllCollections((prev) => {
+      if (prev.includes(trimmed)) return prev;
+      return [...prev, trimmed];
+    });
+  };
+
+  const addDressToCollection = (dressId: number, collectionName: string) => {
+    setAllDresses((prev) =>
+      prev.map((dress) =>
+        dress.id === dressId && !dress.collections.includes(collectionName)
+          ? { ...dress, collections: [...dress.collections, collectionName] }
+          : dress,
+      ),
+    );
+  };
+
+  const createCollection = (name: string, selectedDressIds: number[]) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+
+    setAllCollections((prev) =>
+      prev.includes(trimmed) ? prev : [...prev, trimmed],
+    );
+
+    setAllDresses((prev) =>
+      prev.map((dress) =>
+        selectedDressIds.includes(dress.id) &&
+        !dress.collections.includes(trimmed)
+          ? { ...dress, collections: [...dress.collections, trimmed] }
+          : dress,
+      ),
+    );
+  };
+
+  const removeDressFromCollection = (
+    dressId: number,
+    collectionName: string,
+  ) => {
+    setAllDresses((prev) =>
+      prev.map((dress) =>
+        dress.id === dressId
+          ? {
+              ...dress,
+              collections: dress.collections.filter(
+                (name) => name !== collectionName,
+              ),
+            }
+          : dress,
+      ),
+    );
+  };
 
   const clearFilters = () => {
     setSelectedCollection("All");
@@ -133,7 +197,15 @@ export default function GalleryPage() {
               {filteredDresses.length} gowns available
             </p>
           </div>
-
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={() => setShowCreateCollectionModal(true)}
+              className="px-4 py-2 bg-stone-800 text-white rounded-xl hover:bg-stone-700 transition-all"
+            >
+              Add a new collection
+            </button>
+          )}
           <button
             onClick={() => setShowFilters(!showFilters)}
             className="lg:hidden flex items-center gap-2 px-4 py-2 bg-white/60 border border-stone-200 rounded-xl text-stone-700 hover:bg-stone-50/50 transition-all"
@@ -153,7 +225,7 @@ export default function GalleryPage() {
             selectedFabric={selectedFabric}
             selectedTrainLength={selectedTrainLength}
             selectedSleeveStyle={selectedSleeveStyle}
-            collections={collections}
+            collections={allCollections}
             sizes={sizes}
             necklines={necklines}
             silhouettes={silhouettes}
@@ -191,9 +263,9 @@ export default function GalleryPage() {
                     dress={dress}
                     onViewDetails={setSelectedDress}
                     onRightClick={handleRightClick}
-                    isAdmin={isAdmin}//added for hide/show + deleting dress feature
-                    onToggleVisibility={toggleDressVisibility}//added for hide/show + deleting dress feature
-                    onDelete={deleteDress}//added for hide/show + deleting dress feature
+                    isAdmin={isAdmin} //added for hide/show + deleting dress feature
+                    onToggleVisibility={toggleDressVisibility} //added for hide/show + deleting dress feature
+                    onDelete={deleteDress} //added for hide/show + deleting dress feature
                   />
                 ))}
               </div>
@@ -202,6 +274,14 @@ export default function GalleryPage() {
         </div>
       </div>
 
+      {showCreateCollectionModal && (
+        <CreateCollectionModal
+          dresses={allDresses}
+          existingCollections={allCollections}
+          onClose={() => setShowCreateCollectionModal(false)}
+          onCreateCollection={createCollection}
+        />
+      )}
       {selectedDress && (
         <DressDetailsModal
           dress={selectedDress}

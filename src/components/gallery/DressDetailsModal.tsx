@@ -38,7 +38,7 @@ export default function DressDetailsModal({
           <div className="space-y-6">
             <div>
               <span className="inline-block px-3 py-1 bg-stone-800/70 text-white text-xs rounded-full mb-4">
-                {dress.collection}
+                {dress.collections.join(" • ")}
               </span>
               <p className="text-sm text-stone-500">
                 Available in sizes {dress.sizes[0]}-
