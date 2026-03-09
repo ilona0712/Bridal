@@ -7,19 +7,23 @@ type DressCardProps = {
   dress: Dress;
   onViewDetails: (dress: Dress) => void;
   onRightClick: (e: MouseEvent, dress: Dress) => void;
-  isAdmin: boolean; //added for hide/show + deleting dress feature
-  onToggleVisibility: (dressId: number) => void; //added for hide/show + deleting dress feature
-  onDelete: (dressId: number) => void; //added for hide/show + deleting dress feature
+  isAdmin: boolean;
+  onToggleVisibility: (dressId: number) => void;
+  onDelete: (dressId: number) => void;
+  isFavorite: boolean;
+  onToggleFavorite: (dressId: number) => void;
 };
 
 export default function DressCard({
   dress,
   onViewDetails,
   onRightClick,
-  isAdmin, //added for hide/show + deleting dress feature
-  onToggleVisibility, //added for hide/show + deleting dress feature
-  onDelete, //added for hide/show + deleting dress feature
-}: DressCardProps) {
+  isAdmin,
+  onToggleVisibility,
+  onDelete,
+  isFavorite,
+  onToggleFavorite,
+}: DressCardProps)  {
   return (
     <div
       className="bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg border border-stone-200/50 overflow-hidden hover:shadow-xl transition-shadow group"
@@ -34,9 +38,22 @@ export default function DressCard({
           alt={dress.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
-        <div className="absolute top-3 right-3 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center cursor-pointer hover:bg-white transition-colors">
-          <Heart className="w-5 h-5 text-stone-600" />
-        </div>
+        {!isAdmin && (
+  <button
+    type="button"
+    onClick={(e) => {
+      e.stopPropagation();
+      onToggleFavorite(dress.id);
+    }}
+    className="absolute top-3 right-3 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center cursor-pointer hover:bg-white transition-colors"
+  >
+    <Heart
+      className={`w-5 h-5 ${
+        isFavorite ? "fill-pink-400 text-pink-400" : "text-stone-600"
+      }`}
+    />
+  </button>
+)}
         <div className="absolute top-3 left-3 px-3 py-1 bg-stone-800/70 backdrop-blur-sm rounded-full">
           <span className="text-xs text-white">{dress.collections[0]}</span>
         </div>

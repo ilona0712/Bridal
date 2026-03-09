@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Sparkles, SlidersHorizontal } from "lucide-react";
 //hide/show + deleting dresses feature imports
@@ -42,6 +42,26 @@ export default function GalleryPage() {
   const [selectedTrainLength, setSelectedTrainLength] = useState("All");
   const [selectedSleeveStyle, setSelectedSleeveStyle] = useState("All");
   const [showFilters, setShowFilters] = useState(false);
+  const [favoriteDressIds, setFavoriteDressIds] = useState<number[]>([]);
+  useEffect(() => {
+  const savedFavorites = localStorage.getItem("favoriteDressIds");
+
+  if (savedFavorites) {
+    setFavoriteDressIds(JSON.parse(savedFavorites));
+  }
+}, []);
+const toggleFavorite = (dressId: number) => {
+  if (isAdmin) return;
+
+  setFavoriteDressIds((prev) => {
+    const updated = prev.includes(dressId)
+      ? prev.filter((id) => id !== dressId)
+      : [...prev, dressId];
+
+    localStorage.setItem("favoriteDressIds", JSON.stringify(updated));
+    return updated;
+  });
+};
   const [selectedDress, setSelectedDress] = useState<Dress | null>(null);
   const [contextMenu, setContextMenu] = useState<{
     visible: boolean;
@@ -259,14 +279,16 @@ export default function GalleryPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 {filteredDresses.map((dress) => (
                   <DressCard
-                    key={dress.id}
-                    dress={dress}
-                    onViewDetails={setSelectedDress}
-                    onRightClick={handleRightClick}
-                    isAdmin={isAdmin} //added for hide/show + deleting dress feature
-                    onToggleVisibility={toggleDressVisibility} //added for hide/show + deleting dress feature
-                    onDelete={deleteDress} //added for hide/show + deleting dress feature
-                  />
+  key={dress.id}
+  dress={dress}
+  onViewDetails={setSelectedDress}
+  onRightClick={handleRightClick}
+  isAdmin={isAdmin}
+  onToggleVisibility={toggleDressVisibility}
+  onDelete={deleteDress}
+  isFavorite={favoriteDressIds.includes(dress.id)}
+  onToggleFavorite={toggleFavorite}
+/>
                 ))}
               </div>
             )}
