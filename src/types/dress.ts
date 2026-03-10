@@ -1,6 +1,6 @@
 //added isVisible for deleting + hide/show dresses feature
 export interface Dress {
-  id: number;
+  id: string;
   name: string;
   collections: string[];
   price: number;

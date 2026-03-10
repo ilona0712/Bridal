@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Sparkles, SlidersHorizontal } from "lucide-react";
-//hide/show + deleting dresses feature imports
-import { dresses as initialDresses } from "../data/dresses";
+import { supabase } from "../../lib/supabase";
 import { isAdmin } from "../auth";
-/////////////////////////////////////
 import {
   collections,
   sizes,
@@ -24,16 +22,18 @@ import DressContextMenu from "../components/gallery/DressContextMenu";
 import CreateCollectionModal from "../components/gallery/CreateCollectionModal";
 
 export default function GalleryPage() {
-  //creating state for 'create collection' feature
   const [allCollections, setAllCollections] = useState<string[]>(collections);
   const [showCreateCollectionModal, setShowCreateCollectionModal] =
     useState(false);
-  //creating state for dresses for hide/show + deleting dresses feature
-  const [allDresses, setAllDresses] = useState<Dress[]>(initialDresses);
+
+  const [allDresses, setAllDresses] = useState<Dress[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const visibleBaseDresses = isAdmin
     ? allDresses
     : allDresses.filter((dress) => dress.isVisible);
-  ///////////////////////
+
   const [selectedCollection, setSelectedCollection] = useState("All");
   const [selectedSize, setSelectedSize] = useState<number | null>(null);
   const [selectedNeckline, setSelectedNeckline] = useState("All");
@@ -42,26 +42,30 @@ export default function GalleryPage() {
   const [selectedTrainLength, setSelectedTrainLength] = useState("All");
   const [selectedSleeveStyle, setSelectedSleeveStyle] = useState("All");
   const [showFilters, setShowFilters] = useState(false);
-  const [favoriteDressIds, setFavoriteDressIds] = useState<number[]>([]);
+
+  const [favoriteDressIds, setFavoriteDressIds] = useState<string[]>([]);
+
   useEffect(() => {
-  const savedFavorites = localStorage.getItem("favoriteDressIds");
+    const savedFavorites = localStorage.getItem("favoriteDressIds");
 
-  if (savedFavorites) {
-    setFavoriteDressIds(JSON.parse(savedFavorites));
-  }
-}, []);
-const toggleFavorite = (dressId: number) => {
-  if (isAdmin) return;
+    if (savedFavorites) {
+      setFavoriteDressIds(JSON.parse(savedFavorites));
+    }
+  }, []);
 
-  setFavoriteDressIds((prev) => {
-    const updated = prev.includes(dressId)
-      ? prev.filter((id) => id !== dressId)
-      : [...prev, dressId];
+  const toggleFavorite = (dressId: string) => {
+    if (isAdmin) return;
 
-    localStorage.setItem("favoriteDressIds", JSON.stringify(updated));
-    return updated;
-  });
-};
+    setFavoriteDressIds((prev) => {
+      const updated = prev.includes(dressId)
+        ? prev.filter((id) => id !== dressId)
+        : [...prev, dressId];
+
+      localStorage.setItem("favoriteDressIds", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const [selectedDress, setSelectedDress] = useState<Dress | null>(null);
   const [contextMenu, setContextMenu] = useState<{
     visible: boolean;
@@ -69,6 +73,78 @@ const toggleFavorite = (dressId: number) => {
     y: number;
     dress: Dress | null;
   }>({ visible: false, x: 0, y: 0, dress: null });
+
+  useEffect(() => {
+    const fetchDresses = async () => {
+      setLoading(true);
+      setError(null);
+
+      const { data, error } = await supabase
+        .from("dresses")
+        .select(
+          `
+          id,
+          name,
+          silhouette,
+          base_price,
+          collection_id,
+          collections (
+            name
+          ),
+          dress_images (
+            image_url,
+            is_primary
+          )
+        `,
+        )
+        .eq("status", "published");
+
+      if (error) {
+        console.error(error);
+        setError(error.message);
+        setLoading(false);
+        return;
+      }
+
+      const mappedDresses: Dress[] = (data || []).map((dress: any) => {
+        const primaryImage =
+          dress.dress_images?.find((img: any) => img.is_primary)?.image_url ||
+          dress.dress_images?.[0]?.image_url ||
+          "/placeholder.png";
+
+        const collectionName = Array.isArray(dress.collections)
+          ? dress.collections[0]?.name
+          : dress.collections?.name;
+
+        return {
+          id: dress.id,
+          name: dress.name,
+          collections: collectionName ? [collectionName] : ["Uncategorized"],
+          price: Number(dress.base_price ?? 0),
+          image: primaryImage,
+          sizes: [36, 38, 40, 42],
+          neckline: "V-Neck",
+          silhouette: dress.silhouette || "A-Line",
+          fabric: "Satin",
+          trainLength: "Medium",
+          sleeveStyle: "Sleeveless",
+          isVisible: true,
+        };
+      });
+
+      const dbCollections = Array.from(
+        new Set(
+          mappedDresses.flatMap((dress) => dress.collections).filter(Boolean),
+        ),
+      );
+
+      setAllCollections(["All", ...dbCollections]);
+      setAllDresses(mappedDresses);
+      setLoading(false);
+    };
+
+    fetchDresses();
+  }, []);
 
   const handleClickOutside = () => {
     setContextMenu({ visible: false, x: 0, y: 0, dress: null });
@@ -83,7 +159,7 @@ const toggleFavorite = (dressId: number) => {
       dress,
     });
   };
-  //filtering from visibleBaseDresses instead of dresses
+
   const filteredDresses = visibleBaseDresses.filter((dress) => {
     if (
       selectedCollection !== "All" &&
@@ -111,8 +187,7 @@ const toggleFavorite = (dressId: number) => {
     return true;
   });
 
-  //2 custom functions for hide/show + deleting feature
-  const toggleDressVisibility = (dressId: number) => {
+  const toggleDressVisibility = (dressId: string) => {
     setAllDresses((prev) =>
       prev.map((dress) =>
         dress.id === dressId
@@ -122,7 +197,7 @@ const toggleFavorite = (dressId: number) => {
     );
   };
 
-  const deleteDress = (dressId: number) => {
+  const deleteDress = (dressId: string) => {
     setAllDresses((prev) => prev.filter((dress) => dress.id !== dressId));
 
     if (selectedDress?.id === dressId) {
@@ -133,7 +208,7 @@ const toggleFavorite = (dressId: number) => {
       setContextMenu({ visible: false, x: 0, y: 0, dress: null });
     }
   };
-  //3 custom functions for creating collections
+
   const addCollection = (newCollectionName: string) => {
     const trimmed = newCollectionName.trim();
     if (!trimmed) return;
@@ -144,7 +219,7 @@ const toggleFavorite = (dressId: number) => {
     });
   };
 
-  const addDressToCollection = (dressId: number, collectionName: string) => {
+  const addDressToCollection = (dressId: string, collectionName: string) => {
     setAllDresses((prev) =>
       prev.map((dress) =>
         dress.id === dressId && !dress.collections.includes(collectionName)
@@ -154,7 +229,7 @@ const toggleFavorite = (dressId: number) => {
     );
   };
 
-  const createCollection = (name: string, selectedDressIds: number[]) => {
+  const createCollection = (name: string, selectedDressIds: string[]) => {
     const trimmed = name.trim();
     if (!trimmed) return;
 
@@ -173,7 +248,7 @@ const toggleFavorite = (dressId: number) => {
   };
 
   const removeDressFromCollection = (
-    dressId: number,
+    dressId: string,
     collectionName: string,
   ) => {
     setAllDresses((prev) =>
@@ -214,9 +289,12 @@ const toggleFavorite = (dressId: number) => {
               Our Collection
             </h1>
             <p className="text-stone-600">
-              {filteredDresses.length} gowns available
+              {loading
+                ? "Loading gowns..."
+                : `${filteredDresses.length} gowns available`}
             </p>
           </div>
+
           {isAdmin && (
             <button
               type="button"
@@ -226,6 +304,7 @@ const toggleFavorite = (dressId: number) => {
               Add a new collection
             </button>
           )}
+
           <button
             onClick={() => setShowFilters(!showFilters)}
             className="lg:hidden flex items-center gap-2 px-4 py-2 bg-white/60 border border-stone-200 rounded-xl text-stone-700 hover:bg-stone-50/50 transition-all"
@@ -263,7 +342,15 @@ const toggleFavorite = (dressId: number) => {
           />
 
           <div className="lg:col-span-3">
-            {filteredDresses.length === 0 ? (
+            {loading ? (
+              <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-12 text-center border border-stone-200/50">
+                <p className="text-stone-600">Loading dresses...</p>
+              </div>
+            ) : error ? (
+              <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-12 text-center border border-stone-200/50">
+                <p className="text-red-600 mb-4">Error: {error}</p>
+              </div>
+            ) : filteredDresses.length === 0 ? (
               <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-12 text-center border border-stone-200/50">
                 <p className="text-stone-600 mb-4">
                   No gowns match your filters
@@ -279,16 +366,16 @@ const toggleFavorite = (dressId: number) => {
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 {filteredDresses.map((dress) => (
                   <DressCard
-  key={dress.id}
-  dress={dress}
-  onViewDetails={setSelectedDress}
-  onRightClick={handleRightClick}
-  isAdmin={isAdmin}
-  onToggleVisibility={toggleDressVisibility}
-  onDelete={deleteDress}
-  isFavorite={favoriteDressIds.includes(dress.id)}
-  onToggleFavorite={toggleFavorite}
-/>
+                    key={dress.id}
+                    dress={dress}
+                    onViewDetails={setSelectedDress}
+                    onRightClick={handleRightClick}
+                    isAdmin={isAdmin}
+                    onToggleVisibility={toggleDressVisibility}
+                    onDelete={deleteDress}
+                    isFavorite={favoriteDressIds.includes(dress.id)}
+                    onToggleFavorite={toggleFavorite}
+                  />
                 ))}
               </div>
             )}
@@ -299,11 +386,14 @@ const toggleFavorite = (dressId: number) => {
       {showCreateCollectionModal && (
         <CreateCollectionModal
           dresses={allDresses}
-          existingCollections={allCollections}
+          existingCollections={allCollections.filter(
+            (collection) => collection !== "All",
+          )}
           onClose={() => setShowCreateCollectionModal(false)}
           onCreateCollection={createCollection}
         />
       )}
+
       {selectedDress && (
         <DressDetailsModal
           dress={selectedDress}
