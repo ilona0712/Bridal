@@ -8,10 +8,10 @@ type DressCardProps = {
   onViewDetails: (dress: Dress) => void;
   onRightClick: (e: MouseEvent, dress: Dress) => void;
   isAdmin: boolean;
-  onToggleVisibility: (dressId: number) => void;
-  onDelete: (dressId: number) => void;
+  onToggleVisibility: (dressId: string) => void;
+  onDelete: (dressId: string) => void;
   isFavorite: boolean;
-  onToggleFavorite: (dressId: number) => void;
+  onToggleFavorite: (dressId: string) => void;
 };
 
 export default function DressCard({
@@ -23,7 +23,7 @@ export default function DressCard({
   onDelete,
   isFavorite,
   onToggleFavorite,
-}: DressCardProps)  {
+}: DressCardProps) {
   return (
     <div
       className="bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg border border-stone-200/50 overflow-hidden hover:shadow-xl transition-shadow group"
@@ -38,22 +38,24 @@ export default function DressCard({
           alt={dress.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
+
         {!isAdmin && (
-  <button
-    type="button"
-    onClick={(e) => {
-      e.stopPropagation();
-      onToggleFavorite(dress.id);
-    }}
-    className="absolute top-3 right-3 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center cursor-pointer hover:bg-white transition-colors"
-  >
-    <Heart
-      className={`w-5 h-5 ${
-        isFavorite ? "fill-pink-400 text-pink-400" : "text-stone-600"
-      }`}
-    />
-  </button>
-)}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleFavorite(dress.id);
+            }}
+            className="absolute top-3 right-3 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center cursor-pointer hover:bg-white transition-colors"
+          >
+            <Heart
+              className={`w-5 h-5 ${
+                isFavorite ? "fill-pink-400 text-pink-400" : "text-stone-600"
+              }`}
+            />
+          </button>
+        )}
+
         <div className="absolute top-3 left-3 px-3 py-1 bg-stone-800/70 backdrop-blur-sm rounded-full">
           <span className="text-xs text-white">{dress.collections[0]}</span>
         </div>
@@ -96,7 +98,7 @@ export default function DressCard({
         >
           Request to Rent
         </button>
-        {/*added for hide/show + deleting dress feature */}
+
         {isAdmin && (
           <div className="space-y-2">
             <button
@@ -116,6 +118,7 @@ export default function DressCard({
             </button>
           </div>
         )}
+
         {isAdmin && !dress.isVisible && (
           <div className="absolute bottom-3 left-3 px-3 py-1 bg-red-500/80 rounded-full">
             <span className="text-xs text-white">Hidden</span>
