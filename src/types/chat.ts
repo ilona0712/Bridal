@@ -1,5 +1,6 @@
 export type OwnerChatMessage = {
-  type: "owner" | "user";
-  text: string;
+  type: "user" | "owner";
   time: string;
+  text?: string;
+  audioUrl?: string;
 };

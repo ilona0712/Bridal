@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import EmojiPicker from "emoji-picker-react";
 import Header from "../components/common/Header";
 import type { OwnerChatMessage } from "../types/chat";
 import OwnerChatHeader from "../components/chat/OwnerChatHeader";
@@ -14,7 +15,14 @@ export default function ChatWithOwnerPage() {
       time: "Just now",
     },
   ]);
+
   const [inputValue, setInputValue] = useState("");
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingStream, setRecordingStream] = useState<MediaStream | null>(null);
+
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   const getTime = () =>
     new Date().toLocaleTimeString("en-US", {
@@ -64,6 +72,68 @@ export default function ChatWithOwnerPage() {
     }, 1500);
   };
 
+  const handleEmojiClick = (emojiData: { emoji: string }) => {
+    setInputValue((prev) => prev + emojiData.emoji);
+  };
+
+const handleStartRecording = async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mediaRecorder = new MediaRecorder(stream);
+
+    setRecordingStream(stream);
+    audioChunksRef.current = [];
+    mediaRecorderRef.current = mediaRecorder;
+
+    mediaRecorder.ondataavailable = (event) => {
+      if (event.data.size > 0) {
+        audioChunksRef.current.push(event.data);
+      }
+    };
+
+    mediaRecorder.onstop = () => {
+      const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+      const audioUrl = URL.createObjectURL(audioBlob);
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          type: "user",
+          audioUrl,
+          time: getTime(),
+        },
+      ]);
+
+      setTimeout(() => {
+        setMessages((prev) => [
+          ...prev,
+          {
+            type: "owner",
+            text: "I received your voice message. Thank you! 🎙️",
+            time: getTime(),
+          },
+        ]);
+      }, 1200);
+
+      stream.getTracks().forEach((track) => track.stop());
+      setRecordingStream(null);
+    };
+
+    mediaRecorder.start();
+    setIsRecording(true);
+  } catch (error) {
+    console.error("Microphone access error:", error);
+    alert("Unable to access microphone.");
+  }
+};
+
+const handleStopRecording = () => {
+  if (mediaRecorderRef.current && isRecording) {
+    mediaRecorderRef.current.stop();
+    setIsRecording(false);
+  }
+};
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -71,20 +141,47 @@ export default function ChatWithOwnerPage() {
     }
   };
 
+  useEffect(() => {
+    return () => {
+      messages.forEach((msg) => {
+        if (msg.audioUrl) {
+          URL.revokeObjectURL(msg.audioUrl);
+        }
+      });
+    };
+  }, [messages]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100">
       <Header subtitle="Customer Support" />
+
       <div className="container mx-auto px-6 py-8 max-w-5xl">
         <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-2xl border border-stone-200/50 overflow-hidden">
           <OwnerChatHeader />
+
           <OwnerChatMessagesList messages={messages} />
-          <OwnerChatInput
-            inputValue={inputValue}
-            onInputChange={setInputValue}
-            onSendMessage={handleSendMessage}
-            onKeyDown={handleKeyDown}
-          />
+
+          <div className="relative">
+            {showEmojiPicker && (
+              <div className="absolute bottom-20 left-4 z-20 shadow-xl">
+                <EmojiPicker onEmojiClick={handleEmojiClick} />
+              </div>
+            )}
+
+            <OwnerChatInput
+  inputValue={inputValue}
+  onInputChange={setInputValue}
+  onSendMessage={handleSendMessage}
+  onKeyDown={handleKeyDown}
+  onToggleEmoji={() => setShowEmojiPicker((prev) => !prev)}
+  onStartRecording={handleStartRecording}
+  onStopRecording={handleStopRecording}
+  isRecording={isRecording}
+  recordingStream={recordingStream}
+/>
+          </div>
         </div>
+
         <OwnerChatFeatures />
       </div>
     </div>
