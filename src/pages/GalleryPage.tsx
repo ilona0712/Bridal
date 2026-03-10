@@ -19,12 +19,9 @@ import GalleryFilters from "../components/gallery/GalleryFilters";
 import DressCard from "../components/gallery/DressCard";
 import DressDetailsModal from "../components/gallery/DressDetailsModal";
 import DressContextMenu from "../components/gallery/DressContextMenu";
-import CreateCollectionModal from "../components/gallery/CreateCollectionModal";
 
 export default function GalleryPage() {
   const [allCollections, setAllCollections] = useState<string[]>(collections);
-  const [showCreateCollectionModal, setShowCreateCollectionModal] =
-    useState(false);
 
   const [allDresses, setAllDresses] = useState<Dress[]>([]);
   const [loading, setLoading] = useState(true);
@@ -187,84 +184,6 @@ export default function GalleryPage() {
     return true;
   });
 
-  const toggleDressVisibility = (dressId: string) => {
-    setAllDresses((prev) =>
-      prev.map((dress) =>
-        dress.id === dressId
-          ? { ...dress, isVisible: !dress.isVisible }
-          : dress,
-      ),
-    );
-  };
-
-  const deleteDress = (dressId: string) => {
-    setAllDresses((prev) => prev.filter((dress) => dress.id !== dressId));
-
-    if (selectedDress?.id === dressId) {
-      setSelectedDress(null);
-    }
-
-    if (contextMenu.dress?.id === dressId) {
-      setContextMenu({ visible: false, x: 0, y: 0, dress: null });
-    }
-  };
-
-  const addCollection = (newCollectionName: string) => {
-    const trimmed = newCollectionName.trim();
-    if (!trimmed) return;
-
-    setAllCollections((prev) => {
-      if (prev.includes(trimmed)) return prev;
-      return [...prev, trimmed];
-    });
-  };
-
-  const addDressToCollection = (dressId: string, collectionName: string) => {
-    setAllDresses((prev) =>
-      prev.map((dress) =>
-        dress.id === dressId && !dress.collections.includes(collectionName)
-          ? { ...dress, collections: [...dress.collections, collectionName] }
-          : dress,
-      ),
-    );
-  };
-
-  const createCollection = (name: string, selectedDressIds: string[]) => {
-    const trimmed = name.trim();
-    if (!trimmed) return;
-
-    setAllCollections((prev) =>
-      prev.includes(trimmed) ? prev : [...prev, trimmed],
-    );
-
-    setAllDresses((prev) =>
-      prev.map((dress) =>
-        selectedDressIds.includes(dress.id) &&
-        !dress.collections.includes(trimmed)
-          ? { ...dress, collections: [...dress.collections, trimmed] }
-          : dress,
-      ),
-    );
-  };
-
-  const removeDressFromCollection = (
-    dressId: string,
-    collectionName: string,
-  ) => {
-    setAllDresses((prev) =>
-      prev.map((dress) =>
-        dress.id === dressId
-          ? {
-              ...dress,
-              collections: dress.collections.filter(
-                (name) => name !== collectionName,
-              ),
-            }
-          : dress,
-      ),
-    );
-  };
-
   const clearFilters = () => {
     setSelectedCollection("All");
     setSelectedSize(null);
@@ -294,16 +213,6 @@ export default function GalleryPage() {
                 : `${filteredDresses.length} gowns available`}
             </p>
           </div>
-
-          {isAdmin && (
-            <button
-              type="button"
-              onClick={() => setShowCreateCollectionModal(true)}
-              className="px-4 py-2 bg-stone-800 text-white rounded-xl hover:bg-stone-700 transition-all"
-            >
-              Add a new collection
-            </button>
-          )}
 
           <button
             onClick={() => setShowFilters(!showFilters)}
@@ -371,8 +280,6 @@ export default function GalleryPage() {
                     onViewDetails={setSelectedDress}
                     onRightClick={handleRightClick}
                     isAdmin={isAdmin}
-                    onToggleVisibility={toggleDressVisibility}
-                    onDelete={deleteDress}
                     isFavorite={favoriteDressIds.includes(dress.id)}
                     onToggleFavorite={toggleFavorite}
                   />
@@ -382,17 +289,6 @@ export default function GalleryPage() {
           </div>
         </div>
       </div>
-
-      {showCreateCollectionModal && (
-        <CreateCollectionModal
-          dresses={allDresses}
-          existingCollections={allCollections.filter(
-            (collection) => collection !== "All",
-          )}
-          onClose={() => setShowCreateCollectionModal(false)}
-          onCreateCollection={createCollection}
-        />
-      )}
 
       {selectedDress && (
         <DressDetailsModal

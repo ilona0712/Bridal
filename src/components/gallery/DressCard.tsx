@@ -8,8 +8,6 @@ type DressCardProps = {
   onViewDetails: (dress: Dress) => void;
   onRightClick: (e: MouseEvent, dress: Dress) => void;
   isAdmin: boolean;
-  onToggleVisibility: (dressId: string) => void;
-  onDelete: (dressId: string) => void;
   isFavorite: boolean;
   onToggleFavorite: (dressId: string) => void;
 };
@@ -19,8 +17,6 @@ export default function DressCard({
   onViewDetails,
   onRightClick,
   isAdmin,
-  onToggleVisibility,
-  onDelete,
   isFavorite,
   onToggleFavorite,
 }: DressCardProps) {
@@ -98,32 +94,6 @@ export default function DressCard({
         >
           Request to Rent
         </button>
-
-        {isAdmin && (
-          <div className="space-y-2">
-            <button
-              type="button"
-              onClick={() => onToggleVisibility(dress.id)}
-              className="w-full py-2 bg-stone-100 text-stone-700 rounded-lg text-sm"
-            >
-              {dress.isVisible ? "Hide Dress" : "Show Dress"}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => onDelete(dress.id)}
-              className="w-full py-2 bg-red-100 text-red-700 rounded-lg text-sm"
-            >
-              Delete Dress
-            </button>
-          </div>
-        )}
-
-        {isAdmin && !dress.isVisible && (
-          <div className="absolute bottom-3 left-3 px-3 py-1 bg-red-500/80 rounded-full">
-            <span className="text-xs text-white">Hidden</span>
-          </div>
-        )}
       </div>
     </div>
   );
