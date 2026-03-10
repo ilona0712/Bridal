@@ -1,31 +1,97 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Sparkles, Upload, ArrowLeft, Plus } from "lucide-react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type DragEvent,
+  type FormEvent,
+} from "react";
 import Header from "../components/common/Header";
-import { ImageWithFallback } from "../figma/ImageWithFallback";
+import AdminCollectionsTab from "../components/admin/AdminCollectionsTab";
+import AdminDressFormTab from "../components/admin/AdminDressFormTab";
+import AdminDressListTab from "../components/admin/AdminDressListTab";
+import AdminPageHeader from "../components/admin/AdminPageHeader";
+import AdminTabs from "../components/admin/AdminTabs";
+import type {
+  ActiveTab,
+  DressFormData,
+  EditingCollection,
+} from "../types/admin";
+import type { Dress } from "../types/dress";
+import { adminMockDresses } from "../data/adminMockDresses";
+
+
 
 export default function AdminPage() {
-  const [formData, setFormData] = useState({
-    name: "",
-    collection: "Classic Romance",
-    image: "",
-    sizes: [] as number[],
-    neckline: "Sweetheart",
-    silhouette: "A-Line",
-    fabric: "Lace",
-    trainLength: "Chapel",
-    sleeveStyle: "Cap Sleeve",
+  const [activeTab, setActiveTab] = useState<ActiveTab>("list");
+
+  const [dresses, setDresses] = useState<Dress[]>(() => {
+    const saved = localStorage.getItem("brideMeUpDresses");
+    if (!saved) return adminMockDresses;
+
+    const parsed = JSON.parse(saved);
+
+    return parsed.map((dress: any) => ({
+      ...dress,
+      id: String(dress.id),
+      price: Number(dress.price ?? 0),
+      collections: Array.isArray(dress.collections)
+        ? dress.collections
+        : dress.collection
+          ? [dress.collection]
+          : [],
+      isVisible:
+        typeof dress.isVisible === "boolean"
+          ? dress.isVisible
+          : typeof dress.visible === "boolean"
+            ? dress.visible
+            : true,
+    }));
   });
 
-  const [selectedSizes, setSelectedSizes] = useState<number[]>([]);
+  const [collections, setCollections] = useState<string[]>(() => {
+    const saved = localStorage.getItem("brideMeUpCollections");
+    return saved
+      ? JSON.parse(saved)
+      : [
+          "Classic Romance",
+          "Royal Collection",
+          "Contemporary",
+          "Boho Chic",
+          "Vintage Collection",
+        ];
+  });
 
-  const collections = [
-    "Classic Romance",
-    "Royal Collection",
-    "Contemporary",
-    "Boho Chic",
-    "Vintage Collection",
-  ];
+  const [editingDress, setEditingDress] = useState<Dress | null>(null);
+  const [newCollectionName, setNewCollectionName] = useState("");
+  const [editingCollection, setEditingCollection] =
+    useState<EditingCollection | null>(null);
+  const [addingCollectionMode, setAddingCollectionMode] = useState(false);
+  const [selectedDressesForCollection, setSelectedDressesForCollection] =
+    useState<string[]>([]);
+  const [
+    selectedDressesForEditCollection,
+    setSelectedDressesForEditCollection,
+  ] = useState<string[]>([]);
+  const [showDressSelectionForEdit, setShowDressSelectionForEdit] =
+    useState(false);
+  const [dragActive, setDragActive] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [formData, setFormData] = useState<DressFormData>({
+    name: "",
+    collections: [],
+    price: 0,
+    image: "",
+    sizes: [],
+    neckline: "",
+    silhouette: "",
+    fabric: "",
+    trainLength: "",
+    sleeveStyle: "",
+  });
+
   const necklines = [
     "Sweetheart",
     "Off-Shoulder",
@@ -34,10 +100,42 @@ export default function AdminPage() {
     "Square",
     "Illusion",
     "Scoop",
+    "Bateau",
+    "Jewel",
   ];
-  const silhouettes = ["A-Line", "Ball Gown", "Mermaid", "Sheath", "Fit & Flare", "Empire"];
-  const fabrics = ["Lace", "Satin", "Crepe", "Chiffon", "Tulle", "Organza", "Mikado"];
-  const trainLengths = ["No Train", "Sweep", "Court", "Chapel", "Cathedral", "Royal"];
+
+  const silhouettes = [
+    "A-Line",
+    "Ball Gown",
+    "Mermaid",
+    "Sheath",
+    "Fit & Flare",
+    "Empire",
+    "Trumpet",
+  ];
+
+  const fabrics = [
+    "Lace",
+    "Satin",
+    "Crepe",
+    "Chiffon",
+    "Tulle",
+    "Organza",
+    "Mikado",
+    "Silk",
+    "Taffeta",
+  ];
+
+  const trainLengths = [
+    "No Train",
+    "Sweep",
+    "Court",
+    "Chapel",
+    "Cathedral",
+    "Royal",
+    "Monarch",
+  ];
+
   const sleeveStyles = [
     "Sleeveless",
     "Cap Sleeve",
@@ -45,304 +143,425 @@ export default function AdminPage() {
     "Long Sleeve",
     "Three-Quarter",
     "Off-Shoulder",
+    "Bell Sleeve",
   ];
+
   const availableSizes = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26];
 
+  useEffect(() => {
+    localStorage.setItem("brideMeUpDresses", JSON.stringify(dresses));
+  }, [dresses]);
+
+  useEffect(() => {
+    localStorage.setItem("brideMeUpCollections", JSON.stringify(collections));
+  }, [collections]);
+
   const handleSizeToggle = (size: number) => {
-    setSelectedSizes((prev) =>
-      prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size].sort((a, b) => a - b)
+    setFormData((prev) => ({
+      ...prev,
+      sizes: prev.sizes.includes(size)
+        ? prev.sizes.filter((s) => s !== size)
+        : [...prev.sizes, size].sort((a, b) => a - b),
+    }));
+  };
+
+  const handleCollectionToggle = (collection: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      collections: prev.collections.includes(collection)
+        ? prev.collections.filter((c) => c !== collection)
+        : [...prev.collections, collection],
+    }));
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      collections: [],
+      price: 0,
+      image: "",
+      sizes: [],
+      neckline: "",
+      silhouette: "",
+      fabric: "",
+      trainLength: "",
+      sleeveStyle: "",
+    });
+    setEditingDress(null);
+  };
+
+  const handleDrag = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFile(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleFileInput = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      handleFile(e.target.files[0]);
+    }
+  };
+
+  const handleFile = (file: File) => {
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      const result = e.target?.result;
+
+      if (typeof result === "string") {
+        setFormData((prev) => ({
+          ...prev,
+          image: result,
+        }));
+      }
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!formData.name.trim()) {
+      alert("Dress name is required!");
+      return;
+    }
+
+    if (!formData.image.trim()) {
+      alert("At least one image is required!");
+      return;
+    }
+
+    if (formData.collections.length === 0) {
+      alert("Please select at least one collection!");
+      return;
+    }
+
+    if (editingDress) {
+      setDresses((prev) =>
+        prev.map((dress) =>
+          dress.id === editingDress.id
+            ? {
+                ...dress,
+                ...formData,
+              }
+            : dress,
+        ),
+      );
+      alert("Dress updated successfully!");
+    } else {
+      const newDress: Dress = {
+        id: crypto.randomUUID(),
+        ...formData,
+        isVisible: true,
+      };
+
+      setDresses((prev) => [...prev, newDress]);
+      alert("Dress added successfully!");
+    }
+
+    resetForm();
+    setActiveTab("list");
+  };
+
+  const handleEdit = (dress: Dress) => {
+    setEditingDress(dress);
+    setFormData({
+      name: dress.name,
+      collections: dress.collections,
+      price: dress.price,
+      image: dress.image,
+      sizes: dress.sizes,
+      neckline: dress.neckline,
+      silhouette: dress.silhouette,
+      fabric: dress.fabric,
+      trainLength: dress.trainLength,
+      sleeveStyle: dress.sleeveStyle,
+    });
+    setActiveTab("add");
+  };
+
+  const handleDelete = (id: string) => {
+    if (window.confirm("Are you sure you want to delete this dress?")) {
+      setDresses((prev) => prev.filter((dress) => dress.id !== id));
+      alert("Dress deleted successfully!");
+    }
+  };
+
+  const toggleVisibility = (id: string) => {
+    setDresses((prev) =>
+      prev.map((dress) =>
+        dress.id === id ? { ...dress, isVisible: !dress.isVisible } : dress,
+      ),
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAddCollection = () => {
+    const trimmedName = newCollectionName.trim();
 
-    const dressData = {
-      ...formData,
-      sizes: selectedSizes,
-    };
+    if (!trimmedName) {
+      alert("Collection name cannot be empty!");
+      return;
+    }
 
-    console.log("New Dress Data:", dressData);
-    alert("Dress added successfully! (Demo: data is logged to console)");
+    if (collections.includes(trimmedName)) {
+      alert("Collection already exists!");
+      return;
+    }
 
-    // Reset
-    setFormData({
-      name: "",
-      collection: "Classic Romance",
-      image: "",
-      sizes: [],
-      neckline: "Sweetheart",
-      silhouette: "A-Line",
-      fabric: "Lace",
-      trainLength: "Chapel",
-      sleeveStyle: "Cap Sleeve",
-    });
-    setSelectedSizes([]);
+    setCollections((prev) => [...prev, trimmedName]);
+
+    if (selectedDressesForCollection.length > 0) {
+      setDresses((prev) =>
+        prev.map((dress) =>
+          selectedDressesForCollection.includes(dress.id) &&
+          !dress.collections.includes(trimmedName)
+            ? { ...dress, collections: [...dress.collections, trimmedName] }
+            : dress,
+        ),
+      );
+    }
+
+    setNewCollectionName("");
+    setSelectedDressesForCollection([]);
+    setAddingCollectionMode(false);
+    alert("Collection added successfully!");
+  };
+
+  const handleUpdateCollection = () => {
+    if (!editingCollection) return;
+
+    const trimmedName = editingCollection.new.trim();
+
+    if (!trimmedName) {
+      alert("Collection name cannot be empty!");
+      return;
+    }
+
+    if (
+      collections.includes(trimmedName) &&
+      editingCollection.old !== trimmedName
+    ) {
+      alert("Collection name already exists!");
+      return;
+    }
+
+    setCollections((prev) =>
+      prev.map((collection) =>
+        collection === editingCollection.old ? trimmedName : collection,
+      ),
+    );
+
+    setDresses((prev) =>
+      prev.map((dress) => ({
+        ...dress,
+        collections: dress.collections.map((collection) =>
+          collection === editingCollection.old ? trimmedName : collection,
+        ),
+      })),
+    );
+
+    if (selectedDressesForEditCollection.length > 0) {
+      setDresses((prev) =>
+        prev.map((dress) =>
+          selectedDressesForEditCollection.includes(dress.id) &&
+          !dress.collections.includes(trimmedName)
+            ? { ...dress, collections: [...dress.collections, trimmedName] }
+            : dress,
+        ),
+      );
+    }
+
+    setEditingCollection(null);
+    setSelectedDressesForEditCollection([]);
+    setShowDressSelectionForEdit(false);
+    alert("Collection updated successfully!");
+  };
+
+  const handleDeleteCollection = (collectionName: string) => {
+    const dressesInCollection = dresses.filter((dress) =>
+      dress.collections.includes(collectionName),
+    );
+
+    if (dressesInCollection.length > 0) {
+      const confirmed = window.confirm(
+        `This collection has ${dressesInCollection.length} dress(es). Deleting will remove this collection from all dresses. Continue?`,
+      );
+
+      if (!confirmed) return;
+    }
+
+    setCollections((prev) =>
+      prev.filter((collection) => collection !== collectionName),
+    );
+
+    setDresses((prev) =>
+      prev.map((dress) => ({
+        ...dress,
+        collections: dress.collections.filter(
+          (collection) => collection !== collectionName,
+        ),
+      })),
+    );
+
+    alert("Collection deleted successfully!");
+  };
+
+  const toggleDressForCollection = (dressId: string) => {
+    setSelectedDressesForCollection((prev) =>
+      prev.includes(dressId)
+        ? prev.filter((id) => id !== dressId)
+        : [...prev, dressId],
+    );
+  };
+
+  const toggleDressForEditCollection = (dressId: string) => {
+    setSelectedDressesForEditCollection((prev) =>
+      prev.includes(dressId)
+        ? prev.filter((id) => id !== dressId)
+        : [...prev, dressId],
+    );
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100">
       <Header />
 
-      <div className="max-w-5xl mx-auto px-6 py-12">
-        {/* Header */}
+      <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="mb-8">
-          <Link
-            to="/gallery"
-            className="inline-flex items-center gap-2 text-stone-600 hover:text-stone-800 mb-4 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Gallery
-          </Link>
+          <AdminPageHeader />
 
-          <div className="flex items-center gap-4 mb-2">
-            <div className="w-14 h-14 bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 rounded-2xl flex items-center justify-center">
-              <Sparkles className="w-7 h-7 text-stone-600" />
-            </div>
-            <div>
-              <h1 className="font-serif text-4xl text-stone-800">Admin Dashboard</h1>
-              <p className="text-stone-500">Add new dresses to the gallery</p>
-            </div>
-          </div>
+          <AdminTabs
+            activeTab={activeTab}
+            dressesCount={dresses.length}
+            isEditingDress={!!editingDress}
+            onListClick={() => {
+              setActiveTab("list");
+              resetForm();
+            }}
+            onAddClick={() => {
+              setActiveTab("add");
+              resetForm();
+            }}
+            onCollectionsClick={() => setActiveTab("collections")}
+          />
         </div>
 
-        <div className="mb-8">
-  <Link
-    to="/gallery?mode=admin"
-    className="inline-flex items-center gap-2 px-5 py-3 bg-stone-800 text-white rounded-2xl hover:bg-stone-700 transition-colors font-medium"
-  >
-    Manage Dresses in Gallery (Edit / Delete)
-  </Link>
+        {activeTab === "list" && (
+          <AdminDressListTab
+            dresses={dresses}
+            onAddDress={() => setActiveTab("add")}
+            onToggleVisibility={toggleVisibility}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        )}
 
-  <p className="text-sm text-stone-500 mt-3">
-    You will be redirected to the Gallery with admin controls enabled.
-  </p>
-</div>
+        {activeTab === "add" && (
+          <AdminDressFormTab
+            formData={formData}
+            collections={collections}
+            dragActive={dragActive}
+            fileInputRef={fileInputRef}
+            availableSizes={availableSizes}
+            necklines={necklines}
+            silhouettes={silhouettes}
+            fabrics={fabrics}
+            trainLengths={trainLengths}
+            sleeveStyles={sleeveStyles}
+            isEditingDress={!!editingDress}
+            onSubmit={handleSubmit}
+            onCancel={() => {
+              resetForm();
+              setActiveTab("list");
+            }}
+            onNameChange={(value) =>
+              setFormData((prev) => ({ ...prev, name: value }))
+            }
+            onCollectionToggle={handleCollectionToggle}
+            onPriceChange={(value) =>
+              setFormData((prev) => ({ ...prev, price: value }))
+            }
+            onImageChange={(value) =>
+              setFormData((prev) => ({ ...prev, image: value }))
+            }
+            onSizeToggle={handleSizeToggle}
+            onNecklineChange={(value) =>
+              setFormData((prev) => ({ ...prev, neckline: value }))
+            }
+            onSilhouetteChange={(value) =>
+              setFormData((prev) => ({ ...prev, silhouette: value }))
+            }
+            onFabricChange={(value) =>
+              setFormData((prev) => ({ ...prev, fabric: value }))
+            }
+            onTrainLengthChange={(value) =>
+              setFormData((prev) => ({ ...prev, trainLength: value }))
+            }
+            onSleeveStyleChange={(value) =>
+              setFormData((prev) => ({ ...prev, sleeveStyle: value }))
+            }
+            onDrag={handleDrag}
+            onDrop={handleDrop}
+            onFileInputChange={handleFileInput}
+          />
+        )}
 
-        {/* Form */}
-        <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 p-8 md:p-12">
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Basic Information */}
-            <div className="space-y-6">
-              <h2 className="text-2xl font-serif text-stone-800 flex items-center gap-2">
-                <Plus className="w-6 h-6" />
-                Basic Information
-              </h2>
-
-              <div className="space-y-2">
-                <label className="text-sm text-stone-700">
-                  Dress Name <span className="text-pink-400/60">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g., Ethereal Grace"
-                  className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 placeholder:text-stone-400"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm text-stone-700">
-                    Collection <span className="text-pink-400/60">*</span>
-                  </label>
-                  <select
-                    required
-                    value={formData.collection}
-                    onChange={(e) => setFormData({ ...formData, collection: e.target.value })}
-                    className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 cursor-pointer"
-                  >
-                    {collections.map((collection) => (
-                      <option key={collection} value={collection}>
-                        {collection}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm text-stone-700">
-                  Image URL <span className="text-pink-400/60">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type="url"
-                    required
-                    value={formData.image}
-                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    placeholder="https://images.unsplash.com/..."
-                    className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 placeholder:text-stone-400"
-                  />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    <Upload className="w-5 h-5 text-stone-400" />
-                  </div>
-                </div>
-                <p className="text-xs text-stone-500">Use Unsplash or other image hosting URLs</p>
-              </div>
-
-              {/* Image Preview */}
-              {formData.image && (
-                <div className="space-y-2">
-                  <label className="text-sm text-stone-700">Image Preview</label>
-                  <div className="aspect-[3/4] max-w-xs rounded-xl overflow-hidden border border-stone-200">
-                    <ImageWithFallback
-                      src={formData.image}
-                      alt="Preview"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Available Sizes */}
-            <div className="space-y-4">
-              <h2 className="text-2xl font-serif text-stone-800">
-                Available Sizes <span className="text-pink-400/60">*</span>
-              </h2>
-              <p className="text-sm text-stone-600">Select all sizes available for this dress</p>
-
-              <div className="grid grid-cols-4 sm:grid-cols-7 md:grid-cols-10 gap-2">
-                {availableSizes.map((size) => (
-                  <button
-                    key={size}
-                    type="button"
-                    onClick={() => handleSizeToggle(size)}
-                    className={`px-4 py-2 rounded-lg border transition-all ${
-                      selectedSizes.includes(size)
-                        ? "bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 border-stone-300 text-stone-800"
-                        : "bg-stone-50/50 border-stone-200 text-stone-600 hover:bg-stone-100/50"
-                    }`}
-                  >
-                    {size}
-                  </button>
-                ))}
-              </div>
-
-              {selectedSizes.length === 0 && (
-                <p className="text-xs text-pink-400/60">Please select at least one size</p>
-              )}
-            </div>
-
-            {/* Dress Attributes */}
-            <div className="space-y-6">
-              <h2 className="text-2xl font-serif text-stone-800">Dress Attributes</h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm text-stone-700">
-                    Neckline <span className="text-pink-400/60">*</span>
-                  </label>
-                  <select
-                    required
-                    value={formData.neckline}
-                    onChange={(e) => setFormData({ ...formData, neckline: e.target.value })}
-                    className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 cursor-pointer"
-                  >
-                    {necklines.map((neckline) => (
-                      <option key={neckline} value={neckline}>
-                        {neckline}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm text-stone-700">
-                    Silhouette <span className="text-pink-400/60">*</span>
-                  </label>
-                  <select
-                    required
-                    value={formData.silhouette}
-                    onChange={(e) => setFormData({ ...formData, silhouette: e.target.value })}
-                    className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 cursor-pointer"
-                  >
-                    {silhouettes.map((silhouette) => (
-                      <option key={silhouette} value={silhouette}>
-                        {silhouette}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm text-stone-700">
-                    Fabric <span className="text-pink-400/60">*</span>
-                  </label>
-                  <select
-                    required
-                    value={formData.fabric}
-                    onChange={(e) => setFormData({ ...formData, fabric: e.target.value })}
-                    className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 cursor-pointer"
-                  >
-                    {fabrics.map((fabric) => (
-                      <option key={fabric} value={fabric}>
-                        {fabric}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm text-stone-700">
-                    Train Length <span className="text-pink-400/60">*</span>
-                  </label>
-                  <select
-                    required
-                    value={formData.trainLength}
-                    onChange={(e) => setFormData({ ...formData, trainLength: e.target.value })}
-                    className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 cursor-pointer"
-                  >
-                    {trainLengths.map((train) => (
-                      <option key={train} value={train}>
-                        {train}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-2 md:col-span-2">
-                  <label className="text-sm text-stone-700">
-                    Sleeve Style <span className="text-pink-400/60">*</span>
-                  </label>
-                  <select
-                    required
-                    value={formData.sleeveStyle}
-                    onChange={(e) => setFormData({ ...formData, sleeveStyle: e.target.value })}
-                    className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 cursor-pointer"
-                  >
-                    {sleeveStyles.map((sleeve) => (
-                      <option key={sleeve} value={sleeve}>
-                        {sleeve}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* Submit */}
-            <div className="flex gap-4 pt-6">
-              <button
-                type="submit"
-                disabled={selectedSizes.length === 0}
-                className="flex-1 py-4 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 text-stone-700 rounded-xl hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-              >
-                Add Dress to Gallery
-              </button>
-
-              <Link
-                to="/gallery"
-                className="px-8 py-4 bg-stone-100/50 border border-stone-200 text-stone-700 rounded-xl hover:bg-stone-200/50 transition-colors font-medium"
-              >
-                Cancel
-              </Link>
-            </div>
-          </form>
-        </div>
+        {activeTab === "collections" && (
+          <AdminCollectionsTab
+            collections={collections}
+            dresses={dresses}
+            newCollectionName={newCollectionName}
+            editingCollection={editingCollection}
+            addingCollectionMode={addingCollectionMode}
+            selectedDressesForCollection={selectedDressesForCollection}
+            selectedDressesForEditCollection={selectedDressesForEditCollection}
+            showDressSelectionForEdit={showDressSelectionForEdit}
+            onNewCollectionNameChange={setNewCollectionName}
+            onToggleAddingCollectionMode={() =>
+              setAddingCollectionMode((prev) => !prev)
+            }
+            onAddCollection={handleAddCollection}
+            onStartEditingCollection={(collectionName) =>
+              setEditingCollection({
+                old: collectionName,
+                new: collectionName,
+              })
+            }
+            onEditingCollectionNameChange={(value) =>
+              setEditingCollection((prev) =>
+                prev ? { ...prev, new: value } : prev,
+              )
+            }
+            onToggleShowDressSelectionForEdit={() =>
+              setShowDressSelectionForEdit((prev) => !prev)
+            }
+            onUpdateCollection={handleUpdateCollection}
+            onCancelEditCollection={() => {
+              setEditingCollection(null);
+              setShowDressSelectionForEdit(false);
+              setSelectedDressesForEditCollection([]);
+            }}
+            onDeleteCollection={handleDeleteCollection}
+            onToggleDressForCollection={toggleDressForCollection}
+            onToggleDressForEditCollection={toggleDressForEditCollection}
+          />
+        )}
       </div>
     </div>
   );
