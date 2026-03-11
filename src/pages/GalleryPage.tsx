@@ -143,13 +143,28 @@ export default function GalleryPage() {
         };
       });
 
+      mappedDresses.push({
+  id: "test1",
+  name: "Test Dress",
+  collections: ["Test Collection"],
+  price: 1000,
+  image: "/placeholder.png",
+  sizes: [36, 38],
+  neckline: "V-Neck",
+  silhouette: "A-Line",
+  fabric: "Satin",
+  trainLength: "Medium",
+  sleeveStyle: "Sleeveless",
+  isVisible: true,
+});
+
       const dbCollections = Array.from(
         new Set(
           mappedDresses.flatMap((dress) => dress.collections).filter(Boolean),
         ),
       );
 
-      setAllCollections(["All", ...dbCollections]);
+      setAllCollections(["All", ...Array.from(new Set(dbCollections))]);
       setAllDresses(mappedDresses);
       setLoading(false);
     };
