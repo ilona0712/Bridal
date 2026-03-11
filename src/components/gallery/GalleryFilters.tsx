@@ -1,6 +1,6 @@
 type GalleryFiltersProps = {
   showFilters: boolean;
-  selectedCollection: string;
+  selectedCollections: string[];
   selectedSize: number | null;
   selectedNeckline: string;
   selectedSilhouette: string;
@@ -14,7 +14,7 @@ type GalleryFiltersProps = {
   fabrics: string[];
   trainLengths: string[];
   sleeveStyles: string[];
-  onCollectionChange: (value: string) => void;
+  onCollectionToggle: (value: string) => void;
   onSizeChange: (value: number | null) => void;
   onNecklineChange: (value: string) => void;
   onSilhouetteChange: (value: string) => void;
@@ -28,7 +28,7 @@ import { X } from "lucide-react";
 
 export default function GalleryFilters({
   showFilters,
-  selectedCollection,
+  selectedCollections,
   selectedSize,
   selectedNeckline,
   selectedSilhouette,
@@ -42,7 +42,7 @@ export default function GalleryFilters({
   fabrics,
   trainLengths,
   sleeveStyles,
-  onCollectionChange,
+  onCollectionToggle,
   onSizeChange,
   onNecklineChange,
   onSilhouetteChange,
@@ -68,30 +68,33 @@ export default function GalleryFilters({
 
           <div className="space-y-6 pb-4">
             <div>
-              <label className="text-sm font-medium text-stone-700 mb-3 block">
-                Collection
-              </label>
-              <div className="space-y-2">
-                {collections.map((collection) => (
-                  <label
-                    key={collection}
-                    className="flex items-center gap-2 cursor-pointer"
-                  >
-                    <input
-                      type="radio"
-                      name="collection"
-                      checked={selectedCollection === collection}
-                      onChange={() => onCollectionChange(collection)}
-                      className="text-pink-300 focus:ring-pink-200/50"
-                    />
-                    <span className="text-sm text-stone-600">
-                      {collection}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
+  <label className="text-sm font-medium text-stone-700 mb-3 block">
+    Collection
+  </label>
+  <div className="space-y-2">
+    {collections.map((collection) => {
+      const isAll = collection === "All";
+      const isChecked = isAll
+        ? selectedCollections.length === 0
+        : selectedCollections.includes(collection);
 
+      return (
+        <label
+          key={collection}
+          className="flex items-center gap-2 cursor-pointer"
+        >
+          <input
+            type="checkbox"
+            checked={isChecked}
+            onChange={() => onCollectionToggle(collection)}
+            className="text-pink-300 focus:ring-pink-200/50 rounded"
+          />
+          <span className="text-sm text-stone-600">{collection}</span>
+        </label>
+      );
+    })}
+  </div>
+</div>
             <div>
               <label className="text-sm font-medium text-stone-700 mb-3 block">
                 Dress Size

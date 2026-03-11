@@ -31,7 +31,7 @@ export default function GalleryPage() {
     ? allDresses
     : allDresses.filter((dress) => dress.isVisible);
 
-  const [selectedCollection, setSelectedCollection] = useState("All");
+  const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
   const [selectedSize, setSelectedSize] = useState<number | null>(null);
   const [selectedNeckline, setSelectedNeckline] = useState("All");
   const [selectedSilhouette, setSelectedSilhouette] = useState("All");
@@ -70,6 +70,20 @@ export default function GalleryPage() {
     y: number;
     dress: Dress | null;
   }>({ visible: false, x: 0, y: 0, dress: null });
+
+  const toggleCollection = (collection: string) => {
+  if (collection === "All") {
+    setSelectedCollections([]);
+    return;
+  }
+
+  setSelectedCollections((prev) =>
+    prev.includes(collection)
+      ? prev.filter((item) => item !== collection)
+      : [...prev, collection],
+  );
+};
+
 
   useEffect(() => {
     const fetchDresses = async () => {
@@ -158,34 +172,50 @@ export default function GalleryPage() {
   };
 
   const filteredDresses = visibleBaseDresses.filter((dress) => {
-    if (
-      selectedCollection !== "All" &&
-      !dress.collections.includes(selectedCollection)
+  if (
+    selectedCollections.length > 0 &&
+    !dress.collections.some((collection) =>
+      selectedCollections.includes(collection),
     )
-      return false;
-    if (selectedSize !== null && !dress.sizes.includes(selectedSize))
-      return false;
-    if (selectedNeckline !== "All" && dress.neckline !== selectedNeckline)
-      return false;
-    if (selectedSilhouette !== "All" && dress.silhouette !== selectedSilhouette)
-      return false;
-    if (selectedFabric !== "All" && dress.fabric !== selectedFabric)
-      return false;
-    if (
-      selectedTrainLength !== "All" &&
-      dress.trainLength !== selectedTrainLength
-    )
-      return false;
-    if (
-      selectedSleeveStyle !== "All" &&
-      dress.sleeveStyle !== selectedSleeveStyle
-    )
-      return false;
-    return true;
-  });
+  ) {
+    return false;
+  }
+
+  if (selectedSize !== null && !dress.sizes.includes(selectedSize)) {
+    return false;
+  }
+
+  if (selectedNeckline !== "All" && dress.neckline !== selectedNeckline) {
+    return false;
+  }
+
+  if (selectedSilhouette !== "All" && dress.silhouette !== selectedSilhouette) {
+    return false;
+  }
+
+  if (selectedFabric !== "All" && dress.fabric !== selectedFabric) {
+    return false;
+  }
+
+  if (
+    selectedTrainLength !== "All" &&
+    dress.trainLength !== selectedTrainLength
+  ) {
+    return false;
+  }
+
+  if (
+    selectedSleeveStyle !== "All" &&
+    dress.sleeveStyle !== selectedSleeveStyle
+  ) {
+    return false;
+  }
+
+  return true;
+});
 
   const clearFilters = () => {
-    setSelectedCollection("All");
+    setSelectedCollections([]);
     setSelectedSize(null);
     setSelectedNeckline("All");
     setSelectedSilhouette("All");
@@ -226,7 +256,7 @@ export default function GalleryPage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <GalleryFilters
             showFilters={showFilters}
-            selectedCollection={selectedCollection}
+            selectedCollections={selectedCollections}
             selectedSize={selectedSize}
             selectedNeckline={selectedNeckline}
             selectedSilhouette={selectedSilhouette}
@@ -240,7 +270,7 @@ export default function GalleryPage() {
             fabrics={fabrics}
             trainLengths={trainLengths}
             sleeveStyles={sleeveStyles}
-            onCollectionChange={setSelectedCollection}
+            onCollectionToggle={toggleCollection}
             onSizeChange={setSelectedSize}
             onNecklineChange={setSelectedNeckline}
             onSilhouetteChange={setSelectedSilhouette}
