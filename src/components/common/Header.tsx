@@ -37,9 +37,7 @@ export default function Header({
     >
       <div className="container mx-auto px-3 sm:px-4 md:px-6 py-3 md:py-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          {/* Top row */}
           <div className="flex items-center justify-between gap-3">
-            {/* Logo */}
             <Link to="/" className="flex min-w-0 items-center gap-2 sm:gap-3">
               <div className="flex h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300">
                 <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-stone-600" />
@@ -55,7 +53,6 @@ export default function Header({
               </div>
             </Link>
 
-            {/* Mobile auth quick actions */}
             {session ? (
               <div className="flex items-center gap-2 lg:hidden">
                 <Link
@@ -84,7 +81,6 @@ export default function Header({
             )}
           </div>
 
-          {/* Bottom row / nav */}
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4">
             {isAdmin && (
               <Link
@@ -116,10 +112,9 @@ export default function Header({
               Consultant
             </Link>
 
-            {/* Chat button */}
             {isAdmin ? (
               <Link
-                to="/chat"
+                to="/clients-chats"
                 className="relative ml-0 sm:ml-1 inline-flex items-center gap-2 rounded-full border border-stone-200/50 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 px-3 sm:px-4 py-2 text-xs sm:text-sm text-stone-700 transition-all hover:shadow-md"
               >
                 <MessageCircle className="h-4 w-4" />
@@ -143,7 +138,6 @@ export default function Header({
               </Link>
             )}
 
-            {/* Desktop auth section */}
             {session ? (
               <div className="hidden lg:flex items-center gap-3 ml-auto">
                 <span className="max-w-[180px] truncate text-sm text-stone-600">

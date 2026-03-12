@@ -6,15 +6,21 @@ import OwnerChatHeader from "../components/chat/OwnerChatHeader";
 import OwnerChatMessagesList from "../components/chat/OwnerChatMessagesList";
 import OwnerChatInput from "../components/chat/OwnerChatInput";
 import OwnerChatFeatures from "../components/chat/OwnerChatFeatures";
+import { useLocation, Link, useNavigate } from "react-router-dom";
 
 export default function ChatWithOwnerPage() {
+  const navigate = useNavigate();
+  const location = useLocation()
+  const selectedClient = location.state?.client
   const [messages, setMessages] = useState<OwnerChatMessage[]>([
-    {
-      type: "owner",
-      text: "Hello! 👋 Welcome to Bride Me Up. I'm Sarah, the owner. How can I help you today?",
-      time: "Just now",
-    },
-  ]);
+  {
+    type: "owner",
+    text: selectedClient
+      ? `Hello ${selectedClient.clientName}! 👋 How can I help you today?`
+      : "Hello! 👋 Welcome to Bride Me Up. I'm Sarah, the owner. How can I help you today?",
+    time: "Just now",
+  },
+]);
 
   const [inputValue, setInputValue] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -153,9 +159,24 @@ const handleStopRecording = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100">
-      <Header subtitle="Customer Support" />
+      <Header subtitle={selectedClient ? "Client Conversation" : "Customer Support"} />
 
       <div className="container mx-auto px-6 py-8 max-w-5xl">
+{selectedClient && (
+  <div className="mb-4 px-5 py-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-stone-200/50">
+    <button
+      onClick={() => navigate("/clients-chats")}
+      className="mb-2 text-sm text-stone-500 hover:text-stone-700"
+    >
+      ← Back to Clients Chats
+    </button>
+
+    <p className="text-sm text-stone-500">Chatting with</p>
+    <h2 className="font-serif text-2xl text-stone-800">
+      {selectedClient.clientName}
+    </h2>
+  </div>
+)}
         <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-2xl border border-stone-200/50 overflow-hidden">
           <OwnerChatHeader />
 

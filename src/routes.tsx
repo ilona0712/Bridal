@@ -12,6 +12,7 @@ import ChatWithOwnerPage from "./pages/ChatWithOwnerPage"
 import AdminPage         from "./pages/AdminPage"
 import GalleryPage       from "./pages/GalleryPage"
 import ProfilePage       from "./pages/ProfilePage"
+import ClientsChatPage from "./pages/ClientsChatPage"
 
 // ── Session context ──────────────────────────────────────────
 export const SessionContext = createContext<Session | null>(null)
@@ -95,4 +96,5 @@ export const router = createBrowserRouter([
 
   // Admin only
   { path: "/admin",    element: <AdminRoute><AdminPage /></AdminRoute> },
+  { path: "/clients-chats", element: <AdminRoute><ClientsChatPage /></AdminRoute> },
 ])
