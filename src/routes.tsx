@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate, useNavigate } from "react-router-dom"
+import { createBrowserRouter, Navigate } from "react-router-dom"
 import { supabase } from "../lib/supabase"
 import { ensureProfile } from "./auth"
 import { useEffect, useState, createContext, useContext } from "react"
@@ -11,12 +11,17 @@ import IsabellaPage      from "./pages/IsabellaPage"
 import ChatWithOwnerPage from "./pages/ChatWithOwnerPage"
 import AdminPage         from "./pages/AdminPage"
 import GalleryPage       from "./pages/GalleryPage"
-import AdminRoute        from "./AdminRoute"
 import ProfilePage       from "./pages/ProfilePage"
 
-// ── Session context — accessible anywhere in the app ────────
+// ── Session context ──────────────────────────────────────────
 export const SessionContext = createContext<Session | null>(null)
 export const useSession = () => useContext(SessionContext)
+
+// ── Role helpers ─────────────────────────────────────────────
+export function useRole() {
+  const session = useSession()
+  return session?.user?.user_metadata?.role ?? null
+}
 
 // ── Root — manages session at top level ─────────────────────
 export function Root({ children }: { children: React.ReactNode }) {
@@ -53,16 +58,29 @@ export function Root({ children }: { children: React.ReactNode }) {
   )
 }
 
-// ── Protected route — redirects to /login if not logged in ──
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+// ── Route guards ─────────────────────────────────────────────
+
+// Must be logged in as customer
+function CustomerRoute({ children, allowAdmin = false }: { children: React.ReactNode, allowAdmin?: boolean }) {
   const session = useSession()
-  if (!session) return <Navigate to="/login" replace />
+  const role    = useRole()
+  if (!session)                        return <Navigate to="/login" replace />
+  if (role === "admin" && !allowAdmin) return <Navigate to="/admin" replace />
+  return <>{children}</>
+}
+
+// Must be logged in as admin
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const session = useSession()
+  const role    = useRole()
+  if (!session)          return <Navigate to="/login" replace />
+  if (role !== "admin")  return <Navigate to="/" replace />
   return <>{children}</>
 }
 
 // ── Router ───────────────────────────────────────────────────
 export const router = createBrowserRouter([
-  // Public
+  // Public — anyone can visit
   { path: "/login",       element: <LoginPage /> },
   { path: "/signup",      element: <SignupPage /> },
   { path: "/check-email", element: <CheckEmailPage /> },
@@ -70,11 +88,11 @@ export const router = createBrowserRouter([
   { path: "/home",        element: <HomePage /> },
   { path: "/gallery",     element: <GalleryPage /> },
 
-  // Protected
-  { path: "/isabella", element: <ProtectedRoute><IsabellaPage /></ProtectedRoute> },
-  { path: "/chat",     element: <ProtectedRoute><ChatWithOwnerPage /></ProtectedRoute> },
-  { path: "/profile",  element: <ProtectedRoute><ProfilePage /></ProtectedRoute> },
+  // Customer only
+  { path: "/isabella", element: <CustomerRoute><IsabellaPage /></CustomerRoute> },
+  { path: "/chat",     element: <CustomerRoute allowAdmin><ChatWithOwnerPage /></CustomerRoute> },
+  { path: "/profile",  element: <CustomerRoute allowAdmin><ProfilePage /></CustomerRoute> },
 
   // Admin only
-  { path: "/admin", element: <AdminRoute><AdminPage /></AdminRoute> },
+  { path: "/admin",    element: <AdminRoute><AdminPage /></AdminRoute> },
 ])
