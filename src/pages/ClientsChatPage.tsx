@@ -66,6 +66,22 @@ export default function ClientsChatPage() {
 
   const unreadCount = conversations.filter((conv) => conv.unread).length
 
+  function highlightText(text: string, query: string) {
+  if (!query) return text
+
+  const parts = text.split(new RegExp(`(${query})`, "gi"))
+
+  return parts.map((part, index) =>
+    part.toLowerCase() === query.toLowerCase() ? (
+      <span key={index} className="text-pink-500 font-semibold">
+        {part}
+      </span>
+    ) : (
+      part
+    )
+  )
+}
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100">
       <Header subtitle="Client Chats" />
@@ -139,8 +155,8 @@ export default function ClientsChatPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between mb-1">
                       <h3 className="font-serif text-lg text-stone-800 group-hover:text-stone-900 transition-colors">
-                        {conversation.clientName}
-                      </h3>
+  {highlightText(conversation.clientName, searchQuery)}
+</h3>
                       <span className="text-xs text-stone-400 flex-shrink-0 ml-2">
                         {conversation.timestamp}
                       </span>
