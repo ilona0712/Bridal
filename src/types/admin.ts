@@ -8,7 +8,7 @@ export type EditingCollection = {
 export type DressFormData = {
   name: string;
   collections: string[];
-  price: number;
+  price: number | null;
   image: string;
   sizes: number[];
   neckline: string;

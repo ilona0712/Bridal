@@ -229,7 +229,7 @@ export default function AdminPage() {
   const [formData, setFormData] = useState<DressFormData>({
     name: "",
     collections: [],
-    price: 0,
+    price: null,
     image: "",
     sizes: [],
     neckline: "",
@@ -342,7 +342,7 @@ export default function AdminPage() {
     setFormData({
       name: "",
       collections: [],
-      price: 0,
+      price: null,
       image: "",
       sizes: [],
       neckline: "",
@@ -679,7 +679,7 @@ export default function AdminPage() {
     setFormData({
       name: dress.name,
       collections: dress.collections,
-      price: dress.price,
+      price: dress.price ?? null,
       image: dress.image,
       sizes: dress.sizes,
       neckline: dress.neckline,

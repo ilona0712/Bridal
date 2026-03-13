@@ -125,14 +125,15 @@ export default function AdminDressFormTab({
 
           <div className="space-y-2">
             <label className="text-sm text-stone-700">
-              Price <span className="text-pink-400/60">*</span>
-            </label>
-            <input
-              type="number"
-              min="0"
-              required
-              value={formData.price}
-              onChange={(e) => onPriceChange(Number(e.target.value))}
+  Price <span className="text-stone-500">(Optional)</span>
+</label>
+<input
+  type="number"
+  min="0"
+  value={formData.price ?? ""}
+  onChange={(e) =>
+    onPriceChange(e.target.value === "" ? 0 : Number(e.target.value))
+  }
               placeholder="e.g., 3500"
               className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 placeholder:text-stone-400"
             />
