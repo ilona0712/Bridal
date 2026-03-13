@@ -526,17 +526,18 @@ export default function AdminPage() {
         }
 
         setDresses((prev) =>
-          prev.map((dress) =>
-            dress.id === editingDress.id
-              ? {
-                  ...dress,
-                  ...formData,
-                  id: editingDress.id,
-                  isVisible: true,
-                }
-              : dress,
-          ),
-        );
+  prev.map((dress) =>
+    dress.id === editingDress.id
+      ? {
+          ...dress,
+          ...formData,
+          id: editingDress.id,
+          price: formData.price ?? 0,
+          isVisible: true,
+        }
+      : dress,
+  ),
+);
 
         alert("Dress updated successfully!");
         resetForm();
