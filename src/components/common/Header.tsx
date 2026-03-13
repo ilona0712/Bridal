@@ -53,32 +53,44 @@ export default function Header({
               </div>
             </Link>
 
-            {session ? (
-              <div className="flex items-center gap-2 lg:hidden">
-                <Link
-                  to="/profile"
-                  className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-stone-300/50 bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 transition-all hover:border-pink-300/50 hover:shadow-md"
-                  title="View Profile"
-                >
-                  <User className="h-4 w-4 text-stone-600" />
-                </Link>
+            {/* DESKTOP USER SECTION */}
+{/* DESKTOP USER SECTION */}
+{session ? (
+  <div className="hidden lg:flex items-center gap-4 ml-auto">
 
-                <button
-                  onClick={handleSignOut}
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-stone-200 text-stone-600 transition-all hover:bg-stone-50 hover:text-stone-800"
-                  title="Sign out"
-                >
-                  <LogOut className="h-4 w-4" />
-                </button>
-              </div>
-            ) : (
-              <Link
-                to="/login"
-                className="lg:hidden rounded-full bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 px-4 py-2 text-sm text-stone-700 transition-all hover:shadow-lg"
-              >
-                Sign In
-              </Link>
-            )}
+    <div className="rounded-full border border-stone-200 bg-white/70 px-4 py-2 shadow-sm">
+      <span className="text-sm text-stone-700">
+        Welcome, <span className="font-semibold">
+          {isAdmin ? "Admin" : displayName || "Customer"}
+        </span>
+      </span>
+    </div>
+
+    <Link
+      to="/profile"
+      className="flex h-10 w-10 items-center justify-center rounded-full border border-stone-200 bg-white/70 hover:bg-stone-50"
+      title="Profile"
+    >
+      <User className="h-5 w-5 text-stone-600" />
+    </Link>
+
+    <button
+      onClick={handleSignOut}
+      className="flex items-center gap-2 rounded-full border border-stone-200 px-4 py-2 text-sm text-stone-600 hover:bg-stone-50"
+    >
+      <LogOut className="h-4 w-4" />
+      Sign Out
+    </button>
+
+  </div>
+) : (
+  <Link
+    to="/login"
+    className="hidden lg:inline-flex ml-auto rounded-full bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 px-6 py-2 text-sm text-stone-700 hover:shadow-md"
+  >
+    Sign In
+  </Link>
+)}
           </div>
 
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4">
@@ -138,40 +150,33 @@ export default function Header({
               </Link>
             )}
 
-            {session ? (
-              <div className="hidden lg:flex items-center gap-3 ml-auto">
-                <span className="max-w-[180px] truncate text-sm text-stone-600">
-                  Hello,{" "}
-                  <span className="font-medium text-stone-800">
-                    {displayName}
-                  </span>
-                </span>
+            {/* MOBILE USER SECTION */}
+{session ? (
+  <div className="flex items-center gap-2 lg:hidden">
+    <Link
+      to="/profile"
+      className="flex h-9 w-9 items-center justify-center rounded-full border border-stone-200 bg-white/70 shadow-sm hover:bg-stone-50"
+      title="Profile"
+    >
+      <User className="h-4 w-4 text-stone-600" />
+    </Link>
 
-                <Link
-                  to="/profile"
-                  className="flex h-10 w-10 items-center justify-center rounded-full overflow-hidden border-2 border-stone-300/50 bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 transition-all hover:border-pink-300/50 hover:shadow-md"
-                  title="View Profile"
-                >
-                  <User className="h-5 w-5 text-stone-600" />
-                </Link>
-
-                <button
-                  onClick={handleSignOut}
-                  className="flex items-center gap-1.5 rounded-full border border-stone-200 px-4 py-2 text-sm text-stone-600 transition-all hover:bg-stone-50 hover:text-stone-800"
-                  title="Sign out"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span>Sign Out</span>
-                </button>
-              </div>
-            ) : (
-              <Link
-                to="/login"
-                className="hidden lg:inline-flex ml-auto rounded-full bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 px-6 py-2 text-sm text-stone-700 transition-all hover:shadow-lg"
-              >
-                Sign In
-              </Link>
-            )}
+    <button
+      onClick={handleSignOut}
+      className="flex h-9 w-9 items-center justify-center rounded-full border border-stone-200 bg-white/70 shadow-sm hover:bg-stone-50"
+      title="Sign out"
+    >
+      <LogOut className="h-4 w-4 text-stone-600" />
+    </button>
+  </div>
+) : (
+  <Link
+    to="/login"
+    className="lg:hidden rounded-full bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 px-4 py-2 text-sm text-stone-700 hover:shadow-md"
+  >
+    Sign In
+  </Link>
+)}
           </div>
         </div>
       </div>
