@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Sparkles, SlidersHorizontal } from "lucide-react";
 import { supabase } from "../../lib/supabase";
-import { isAdmin } from "../auth";
+import { useRole } from "../routes";
 import {
   collections,
   sizes,
@@ -20,6 +20,23 @@ import DressCard from "../components/gallery/DressCard";
 import DressDetailsModal from "../components/gallery/DressDetailsModal";
 import DressContextMenu from "../components/gallery/DressContextMenu";
 
+type GalleryDressRow = {
+  id: string | number;
+  name: string | null;
+  silhouette: string | null;
+  base_price: number | string | null;
+  status: string | null;
+  dress_images?: Array<{
+    image_url: string | null;
+    is_primary: boolean | null;
+  }> | null;
+  dress_collections?: Array<{
+    collections?: {
+      name: string | null;
+    } | null;
+  }> | null;
+};
+
 export default function GalleryPage() {
   const [allCollections, setAllCollections] = useState<string[]>(collections);
 
@@ -27,6 +44,8 @@ export default function GalleryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const role = useRole();
+  const isAdmin = role === "admin";
   const visibleBaseDresses = isAdmin
     ? allDresses
     : allDresses.filter((dress) => dress.isVisible);
@@ -72,18 +91,17 @@ export default function GalleryPage() {
   }>({ visible: false, x: 0, y: 0, dress: null });
 
   const toggleCollection = (collection: string) => {
-  if (collection === "All") {
-    setSelectedCollections([]);
-    return;
-  }
+    if (collection === "All") {
+      setSelectedCollections([]);
+      return;
+    }
 
-  setSelectedCollections((prev) =>
-    prev.includes(collection)
-      ? prev.filter((item) => item !== collection)
-      : [...prev, collection],
-  );
-};
-
+    setSelectedCollections((prev) =>
+      prev.includes(collection)
+        ? prev.filter((item) => item !== collection)
+        : [...prev, collection],
+    );
+  };
 
   useEffect(() => {
     const fetchDresses = async () => {
@@ -98,65 +116,57 @@ export default function GalleryPage() {
           name,
           silhouette,
           base_price,
-          collection_id,
-          collections (
-            name
-          ),
+          status,
           dress_images (
             image_url,
             is_primary
+          ),
+          dress_collections (
+            collections (
+              name
+            )
           )
         `,
         )
-        .eq("status", "published");
+        .returns<GalleryDressRow[]>();
 
       if (error) {
-        console.error(error);
+        console.error("Gallery fetch failed:", error);
         setError(error.message);
         setLoading(false);
         return;
       }
 
-      const mappedDresses: Dress[] = (data || []).map((dress: any) => {
+      const mappedDresses: Dress[] = (data || []).map((dress) => {
         const primaryImage =
-          dress.dress_images?.find((img: any) => img.is_primary)?.image_url ||
+          dress.dress_images?.find((img) => img.is_primary)?.image_url ||
           dress.dress_images?.[0]?.image_url ||
           "/placeholder.png";
 
-        const collectionName = Array.isArray(dress.collections)
-          ? dress.collections[0]?.name
-          : dress.collections?.name;
+        const collectionNames = Array.from(
+          new Set(
+            (dress.dress_collections || [])
+              .map((link) => link.collections?.name)
+              .filter((name): name is string => Boolean(name)),
+          ),
+        );
 
         return {
-          id: dress.id,
-          name: dress.name,
-          collections: collectionName ? [collectionName] : ["Uncategorized"],
+          id: String(dress.id),
+          name: dress.name ?? "Unnamed Dress",
+          collections:
+            collectionNames.length > 0 ? collectionNames : ["Uncategorized"],
           price: Number(dress.base_price ?? 0),
           image: primaryImage,
-          sizes: [36, 38, 40, 42],
-          neckline: "V-Neck",
-          silhouette: dress.silhouette || "A-Line",
-          fabric: "Satin",
-          trainLength: "Medium",
-          sleeveStyle: "Sleeveless",
-          isVisible: true,
+          sizes: [],
+          neckline: "",
+          silhouette: dress.silhouette ?? "",
+          fabric: "",
+          trainLength: "",
+          sleeveStyle: "",
+          isVisible: dress.status === "published",
         };
       });
-
-      mappedDresses.push({
-  id: "test1",
-  name: "Test Dress",
-  collections: ["Test Collection"],
-  price: 1000,
-  image: "/placeholder.png",
-  sizes: [36, 38],
-  neckline: "V-Neck",
-  silhouette: "A-Line",
-  fabric: "Satin",
-  trainLength: "Medium",
-  sleeveStyle: "Sleeveless",
-  isVisible: true,
-});
 
       const dbCollections = Array.from(
         new Set(
@@ -164,7 +174,7 @@ export default function GalleryPage() {
         ),
       );
 
-      setAllCollections(["All", ...Array.from(new Set(dbCollections))]);
+      setAllCollections(["All", ...dbCollections]);
       setAllDresses(mappedDresses);
       setLoading(false);
     };
@@ -187,47 +197,50 @@ export default function GalleryPage() {
   };
 
   const filteredDresses = visibleBaseDresses.filter((dress) => {
-  if (
-    selectedCollections.length > 0 &&
-    !dress.collections.some((collection) =>
-      selectedCollections.includes(collection),
-    )
-  ) {
-    return false;
-  }
+    if (
+      selectedCollections.length > 0 &&
+      !dress.collections.some((collection) =>
+        selectedCollections.includes(collection),
+      )
+    ) {
+      return false;
+    }
 
-  if (selectedSize !== null && !dress.sizes.includes(selectedSize)) {
-    return false;
-  }
+    if (selectedSize !== null && !dress.sizes.includes(selectedSize)) {
+      return false;
+    }
 
-  if (selectedNeckline !== "All" && dress.neckline !== selectedNeckline) {
-    return false;
-  }
+    if (selectedNeckline !== "All" && dress.neckline !== selectedNeckline) {
+      return false;
+    }
 
-  if (selectedSilhouette !== "All" && dress.silhouette !== selectedSilhouette) {
-    return false;
-  }
+    if (
+      selectedSilhouette !== "All" &&
+      dress.silhouette !== selectedSilhouette
+    ) {
+      return false;
+    }
 
-  if (selectedFabric !== "All" && dress.fabric !== selectedFabric) {
-    return false;
-  }
+    if (selectedFabric !== "All" && dress.fabric !== selectedFabric) {
+      return false;
+    }
 
-  if (
-    selectedTrainLength !== "All" &&
-    dress.trainLength !== selectedTrainLength
-  ) {
-    return false;
-  }
+    if (
+      selectedTrainLength !== "All" &&
+      dress.trainLength !== selectedTrainLength
+    ) {
+      return false;
+    }
 
-  if (
-    selectedSleeveStyle !== "All" &&
-    dress.sleeveStyle !== selectedSleeveStyle
-  ) {
-    return false;
-  }
+    if (
+      selectedSleeveStyle !== "All" &&
+      dress.sleeveStyle !== selectedSleeveStyle
+    ) {
+      return false;
+    }
 
-  return true;
-});
+    return true;
+  });
 
   const clearFilters = () => {
     setSelectedCollections([]);
