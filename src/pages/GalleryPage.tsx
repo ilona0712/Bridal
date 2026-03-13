@@ -35,6 +35,15 @@ type GalleryDressRow = {
       name: string | null;
     } | null;
   }> | null;
+  dress_attribute_values?: Array<{
+    attribute_values?: {
+      value_key: string | null;
+      label: string | null;
+      attributes?: {
+        key: string | null;
+      } | null;
+    } | null;
+  }> | null;
 };
 
 export default function GalleryPage() {
@@ -112,21 +121,30 @@ export default function GalleryPage() {
         .from("dresses")
         .select(
           `
-          id,
-          name,
-          silhouette,
-          base_price,
-          status,
-          dress_images (
-            image_url,
-            is_primary
-          ),
-          dress_collections (
-            collections (
-              name
-            )
-          )
-        `,
+  id,
+  name,
+  silhouette,
+  base_price,
+  status,
+  dress_images (
+    image_url,
+    is_primary
+  ),
+  dress_collections (
+    collections (
+      name
+    )
+  ),
+  dress_attribute_values (
+    attribute_values (
+      value_key,
+      label,
+      attributes (
+        key
+      )
+    )
+  )
+  `,
         )
         .returns<GalleryDressRow[]>();
 
@@ -150,6 +168,34 @@ export default function GalleryPage() {
               .filter((name): name is string => Boolean(name)),
           ),
         );
+        const attributeEntries = (dress.dress_attribute_values || [])
+          .map((link) => link.attribute_values)
+          .filter(Boolean);
+
+        const sizeLabels = attributeEntries
+          .filter((value) => value?.attributes?.key === "size")
+          .map((value) => Number(value?.label))
+          .filter((value) => !Number.isNaN(value))
+          .sort((a, b) => a - b);
+
+        const neckline =
+          attributeEntries.find(
+            (value) => value?.attributes?.key === "neckline",
+          )?.label ?? "";
+
+        const fabric =
+          attributeEntries.find((value) => value?.attributes?.key === "fabric")
+            ?.label ?? "";
+
+        const trainLength =
+          attributeEntries.find(
+            (value) => value?.attributes?.key === "train_length",
+          )?.label ?? "";
+
+        const sleeveStyle =
+          attributeEntries.find(
+            (value) => value?.attributes?.key === "sleeve_style",
+          )?.label ?? "";
 
         return {
           id: String(dress.id),
@@ -158,12 +204,12 @@ export default function GalleryPage() {
             collectionNames.length > 0 ? collectionNames : ["Uncategorized"],
           price: Number(dress.base_price ?? 0),
           image: primaryImage,
-          sizes: [],
-          neckline: "",
+          sizes: sizeLabels,
+          neckline,
           silhouette: dress.silhouette ?? "",
-          fabric: "",
-          trainLength: "",
-          sleeveStyle: "",
+          fabric,
+          trainLength,
+          sleeveStyle,
           isVisible: dress.status === "published",
         };
       });

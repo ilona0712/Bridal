@@ -13,7 +13,7 @@ import AdminDressFormTab from "../components/admin/AdminDressFormTab";
 import AdminDressListTab from "../components/admin/AdminDressListTab";
 import AdminPageHeader from "../components/admin/AdminPageHeader";
 import AdminTabs from "../components/admin/AdminTabs";
-import type {
+import type { 
   ActiveTab,
   DressFormData,
   EditingCollection,
@@ -35,6 +35,15 @@ type AdminDressRow = {
       name: string | null;
     } | null;
   }> | null;
+  dress_attribute_values?: Array<{
+    attribute_values?: {
+      value_key: string | null;
+      label: string | null;
+      attributes?: {
+        key: string | null;
+      } | null;
+    } | null;
+  }> | null;
 };
 
 type CollectionRow = {
@@ -44,6 +53,15 @@ type CollectionRow = {
 type CollectionLookupRow = {
   id: string | number;
   name: string | null;
+};
+
+type AttributeValueLookupRow = {
+  id: string;
+  label: string | null;
+  value_key: string | null;
+  attributes?: {
+    key: string | null;
+  } | null;
 };
 
 function mapDressRowToUiDress(dress: AdminDressRow): Dress {
@@ -60,20 +78,127 @@ function mapDressRowToUiDress(dress: AdminDressRow): Dress {
     ),
   );
 
+  const attributeEntries = (dress.dress_attribute_values || [])
+    .map((link) => link.attribute_values)
+    .filter(Boolean);
+
+  const sizeLabels = attributeEntries
+    .filter((value) => value?.attributes?.key === "size")
+    .map((value) => Number(value?.label))
+    .filter((value) => !Number.isNaN(value))
+    .sort((a, b) => a - b);
+
+  const neckline =
+    attributeEntries.find((value) => value?.attributes?.key === "neckline")
+      ?.label ?? "";
+
+  const fabric =
+    attributeEntries.find((value) => value?.attributes?.key === "fabric")
+      ?.label ?? "";
+
+  const trainLength =
+    attributeEntries.find((value) => value?.attributes?.key === "train_length")
+      ?.label ?? "";
+
+  const sleeveStyle =
+    attributeEntries.find((value) => value?.attributes?.key === "sleeve_style")
+      ?.label ?? "";
+
   return {
     id: String(dress.id),
     name: dress.name ?? "Unnamed Dress",
     collections: collectionNames,
     price: Number(dress.base_price ?? 0),
     image: primaryImage,
-    sizes: [],
-    neckline: "",
+    sizes: sizeLabels,
+    neckline,
     silhouette: dress.silhouette ?? "",
-    fabric: "",
-    trainLength: "",
-    sleeveStyle: "",
+    fabric,
+    trainLength,
+    sleeveStyle,
     isVisible: dress.status === "published",
   };
+}
+
+async function syncDressAttributes(dressId: string, formData: DressFormData) {
+  const selectedAttributeLabels: string[] = [
+    ...formData.sizes.map(String),
+    ...(formData.neckline ? [formData.neckline] : []),
+    ...(formData.fabric ? [formData.fabric] : []),
+    ...(formData.trainLength ? [formData.trainLength] : []),
+    ...(formData.sleeveStyle ? [formData.sleeveStyle] : []),
+  ];
+
+  const uniqueLabels = Array.from(new Set(selectedAttributeLabels));
+
+  const { error: deleteError } = await supabase
+    .from("dress_attribute_values")
+    .delete()
+    .eq("dress_id", dressId);
+
+  if (deleteError) {
+    throw new Error(deleteError.message);
+  }
+
+  if (uniqueLabels.length === 0) {
+    return;
+  }
+
+  const { data: attributeValueRows, error: attributeLookupError } =
+    await supabase
+      .from("attribute_values")
+      .select(
+        `
+        id,
+        label,
+        value_key,
+        attributes (
+          key
+        )
+      `,
+      )
+      .in("label", uniqueLabels)
+      .returns<AttributeValueLookupRow[]>();
+
+  if (attributeLookupError) {
+    throw new Error(attributeLookupError.message);
+  }
+
+  const selectedSizeLabels = new Set(formData.sizes.map(String));
+
+  const selectedIds = (attributeValueRows || [])
+    .filter((row) => {
+      const attributeKey = row.attributes?.key ?? null;
+      const label = row.label ?? "";
+
+      if (attributeKey === "size") return selectedSizeLabels.has(label);
+      if (attributeKey === "neckline") return formData.neckline === label;
+      if (attributeKey === "fabric") return formData.fabric === label;
+      if (attributeKey === "train_length")
+        return formData.trainLength === label;
+      if (attributeKey === "sleeve_style")
+        return formData.sleeveStyle === label;
+
+      return false;
+    })
+    .map((row) => row.id);
+
+  if (selectedIds.length === 0) {
+    return;
+  }
+
+  const { error: insertError } = await supabase
+    .from("dress_attribute_values")
+    .insert(
+      selectedIds.map((attributeValueId) => ({
+        dress_id: dressId,
+        attribute_value_id: attributeValueId,
+      })),
+    );
+
+  if (insertError) {
+    throw new Error(insertError.message);
+  }
 }
 
 export default function AdminPage() {
@@ -114,61 +239,13 @@ export default function AdminPage() {
     sleeveStyle: "",
   });
 
-  const necklines = [
-    "Sweetheart",
-    "Off-Shoulder",
-    "V-Neck",
-    "Halter",
-    "Square",
-    "Illusion",
-    "Scoop",
-    "Bateau",
-    "Jewel",
-  ];
+  const necklines = ["Sweetheart", "V-Neck", "Off-Shoulder", "Halter"];
+  const silhouettes = ["A-Line", "Ball Gown", "Mermaid", "Sheath"];
+  const fabrics = ["Lace", "Satin", "Chiffon", "Crepe", "Tulle"];
+  const trainLengths = ["No Train", "Court", "Chapel", "Cathedral"];
+  const sleeveStyles = ["Sleeveless", "Cap Sleeve", "Long Sleeve"];
 
-  const silhouettes = [
-    "A-Line",
-    "Ball Gown",
-    "Mermaid",
-    "Sheath",
-    "Fit & Flare",
-    "Empire",
-    "Trumpet",
-  ];
-
-  const fabrics = [
-    "Lace",
-    "Satin",
-    "Crepe",
-    "Chiffon",
-    "Tulle",
-    "Organza",
-    "Mikado",
-    "Silk",
-    "Taffeta",
-  ];
-
-  const trainLengths = [
-    "No Train",
-    "Sweep",
-    "Court",
-    "Chapel",
-    "Cathedral",
-    "Royal",
-    "Monarch",
-  ];
-
-  const sleeveStyles = [
-    "Sleeveless",
-    "Cap Sleeve",
-    "Short Sleeve",
-    "Long Sleeve",
-    "Three-Quarter",
-    "Off-Shoulder",
-    "Bell Sleeve",
-  ];
-
-  const availableSizes = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26];
+  const availableSizes = [32, 34, 36, 38, 40, 42, 44, 46];
 
   useEffect(() => {
     const fetchAdminData = async () => {
@@ -182,23 +259,32 @@ export default function AdminPage() {
         supabase
           .from("dresses")
           .select(
-            `
-              id,
-              name,
-              silhouette,
-              base_price,
-              status,
-              dress_images (
-                image_url,
-                is_primary
-              ),
-              dress_collections (
-                collections (
-                  name
-                )
-              )
-            `,
-          )
+  `
+    id,
+    name,
+    silhouette,
+    base_price,
+    status,
+    dress_images (
+      image_url,
+      is_primary
+    ),
+    dress_collections (
+      collections (
+        name
+      )
+    ),
+    dress_attribute_values (
+      attribute_values (
+        value_key,
+        label,
+        attributes (
+          key
+        )
+      )
+    )
+  `,
+)
           .returns<AdminDressRow[]>(),
         supabase
           .from("collections")
@@ -431,6 +517,14 @@ export default function AdminPage() {
           }
         }
 
+        try {
+          await syncDressAttributes(editingDress.id, formData);
+        } catch (err) {
+          console.error("Dress attributes sync failed:", err);
+          alert("Dress updated, but attributes could not be linked.");
+          return;
+        }
+
         setDresses((prev) =>
           prev.map((dress) =>
             dress.id === editingDress.id
@@ -540,6 +634,14 @@ export default function AdminPage() {
         }
       }
 
+      try {
+        await syncDressAttributes(newDressId, formData);
+      } catch (err) {
+        console.error("Dress attributes sync failed:", err);
+        alert("Dress saved, but attributes could not be linked.");
+        return;
+      }
+
       const createdDressForUi: Dress = {
         id: newDressId,
         name: insertedDress.name ?? formData.name.trim(),
@@ -595,6 +697,22 @@ export default function AdminPage() {
     }
 
     try {
+      const { error: dressAttributeValuesDeleteError } = await supabase
+        .from("dress_attribute_values")
+        .delete()
+        .eq("dress_id", id);
+
+      if (dressAttributeValuesDeleteError) {
+        console.error(
+          "Dress attribute values delete failed:",
+          dressAttributeValuesDeleteError,
+        );
+        alert(
+          `Failed to delete dress attributes: ${dressAttributeValuesDeleteError.message}`,
+        );
+        return;
+      }
+
       const { error: dressCollectionsDeleteError } = await supabase
         .from("dress_collections")
         .delete()

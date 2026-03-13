@@ -61,24 +61,32 @@ export default function DressCard({
         <div>
           <h3 className="font-serif text-lg text-stone-800">{dress.name}</h3>
           <p className="text-sm text-stone-500">
-            {dress.silhouette} • {dress.neckline}
+            {[dress.silhouette, dress.neckline].filter(Boolean).join(" • ")}
           </p>
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="text-xs text-stone-500">
-            Sizes: {dress.sizes[0]}-{dress.sizes[dress.sizes.length - 1]}
-          </span>
+          {dress.sizes.length > 0 && (
+            <span className="text-xs text-stone-500">
+              Sizes: {dress.sizes[0]}-{dress.sizes[dress.sizes.length - 1]}
+            </span>
+          )}
         </div>
 
-        <div className="flex gap-2 text-xs text-stone-600">
-          <span className="px-2 py-1 bg-stone-100/70 rounded">
-            {dress.fabric}
-          </span>
-          <span className="px-2 py-1 bg-stone-100/70 rounded">
-            {dress.sleeveStyle}
-          </span>
-        </div>
+        {(dress.fabric || dress.sleeveStyle) && (
+          <div className="flex gap-2 text-xs text-stone-600">
+            {dress.fabric && (
+              <span className="px-2 py-1 bg-stone-100/70 rounded">
+                {dress.fabric}
+              </span>
+            )}
+            {dress.sleeveStyle && (
+              <span className="px-2 py-1 bg-stone-100/70 rounded">
+                {dress.sleeveStyle}
+              </span>
+            )}
+          </div>
+        )}
 
         <button
           type="button"
