@@ -1,4 +1,5 @@
 import { ImageWithFallback } from "../../figma/ImageWithFallback";
+import { Link } from "react-router-dom";
 
 type CollectionCardProps = {
   imageSrc: string;
@@ -14,7 +15,10 @@ export default function CollectionCard({
   style,
 }: CollectionCardProps) {
   return (
-    <div className="space-y-3">
+    <Link
+  to={`/gallery?collection=${encodeURIComponent(name)}`}
+  className="block space-y-3 hover:-translate-y-1 transition-transform"
+>
       <div className="aspect-[3/4] rounded-2xl overflow-hidden shadow-lg">
         <ImageWithFallback
           src={imageSrc}
@@ -26,6 +30,6 @@ export default function CollectionCard({
         <div className="text-stone-800">{name}</div>
         <div className="text-sm text-stone-500">{style}</div>
       </div>
-    </div>
+    </Link>
   );
 }

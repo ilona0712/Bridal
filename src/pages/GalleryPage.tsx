@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Sparkles, SlidersHorizontal } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { useRole } from "../routes";
@@ -47,6 +47,7 @@ type GalleryDressRow = {
 };
 
 export default function GalleryPage() {
+  const [searchParams] = useSearchParams();
   const [allCollections, setAllCollections] = useState<string[]>(collections);
 
   const [allDresses, setAllDresses] = useState<Dress[]>([]);
@@ -69,6 +70,16 @@ export default function GalleryPage() {
   const [showFilters, setShowFilters] = useState(false);
 
   const [favoriteDressIds, setFavoriteDressIds] = useState<string[]>([]);
+
+  useEffect(() => {
+  const collectionFromUrl = searchParams.get("collection");
+
+  if (collectionFromUrl) {
+    setSelectedCollections([collectionFromUrl]);
+  } else {
+    setSelectedCollections([]);
+  }
+}, [searchParams]);
 
   useEffect(() => {
     const savedFavorites = localStorage.getItem("favoriteDressIds");

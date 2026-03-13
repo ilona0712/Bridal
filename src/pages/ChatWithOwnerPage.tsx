@@ -6,8 +6,7 @@ import OwnerChatHeader from "../components/chat/OwnerChatHeader";
 import OwnerChatMessagesList from "../components/chat/OwnerChatMessagesList";
 import OwnerChatInput from "../components/chat/OwnerChatInput";
 import OwnerChatFeatures from "../components/chat/OwnerChatFeatures";
-import { useLocation, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export default function ChatWithOwnerPage() {
   const navigate = useNavigate();
@@ -30,6 +29,8 @@ export default function ChatWithOwnerPage() {
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const emojiPickerRef = useRef<HTMLDivElement | null>(null);
+  const emojiButtonAreaRef = useRef<HTMLDivElement | null>(null);
 
   const getTime = () =>
     new Date().toLocaleTimeString("en-US", {
@@ -149,6 +150,26 @@ const handleStopRecording = () => {
   };
 
   useEffect(() => {
+  function handleClickOutside(event: MouseEvent) {
+    const target = event.target as Node;
+
+    if (
+      showEmojiPicker &&
+      !emojiPickerRef.current?.contains(target) &&
+      !emojiButtonAreaRef.current?.contains(target)
+    ) {
+      setShowEmojiPicker(false);
+    }
+  }
+
+  document.addEventListener("mousedown", handleClickOutside);
+
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, [showEmojiPicker]);
+
+  useEffect(() => {
     return () => {
       messages.forEach((msg) => {
         if (msg.audioUrl) {
@@ -172,11 +193,14 @@ const handleStopRecording = () => {
 
           <OwnerChatMessagesList messages={messages} />
 
-          <div className="relative">
+          <div className="relative" ref={emojiButtonAreaRef}>
             {showEmojiPicker && (
-              <div className="absolute bottom-20 left-4 z-20 shadow-xl">
-                <EmojiPicker onEmojiClick={handleEmojiClick} />
-              </div>
+              <div
+  ref={emojiPickerRef}
+  className="absolute bottom-20 left-4 z-20 shadow-xl"
+>
+  <EmojiPicker onEmojiClick={handleEmojiClick} />
+</div>
             )}
 
             <OwnerChatInput
