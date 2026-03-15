@@ -10,6 +10,7 @@ export type DressFormData = {
   collections: string[];
   price: number | null;
   image: string;
+  images: string[];
   sizes: number[];
   neckline: string;
   silhouette: string;
