@@ -172,6 +172,10 @@ export default function GalleryPage() {
           dress.dress_images?.[0]?.image_url ||
           "/placeholder.png";
 
+        const allImages = (dress.dress_images || [])
+        .map((img) => img.image_url)
+        .filter((url): url is string => Boolean(url));
+
         const collectionNames = Array.from(
           new Set(
             (dress.dress_collections || [])
@@ -215,6 +219,7 @@ export default function GalleryPage() {
             collectionNames.length > 0 ? collectionNames : ["Uncategorized"],
           price: Number(dress.base_price ?? 0),
           image: primaryImage,
+          images: allImages.length > 0 ? allImages : ["/placeholder.png"],
           sizes: sizeLabels,
           neckline,
           silhouette: dress.silhouette ?? "",

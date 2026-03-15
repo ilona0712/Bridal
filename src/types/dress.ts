@@ -4,7 +4,13 @@ export interface Dress {
   name: string;
   collections: string[];
   price: number;
+
+  // main image used in gallery cards
   image: string;
+
+  // all images from database
+  images: string[];
+
   sizes: number[];
   neckline: string;
   silhouette: string;
