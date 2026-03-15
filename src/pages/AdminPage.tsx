@@ -13,7 +13,7 @@ import AdminDressFormTab from "../components/admin/AdminDressFormTab";
 import AdminDressListTab from "../components/admin/AdminDressListTab";
 import AdminPageHeader from "../components/admin/AdminPageHeader";
 import AdminTabs from "../components/admin/AdminTabs";
-import type { 
+import type {
   ActiveTab,
   DressFormData,
   EditingCollection,
@@ -70,6 +70,14 @@ function mapDressRowToUiDress(dress: AdminDressRow): Dress {
     dress.dress_images?.[0]?.image_url ||
     "/placeholder.png";
 
+  const allImages = [...(dress.dress_images || [])]
+    .sort(
+      (a, b) =>
+        Number(Boolean(b.is_primary)) - Number(Boolean(a.is_primary)),
+    )
+    .map((img) => img.image_url)
+    .filter((url): url is string => Boolean(url));
+
   const collectionNames = Array.from(
     new Set(
       (dress.dress_collections || [])
@@ -110,6 +118,7 @@ function mapDressRowToUiDress(dress: AdminDressRow): Dress {
     collections: collectionNames,
     price: Number(dress.base_price ?? 0),
     image: primaryImage,
+    images: allImages.length > 0 ? allImages : ["/placeholder.png"],
     sizes: sizeLabels,
     neckline,
     silhouette: dress.silhouette ?? "",
@@ -174,10 +183,8 @@ async function syncDressAttributes(dressId: string, formData: DressFormData) {
       if (attributeKey === "size") return selectedSizeLabels.has(label);
       if (attributeKey === "neckline") return formData.neckline === label;
       if (attributeKey === "fabric") return formData.fabric === label;
-      if (attributeKey === "train_length")
-        return formData.trainLength === label;
-      if (attributeKey === "sleeve_style")
-        return formData.sleeveStyle === label;
+      if (attributeKey === "train_length") return formData.trainLength === label;
+      if (attributeKey === "sleeve_style") return formData.sleeveStyle === label;
 
       return false;
     })
@@ -231,6 +238,7 @@ export default function AdminPage() {
     collections: [],
     price: null,
     image: "",
+    images: [],
     sizes: [],
     neckline: "",
     silhouette: "",
@@ -259,32 +267,32 @@ export default function AdminPage() {
         supabase
           .from("dresses")
           .select(
-  `
-    id,
-    name,
-    silhouette,
-    base_price,
-    status,
-    dress_images (
-      image_url,
-      is_primary
-    ),
-    dress_collections (
-      collections (
-        name
-      )
-    ),
-    dress_attribute_values (
-      attribute_values (
-        value_key,
-        label,
-        attributes (
-          key
-        )
-      )
-    )
-  `,
-)
+            `
+            id,
+            name,
+            silhouette,
+            base_price,
+            status,
+            dress_images (
+              image_url,
+              is_primary
+            ),
+            dress_collections (
+              collections (
+                name
+              )
+            ),
+            dress_attribute_values (
+              attribute_values (
+                value_key,
+                label,
+                attributes (
+                  key
+                )
+              )
+            )
+          `,
+          )
           .returns<AdminDressRow[]>(),
         supabase
           .from("collections")
@@ -344,6 +352,7 @@ export default function AdminPage() {
       collections: [],
       price: null,
       image: "",
+      images: [],
       sizes: [],
       neckline: "",
       silhouette: "",
@@ -365,37 +374,77 @@ export default function AdminPage() {
     }
   };
 
+  const handleFiles = (files: FileList | File[]) => {
+    const currentCount = formData.images.length;
+    const incomingFiles = Array.from(files).slice(0, 6 - currentCount);
+
+    if (incomingFiles.length === 0) {
+      alert("You can upload up to 6 images only.");
+      return;
+    }
+
+    Promise.all(
+      incomingFiles.map(
+        (file) =>
+          new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+              const result = e.target?.result;
+              if (typeof result === "string") resolve(result);
+              else reject(new Error("Failed to read file"));
+            };
+
+            reader.onerror = () => reject(new Error("Failed to read file"));
+            reader.readAsDataURL(file);
+          }),
+      ),
+    )
+      .then((uploadedImages) => {
+        setFormData((prev) => {
+          const nextImages = [...prev.images, ...uploadedImages].slice(0, 6);
+
+          return {
+            ...prev,
+            images: nextImages,
+            image: nextImages[0] || "",
+          };
+        });
+      })
+      .catch((error) => {
+        console.error("Image upload error:", error);
+        alert("Failed to upload one or more images.");
+      });
+  };
+
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
 
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFile(e.dataTransfer.files[0]);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFiles(e.dataTransfer.files);
     }
   };
 
   const handleFileInput = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      handleFile(e.target.files[0]);
+    if (e.target.files && e.target.files.length > 0) {
+      handleFiles(e.target.files);
     }
   };
 
-  const handleFile = (file: File) => {
-    const reader = new FileReader();
+  const removeImage = (indexToRemove: number) => {
+    setFormData((prev) => {
+      const nextImages = prev.images.filter(
+        (_, index) => index !== indexToRemove,
+      );
 
-    reader.onload = (e) => {
-      const result = e.target?.result;
-
-      if (typeof result === "string") {
-        setFormData((prev) => ({
-          ...prev,
-          image: result,
-        }));
-      }
-    };
-
-    reader.readAsDataURL(file);
+      return {
+        ...prev,
+        images: nextImages,
+        image: nextImages[0] || "",
+      };
+    });
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -406,7 +455,7 @@ export default function AdminPage() {
       return;
     }
 
-    if (!formData.image.trim()) {
+    if (formData.images.length === 0) {
       alert("At least one image is required!");
       return;
     }
@@ -446,13 +495,15 @@ export default function AdminPage() {
           return;
         }
 
+        const imageRows = formData.images.map((img, index) => ({
+          dress_id: editingDress.id,
+          image_url: img,
+          is_primary: index === 0,
+        }));
+
         const { error: insertImageError } = await supabase
           .from("dress_images")
-          .insert({
-            dress_id: editingDress.id,
-            image_url: formData.image.trim(),
-            is_primary: true,
-          });
+          .insert(imageRows);
 
         if (insertImageError) {
           console.error("Dress image insert failed:", insertImageError);
@@ -526,18 +577,20 @@ export default function AdminPage() {
         }
 
         setDresses((prev) =>
-  prev.map((dress) =>
-    dress.id === editingDress.id
-      ? {
-          ...dress,
-          ...formData,
-          id: editingDress.id,
-          price: formData.price ?? 0,
-          isVisible: true,
-        }
-      : dress,
-  ),
-);
+          prev.map((dress) =>
+            dress.id === editingDress.id
+              ? {
+                  ...dress,
+                  ...formData,
+                  id: editingDress.id,
+                  image: formData.images[0] || formData.image,
+                  images: [...formData.images],
+                  price: formData.price ?? 0,
+                  isVisible: true,
+                }
+              : dress,
+          ),
+        );
 
         alert("Dress updated successfully!");
         resetForm();
@@ -572,13 +625,15 @@ export default function AdminPage() {
 
       const newDressId = String(insertedDress.id);
 
+      const imageRows = formData.images.map((img, index) => ({
+        dress_id: insertedDress.id,
+        image_url: img,
+        is_primary: index === 0,
+      }));
+
       const { error: imageInsertError } = await supabase
         .from("dress_images")
-        .insert({
-          dress_id: insertedDress.id,
-          image_url: formData.image.trim(),
-          is_primary: true,
-        });
+        .insert(imageRows);
 
       if (imageInsertError) {
         console.error("Dress image insert failed:", imageInsertError);
@@ -648,7 +703,8 @@ export default function AdminPage() {
         name: insertedDress.name ?? formData.name.trim(),
         collections: [...formData.collections],
         price: Number(insertedDress.base_price ?? formData.price),
-        image: formData.image.trim(),
+        image: formData.images[0] || formData.image.trim(),
+        images: [...formData.images],
         sizes: [...formData.sizes],
         neckline: formData.neckline,
         silhouette: insertedDress.silhouette ?? formData.silhouette,
@@ -682,6 +738,7 @@ export default function AdminPage() {
       collections: dress.collections,
       price: dress.price ?? null,
       image: dress.image,
+      images: dress.images ?? [dress.image],
       sizes: dress.sizes,
       neckline: dress.neckline,
       silhouette: dress.silhouette,
@@ -1139,6 +1196,7 @@ export default function AdminPage() {
                 onImageChange={(value) =>
                   setFormData((prev) => ({ ...prev, image: value }))
                 }
+                onRemoveImage={removeImage}
                 onSizeToggle={handleSizeToggle}
                 onNecklineChange={(value) =>
                   setFormData((prev) => ({ ...prev, neckline: value }))

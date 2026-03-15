@@ -4,7 +4,7 @@ import type {
   FormEvent,
   RefObject,
 } from "react";
-import { Check, Plus, Upload } from "lucide-react";
+import { Check, Plus, Upload, X } from "lucide-react";
 import type { DressFormData } from "../../types/admin";
 
 type AdminDressFormTabProps = {
@@ -25,6 +25,7 @@ type AdminDressFormTabProps = {
   onCollectionToggle: (collection: string) => void;
   onPriceChange: (value: number) => void;
   onImageChange: (value: string) => void;
+  onRemoveImage: (index: number) => void;
   onSizeToggle: (size: number) => void;
   onNecklineChange: (value: string) => void;
   onSilhouetteChange: (value: string) => void;
@@ -54,6 +55,7 @@ export default function AdminDressFormTab({
   onCollectionToggle,
   onPriceChange,
   onImageChange,
+  onRemoveImage,
   onSizeToggle,
   onNecklineChange,
   onSilhouetteChange,
@@ -125,23 +127,23 @@ export default function AdminDressFormTab({
 
           <div className="space-y-2">
             <label className="text-sm text-stone-700">
-  Price <span className="text-stone-500">(Optional)</span>
-</label>
-<input
-  type="number"
-  min="0"
-  value={formData.price ?? ""}
-  onChange={(e) =>
-    onPriceChange(e.target.value === "" ? 0 : Number(e.target.value))
-  }
+              Price <span className="text-stone-500">(Optional)</span>
+            </label>
+            <input
+              type="number"
+              min="0"
+              value={formData.price ?? ""}
+              onChange={(e) =>
+                onPriceChange(e.target.value === "" ? 0 : Number(e.target.value))
+              }
               placeholder="e.g., 3500"
               className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 placeholder:text-stone-400"
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             <label className="text-sm text-stone-700">
-              Dress Image <span className="text-pink-400/60">*</span>
+              Dress Images <span className="text-pink-400/60">*</span>
             </label>
 
             <div
@@ -159,6 +161,7 @@ export default function AdminDressFormTab({
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
+                multiple
                 onChange={onFileInputChange}
                 className="hidden"
               />
@@ -166,7 +169,7 @@ export default function AdminDressFormTab({
               <div className="text-center">
                 <Upload className="w-12 h-12 text-stone-400 mx-auto mb-4" />
                 <p className="text-sm text-stone-600 mb-2">
-                  Drag and drop an image here, or
+                  Drag and drop images here, or
                 </p>
                 <button
                   type="button"
@@ -176,7 +179,7 @@ export default function AdminDressFormTab({
                   Browse Files
                 </button>
                 <p className="text-xs text-stone-500 mt-4">
-                  Or paste an image URL below
+                  Upload up to 6 images. The first image will be the primary image.
                 </p>
               </div>
             </div>
@@ -185,23 +188,49 @@ export default function AdminDressFormTab({
               type="text"
               value={formData.image}
               onChange={(e) => onImageChange(e.target.value)}
-              placeholder="https://images.unsplash.com/..."
+              placeholder="Or paste a primary image URL"
               className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 placeholder:text-stone-400"
             />
+
+            <p className="text-xs text-stone-500">
+              {formData.images.length}/6 images uploaded
+            </p>
           </div>
 
-          {formData.image && (
-            <div className="space-y-2">
+          {formData.images.length > 0 && (
+            <div className="space-y-3">
               <label className="text-sm text-stone-700">Image Preview</label>
-              <div className="aspect-[3/4] max-w-xs rounded-xl overflow-hidden border border-stone-200">
-                <img
-                  src={formData.image}
-                  alt="Preview"
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = "none";
-                  }}
-                />
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {formData.images.map((img, index) => (
+                  <div
+                    key={`${img}-${index}`}
+                    className="relative rounded-xl overflow-hidden border border-stone-200 bg-white"
+                  >
+                    <img
+                      src={img}
+                      alt={`Dress preview ${index + 1}`}
+                      className="w-full h-44 object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                      }}
+                    />
+
+                    {index === 0 && (
+                      <div className="absolute top-2 left-2 px-2 py-1 rounded-full bg-stone-800/80 text-white text-xs">
+                        Primary
+                      </div>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => onRemoveImage(index)}
+                      className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-sm"
+                    >
+                      <X className="w-4 h-4 text-stone-700" />
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
           )}

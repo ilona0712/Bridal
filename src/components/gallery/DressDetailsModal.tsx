@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { MessageCircle, X } from "lucide-react";
+import { MessageCircle, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { ImageWithFallback } from "../../figma/ImageWithFallback";
 import type { Dress } from "../../types/dress";
 
@@ -12,7 +13,18 @@ export default function DressDetailsModal({
   dress,
   onClose,
 }: DressDetailsModalProps) {
-  const extraImages = dress.images?.filter((img) => img !== dress.image) || [];
+  const images = dress.images && dress.images.length > 0 ? dress.images : [dress.image];
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const goToPrev = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
+
+  const goToNext = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -29,14 +41,44 @@ export default function DressDetailsModal({
         </div>
 
         <div className="p-8 space-y-10">
-          {/* Top section */}
           <div className="grid md:grid-cols-2 gap-8">
             <div className="relative aspect-[3/4] rounded-2xl overflow-hidden">
               <ImageWithFallback
-                src={dress.image}
-                alt={dress.name}
+                src={images[currentIndex]}
+                alt={`${dress.name} ${currentIndex + 1}`}
                 className="w-full h-full object-cover"
               />
+
+              {images.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={goToPrev}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors shadow-sm"
+                  >
+                    <ChevronLeft className="w-4 h-4 text-stone-700" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={goToNext}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors shadow-sm"
+                  >
+                    <ChevronRight className="w-4 h-4 text-stone-700" />
+                  </button>
+
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+                    {images.map((_, i) => (
+                      <div
+                        key={i}
+                        className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                          i === currentIndex ? "bg-white" : "bg-white/50"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="space-y-6">
@@ -106,27 +148,6 @@ export default function DressDetailsModal({
               </div>
             </div>
           </div>
-
-          {/* More photos section */}
-          {extraImages.length > 0 && (
-            <div className="space-y-4">
-              <h3 className="font-serif text-xl text-stone-800">More Photos</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {extraImages.map((img, index) => (
-                  <div
-                    key={index}
-                    className="rounded-2xl overflow-hidden border border-stone-200/50 bg-stone-50/40"
-                  >
-                    <ImageWithFallback
-                      src={img}
-                      alt={`${dress.name} ${index + 2}`}
-                      className="w-full h-[420px] object-cover"
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

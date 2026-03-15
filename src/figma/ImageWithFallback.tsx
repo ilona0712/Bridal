@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type Props = {
   src: string;
@@ -8,6 +8,10 @@ type Props = {
 
 export function ImageWithFallback({ src, alt, className }: Props) {
   const [imgSrc, setImgSrc] = useState(src);
+
+  useEffect(() => {
+    setImgSrc(src);
+  }, [src]);
 
   return (
     <img
