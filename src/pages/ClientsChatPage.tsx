@@ -1,105 +1,84 @@
-import { Sparkles, MessageCircle, Search } from "lucide-react"
-import { Link } from "react-router-dom"
-import { useState } from "react"
-import Header from "../components/common/Header"
-
-interface Conversation {
-  id: string
-  clientName: string
-  clientImage?: string
-  lastMessage: string
-  timestamp: string
-  unread: boolean
-  isOnline: boolean
-}
-
-const mockConversations: Conversation[] = [
-  {
-    id: "1",
-    clientName: "Emma Johnson",
-    lastMessage: "Thank you so much! I loved the collection you showed me 💕",
-    timestamp: "2 min ago",
-    unread: true,
-    isOnline: true,
-  },
-  {
-    id: "2",
-    clientName: "Sophia Martinez",
-    lastMessage: "Can we schedule a fitting for next week?",
-    timestamp: "15 min ago",
-    unread: true,
-    isOnline: true,
-  },
-  {
-    id: "3",
-    clientName: "Olivia Williams",
-    lastMessage: "I need help choosing between the two dresses",
-    timestamp: "1 hour ago",
-    unread: false,
-    isOnline: false,
-  },
-  {
-    id: "4",
-    clientName: "Ava Brown",
-    lastMessage: "The dress fits perfectly! When can I pick it up?",
-    timestamp: "3 hours ago",
-    unread: false,
-    isOnline: false,
-  },
-  {
-    id: "5",
-    clientName: "Isabella Davis",
-    lastMessage: "Do you have this in size 12?",
-    timestamp: "Yesterday",
-    unread: false,
-    isOnline: false,
-  },
-]
+import { MessageCircle, Search } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import Header from "../components/common/Header";
+import { supabase } from "../../lib/supabase";
+import type { ConversationSummary } from "../types/chat";
 
 export default function ClientsChatPage() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [conversations] = useState<Conversation[]>(mockConversations)
+  const [searchQuery, setSearchQuery] = useState("");
+  const [conversations, setConversations] = useState<ConversationSummary[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredConversations = conversations.filter((conv) =>
-    conv.clientName.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  useEffect(() => {
+    const fetchConversations = async () => {
+      const { data: convsData, error } = await supabase
+        .from("conversations")
+        .select("id, customer_id, created_at");
 
-  const unreadCount = conversations.filter((conv) => conv.unread).length
+      if (error) {
+        console.error("Failed to fetch conversations:", error);
+        setLoading(false);
+        return;
+      }
 
-  function highlightText(text: string, query: string) {
-  if (!query) return text
+      const enriched = await Promise.all(
+        (convsData ?? []).map(async (conv) => {
+          const [{ data: profile }, { data: msgs }] = await Promise.all([
+            supabase
+              .from("profiles")
+              .select("full_name")
+              .eq("id", conv.customer_id)
+              .single(),
+            supabase
+              .from("messages")
+              .select("content, created_at, sender_type")
+              .eq("conversation_id", conv.id)
+              .order("created_at", { ascending: false })
+              .limit(1),
+          ]);
 
-  const parts = text.split(new RegExp(`(${query})`, "gi"))
+          const last = msgs?.[0];
+          return {
+            id: conv.id,
+            customer_id: conv.customer_id,
+            clientName: profile?.full_name ?? "Unknown Client",
+            lastMessage: last?.content ?? "No messages yet",
+            timestamp: last
+              ? new Date(last.created_at).toLocaleTimeString("en-US", {
+                  hour: "numeric",
+                  minute: "2-digit",
+                  hour12: true,
+                })
+              : "",
+            unread: false,
+          };
+        })
+      );
 
-  return parts.map((part, index) =>
-    part.toLowerCase() === query.toLowerCase() ? (
-      <span key={index} className="text-pink-500 font-semibold">
-        {part}
-      </span>
-    ) : (
-      part
-    )
-  )
-}
+      setConversations(enriched);
+      setLoading(false);
+    };
+
+    fetchConversations();
+  }, []);
+
+  const filtered = conversations.filter((c) =>
+    c.clientName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100">
       <Header subtitle="Client Chats" />
-
       <div className="container mx-auto px-6 py-8 max-w-4xl">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="font-serif text-3xl text-stone-800">
-                Client Chats
-              </h2>
+              <h2 className="font-serif text-3xl text-stone-800">Client Chats</h2>
               <p className="text-stone-500 mt-1">
-                {unreadCount > 0
-                  ? `${unreadCount} unread conversation${unreadCount > 1 ? "s" : ""}`
-                  : "All caught up!"}
+                {conversations.length} conversation{conversations.length !== 1 ? "s" : ""}
               </p>
             </div>
-
             <div className="w-14 h-14 bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 rounded-full flex items-center justify-center">
               <MessageCircle className="w-7 h-7 text-stone-600" />
             </div>
@@ -112,89 +91,46 @@ export default function ClientsChatPage() {
               placeholder="Search clients..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white/60 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 placeholder:text-stone-400"
+              className="w-full pl-12 pr-4 py-3 bg-white/60 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 text-stone-800 placeholder:text-stone-400"
             />
           </div>
         </div>
 
         <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 overflow-hidden">
-          {filteredConversations.length === 0 ? (
+          {loading ? (
+            <div className="p-12 text-center text-stone-400">Loading conversations...</div>
+          ) : filtered.length === 0 ? (
             <div className="p-12 text-center">
               <MessageCircle className="w-16 h-16 text-stone-300 mx-auto mb-4" />
               <p className="text-stone-500">No conversations found</p>
             </div>
           ) : (
             <div className="divide-y divide-stone-200/50">
-              {filteredConversations.map((conversation) => (
+              {filtered.map((conv) => (
                 <Link
-                  key={conversation.id}
+                  key={conv.id}
                   to="/chat"
-                  state={{ client: conversation }}
+                  state={{ conversationId: conv.id, clientName: conv.clientName }}
                   className="flex items-center gap-4 p-5 hover:bg-stone-50/50 transition-colors group"
                 >
-                  <div className="relative flex-shrink-0">
-                    <div className="w-14 h-14 rounded-full overflow-hidden bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 flex items-center justify-center border-2 border-stone-200/30">
-                      {conversation.clientImage ? (
-                        <img
-                          src={conversation.clientImage}
-                          alt={conversation.clientName}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-lg font-serif text-stone-600">
-                          {conversation.clientName.charAt(0)}
-                        </span>
-                      )}
-                    </div>
-
-                    {conversation.isOnline && (
-                      <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-400 border-2 border-white rounded-full"></div>
-                    )}
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 flex items-center justify-center border-2 border-stone-200/30">
+                    <span className="text-lg font-serif text-stone-600">
+                      {conv.clientName.charAt(0)}
+                    </span>
                   </div>
-
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between mb-1">
-                      <h3 className="font-serif text-lg text-stone-800 group-hover:text-stone-900 transition-colors">
-  {highlightText(conversation.clientName, searchQuery)}
-</h3>
-                      <span className="text-xs text-stone-400 flex-shrink-0 ml-2">
-                        {conversation.timestamp}
-                      </span>
+                      <h3 className="font-serif text-lg text-stone-800">{conv.clientName}</h3>
+                      <span className="text-xs text-stone-400 ml-2">{conv.timestamp}</span>
                     </div>
-
-                    <p
-                      className={`text-sm truncate ${
-                        conversation.unread
-                          ? "text-stone-800 font-medium"
-                          : "text-stone-500"
-                      }`}
-                    >
-                      {conversation.lastMessage}
-                    </p>
+                    <p className="text-sm truncate text-stone-500">{conv.lastMessage}</p>
                   </div>
-
-                  {conversation.unread && (
-                    <div className="w-3 h-3 bg-pink-400 rounded-full flex-shrink-0"></div>
-                  )}
                 </Link>
               ))}
             </div>
           )}
         </div>
-
-        <div className="mt-6 bg-amber-50/60 border border-amber-200/50 rounded-2xl p-4 backdrop-blur-sm">
-          <div className="flex items-start gap-3">
-            <div className="w-5 h-5 bg-amber-200/50 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-              <Sparkles className="w-3 h-3 text-amber-600" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm text-stone-700">
-                <strong>Preview Mode:</strong> Select a client to open their chat.
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,13 +1,15 @@
 import { useEffect, useRef } from "react";
 import OwnerChatMessageBubble from "./OwnerChatMessageBubble";
-import type { OwnerChatMessage } from "../../types/chat";
+import type { ChatMessage } from "../../types/chat";
 
 type OwnerChatMessagesListProps = {
-  messages: OwnerChatMessage[];
+  messages: ChatMessage[];
+  currentUserId: string;
 };
 
 export default function OwnerChatMessagesList({
   messages,
+  currentUserId,
 }: OwnerChatMessagesListProps) {
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
@@ -17,9 +19,13 @@ export default function OwnerChatMessagesList({
 
   return (
     <div className="h-[500px] overflow-y-auto p-6 space-y-4 bg-stone-50/30">
-      {messages.map((message, index) => (
-        <OwnerChatMessageBubble key={index} message={message} />
-      ))}
+      {messages.map((message) => (
+  <OwnerChatMessageBubble
+    key={message.id}
+    message={message}
+    currentUserId={currentUserId}
+  />
+))}
       <div ref={bottomRef} />
     </div>
   );

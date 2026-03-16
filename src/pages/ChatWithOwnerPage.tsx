@@ -106,7 +106,9 @@ export default function ChatWithOwnerPage() {
           setMessages((prev) => [...prev, payload.new as ChatMessage]);
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log("Realtime status:", status);
+      });
 
     return () => {
       supabase.removeChannel(channel);
