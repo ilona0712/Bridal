@@ -3,22 +3,47 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../lib/supabase";
 
 export default function CollectionSection() {
-  const [collections, setCollections] = useState<string[]>([]);
+  type CollectionWithImages = { name: string; images: string[] };
+  const [collections, setCollections] = useState<CollectionWithImages[]>([]);
 
   useEffect(() => {
-    const fetchCollections = async () => {
-      const { data } = await supabase
-        .from("collections")
-        .select("name")
-        .order("name");
+  const fetchCollections = async () => {
+    const { data } = await supabase
+      .from("collections")
+      .select(`
+        id,
+        name,
+        dresses (
+          id,
+          dress_images (
+            image_url,
+            is_primary
+          )
+        )
+      `)
+      .eq("is_active", true)
+      .order("name");
 
-      if (data) {
-        setCollections(data.map((c) => c.name));
-      }
-    };
-
-    fetchCollections();
-  }, []);
+    if (data) {
+      const mapped = data.map((c) => {
+        // gather all images from all dresses in this collection
+        const allImages = c.dresses.flatMap((d) =>
+          d.dress_images.map((img) => img.image_url)
+        );
+        // prefer primary images first
+        const primaryImages = c.dresses.flatMap((d) =>
+          d.dress_images.filter((img) => img.is_primary).map((img) => img.image_url)
+        );
+        return {
+          name: c.name,
+          images: primaryImages.length > 0 ? primaryImages : allImages,
+        };
+      });
+      setCollections(mapped);
+    }
+  };
+  fetchCollections();
+}, []);
 
   const firstRow = useMemo(() => {
     if (collections.length === 4) return collections.slice(0, 2);
@@ -32,15 +57,15 @@ export default function CollectionSection() {
     return [];
   }, [collections]);
 
-  const renderCard = (collection: string) => (
-    <CollectionCard
-      key={collection}
-      imageSrc="https://images.unsplash.com/photo-1529636798458-92182e662485?auto=format&fit=crop&w=1080&q=80"
-      imageAlt={collection}
-      name={collection}
-      style="Collection"
-    />
-  );
+  const renderCard = (collection: CollectionWithImages) => (
+  <CollectionCard
+    key={collection.name}
+    images={collection.images}
+    imageAlt={collection.name}
+    name={collection.name}
+    style="Collection"
+  />
+);
 
   return (
     <section className="container mx-auto px-6 py-20">
