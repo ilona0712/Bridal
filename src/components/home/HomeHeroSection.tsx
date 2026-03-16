@@ -2,7 +2,6 @@ import { Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ImageWithFallback } from "../../figma/ImageWithFallback";
 
-
 export default function HomeHeroSection() {
   return (
     <section className="container mx-auto px-6 py-20">
@@ -16,13 +15,12 @@ export default function HomeHeroSection() {
             </div>
 
             <h1 className="font-serif text-6xl leading-tight text-stone-800">
-              Find Your Perfect Gown
+              Find Your Perfect Dress
             </h1>
 
             <p className="text-lg text-stone-600">
-              Chat with our intelligent consultant to design and customize
-              your dream wedding dress. Every detail, every wish, brought to
-              life.
+              Chat with our intelligent consultant to design and customize your
+              dream wedding dress. Every detail, every wish, brought to life.
             </p>
           </div>
 
@@ -76,7 +74,7 @@ export default function HomeHeroSection() {
               <div>
                 <div className="text-sm text-stone-800">Sarah M.</div>
                 <div className="text-xs text-stone-500">
-                  Found her dream gown in 20 min
+                  Found her dream dress in 20 min
                 </div>
               </div>
             </div>

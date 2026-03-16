@@ -66,16 +66,16 @@ export default function IsabellaPage() {
       response: "Perfect! That will complement the entire look beautifully. 💕",
     },
     {
-      text: "Last question - are there any other special details or embellishments you'd love to add? Maybe beading, embroidery, buttons, a specific back design, or anything else that would make this gown uniquely yours?",
+      text: "Last question - are there any other special details or embellishments you'd love to add? Maybe beading, embroidery, buttons, a specific back design, or anything else that would make this dress uniquely yours?",
       response: `Thank you so much for customizing the ${
-        dressFromGallery?.name || "gown"
-      } with me! Based on all your choices, I can already see how stunning this dress will be on your special day.\n\nYour customized gown will be truly one-of-a-kind - a perfect reflection of your personal style. The changes you've made will create something absolutely magical! ✨💕\n\nWould you like me to save these customizations, or would you like to explore more options?`,
+        dressFromGallery?.name || "dress"
+      } with me! Based on all your choices, I can already see how stunning this dress will be on your special day.\n\nYour customized dress will be truly one-of-a-kind - a perfect reflection of your personal style. The changes you've made will create something absolutely magical! ✨💕\n\nWould you like me to save these customizations, or would you like to explore more options?`,
     },
   ];
 
   const generalQuestions = [
     {
-      text: "Hello! I'm Isabella, your personal bridal consultant. I'm so excited to help you find your dream gown! 💕\n\nLet's start by getting to know your vision. Tell me, what overall style do you envision for your wedding day? Describe the feeling you want your dress to convey.",
+      text: "Hello! I'm Isabella, your personal bridal consultant. I'm so excited to help you find your dream dress! 💕\n\nLet's start by getting to know your vision. Tell me, what overall style do you envision for your wedding day? Describe the feeling you want your dress to convey.",
       response:
         "That sounds absolutely beautiful! I can already picture you on your special day. ✨",
     },
@@ -84,12 +84,12 @@ export default function IsabellaPage() {
       response: "Wonderful choice! That will look stunning on you. 💕",
     },
     {
-      text: "Perfect! Now I'd love to know about the silhouette. How do you imagine the overall shape of your gown? Are you drawn to the drama of a ball gown, the flattering lines of an A-line, the glamour of a fitted mermaid style, or perhaps something more streamlined?",
+      text: "Perfect! Now I'd love to know about the silhouette. How do you imagine the overall shape of your dress? Are you drawn to the drama of a ball gown, the flattering lines of an A-line, the glamour of a fitted mermaid style, or perhaps something more streamlined?",
       response:
         "That silhouette will be absolutely perfect for you! I love this vision coming together. ✨",
     },
     {
-      text: "Let's discuss fabric - this is where your gown really comes to life! What kind of fabric speaks to you? Maybe luxurious satin, delicate lace, flowing chiffon, romantic tulle, or perhaps a combination? Tell me what you're drawn to.",
+      text: "Let's discuss fabric - this is where your dress really comes to life! What kind of fabric speaks to you? Maybe luxurious satin, delicate lace, flowing chiffon, romantic tulle, or perhaps a combination? Tell me what you're drawn to.",
       response:
         "Exquisite choice! That fabric will feel amazing and look even better. 💕",
     },
@@ -103,9 +103,9 @@ export default function IsabellaPage() {
       response: "Perfect! That will complement the entire look beautifully. 💕",
     },
     {
-      text: "Last question - are there any other special details, embellishments, or features you're dreaming of? Maybe beading, embroidery, buttons, a specific back design, or anything else that would make this gown uniquely yours?",
+      text: "Last question - are there any other special details, embellishments, or features you're dreaming of? Maybe beading, embroidery, buttons, a specific back design, or anything else that would make this dress uniquely yours?",
       response:
-        "Thank you so much for sharing your beautiful vision with me! Based on everything you've told me, I have some absolutely stunning gowns in mind that would be perfect for you.\n\nI'm imagining a gown that captures your style perfectly - each detail you've described will come together to create something truly magical. ✨\n\nWould you like to see our gallery where we can find gowns that match your vision? Each one can be customized to your exact specifications!",
+        "Thank you so much for sharing your beautiful vision with me! Based on everything you've told me, I have some absolutely stunning dresses in mind that would be perfect for you.\n\nI'm imagining a dress that captures your style perfectly - each detail you've described will come together to create something truly magical. ✨\n\nWould you like to see our gallery where we can find dresses that match your vision? Each one can be customized to your exact specifications!",
     },
   ];
 
