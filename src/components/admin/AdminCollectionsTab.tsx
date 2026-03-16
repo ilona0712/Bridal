@@ -98,7 +98,9 @@ export default function AdminCollectionsTab({
                     </div>
 
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
-                      <p className="text-xs text-white font-medium">{dress.name}</p>
+                      <p className="text-xs text-white font-medium">
+                        {dress.name}
+                      </p>
                     </div>
 
                     {selectedDressesForCollection.includes(dress.id) && (
@@ -161,7 +163,9 @@ export default function AdminCollectionsTab({
                     />
                   ) : (
                     <div>
-                      <h3 className="font-medium text-stone-800">{collection}</h3>
+                      <h3 className="font-medium text-stone-800">
+                        {collection}
+                      </h3>
                       <p className="text-xs text-stone-500">
                         {dressCount} dress{dressCount !== 1 ? "es" : ""}
                       </p>
@@ -224,29 +228,24 @@ export default function AdminCollectionsTab({
                 {isEditing && showDressSelectionForEdit && (
                   <div className="border-t border-stone-200 p-4 bg-white/30">
                     <p className="text-sm text-stone-600 mb-3">
-                      Select dresses to add to this collection:
+                      Select dresses to modify in this collection:
                     </p>
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-96 overflow-y-auto">
                       {dresses.map((dress) => {
-                        const alreadyInCollection =
-                          dress.collections.includes(collection);
+                        const isSelected =
+                          selectedDressesForEditCollection.includes(dress.id);
 
                         return (
                           <div
                             key={dress.id}
                             onClick={() =>
-                              !alreadyInCollection &&
                               onToggleDressForEditCollection(dress.id)
                             }
-                            className={`relative rounded-xl overflow-hidden border-2 transition-all ${
-                              alreadyInCollection
-                                ? "border-green-300 opacity-60"
-                                : selectedDressesForEditCollection.includes(
-                                      dress.id,
-                                    )
-                                  ? "border-pink-300 ring-2 ring-pink-200/50 cursor-pointer"
-                                  : "border-stone-200 hover:border-stone-300 cursor-pointer"
+                            className={`relative cursor-pointer rounded-xl overflow-hidden border-2 transition-all ${
+                              isSelected
+                                ? "border-pink-300 ring-2 ring-pink-200/50"
+                                : "border-stone-200 hover:border-stone-300"
                             }`}
                           >
                             <div className="aspect-[3/4]">
@@ -263,18 +262,11 @@ export default function AdminCollectionsTab({
                               </p>
                             </div>
 
-                            {alreadyInCollection && (
-                              <div className="absolute top-2 right-2 w-6 h-6 bg-green-300 rounded-full flex items-center justify-center">
+                            {isSelected && (
+                              <div className="absolute top-2 right-2 w-6 h-6 bg-pink-300 rounded-full flex items-center justify-center">
                                 <Check className="w-4 h-4 text-stone-800" />
                               </div>
                             )}
-
-                            {!alreadyInCollection &&
-                              selectedDressesForEditCollection.includes(dress.id) && (
-                                <div className="absolute top-2 right-2 w-6 h-6 bg-pink-300 rounded-full flex items-center justify-center">
-                                  <Check className="w-4 h-4 text-stone-800" />
-                                </div>
-                              )}
                           </div>
                         );
                       })}
@@ -282,8 +274,8 @@ export default function AdminCollectionsTab({
 
                     {selectedDressesForEditCollection.length > 0 && (
                       <p className="text-xs text-stone-600 mt-3">
-                        {selectedDressesForEditCollection.length} new dress(es)
-                        selected to add
+                        {selectedDressesForEditCollection.length} dress(es)
+                        selected
                       </p>
                     )}
                   </div>

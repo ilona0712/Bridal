@@ -52,8 +52,15 @@ export default function DressCard({
           </button>
         )}
 
-        <div className="absolute top-3 left-3 px-3 py-1 bg-stone-800/70 backdrop-blur-sm rounded-full">
-          <span className="text-xs text-white">{dress.collections[0]}</span>
+        <div className="absolute top-3 left-3 flex flex-col gap-2">
+          {dress.collections.map((collection, index) => (
+            <div
+              key={index}
+              className="px-3 py-1 bg-stone-800/70 backdrop-blur-sm rounded-full w-fit"
+            >
+              <span className="text-xs text-white">{collection}</span>
+            </div>
+          ))}
         </div>
       </div>
 
