@@ -119,9 +119,16 @@ export default function ProfilePage() {
       }
 
       const mappedDresses: Dress[] = (data || []).map((dress: any) => {
+        const imageList =
+          Array.isArray(dress.dress_images) && dress.dress_images.length > 0
+            ? dress.dress_images
+                .map((img: any) => img.image_url)
+                .filter((url: any) => typeof url === "string" && url.length > 0)
+            : [];
+
         const primaryImage =
           dress.dress_images?.find((img: any) => img.is_primary)?.image_url ||
-          dress.dress_images?.[0]?.image_url ||
+          imageList[0] ||
           "/placeholder.png";
 
         const collectionName = Array.isArray(dress.collections)
@@ -129,11 +136,12 @@ export default function ProfilePage() {
           : dress.collections?.name;
 
         return {
-          id: dress.id,
+          id: String(dress.id),
           name: dress.name,
           collections: collectionName ? [collectionName] : ["Uncategorized"],
           price: Number(dress.base_price ?? 0),
           image: primaryImage,
+          images: imageList.length > 0 ? imageList : [primaryImage],
           sizes: [36, 38, 40, 42],
           neckline: "V-Neck",
           silhouette: dress.silhouette || "A-Line",
