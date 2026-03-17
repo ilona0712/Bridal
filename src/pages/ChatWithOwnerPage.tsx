@@ -30,6 +30,7 @@ export default function ChatWithOwnerPage() {
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const mimeTypeRef = useRef<string>("audio/webm");
   const emojiPickerRef = useRef<HTMLDivElement | null>(null);
   const emojiButtonAreaRef = useRef<HTMLDivElement | null>(null);
 
@@ -140,7 +141,14 @@ export default function ChatWithOwnerPage() {
   const handleStartRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+      const mimeType = MediaRecorder.isTypeSupported("audio/mp4")
+  ? "audio/mp4"
+  : MediaRecorder.isTypeSupported("audio/ogg")
+  ? "audio/ogg"
+  : "audio/webm";
+
+const mediaRecorder = new MediaRecorder(stream, { mimeType });
+      mimeTypeRef.current = mimeType;
       setRecordingStream(stream);
       audioChunksRef.current = [];
       mediaRecorderRef.current = mediaRecorder;
@@ -149,11 +157,35 @@ export default function ChatWithOwnerPage() {
         if (event.data.size > 0) audioChunksRef.current.push(event.data);
       };
 
-      mediaRecorder.onstop = () => {
-        stream.getTracks().forEach((track) => track.stop());
-        setRecordingStream(null);
-        // voice messages can be added later with Supabase Storage
-      };
+      mediaRecorder.onstop = async () => {
+  stream.getTracks().forEach((track) => track.stop());
+  setRecordingStream(null);
+
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeTypeRef.current });
+        const ext = mimeTypeRef.current.split("/")[1].split(";")[0];
+        const fileName = `${session?.user?.id}-${Date.now()}.${ext}`;
+  const { data: uploadData, error: uploadError } = await supabase.storage
+    .from("voice-notes")
+    .upload(fileName, audioBlob, { contentType: mimeTypeRef.current });
+
+  if (uploadError) {
+    console.error("Audio upload failed:", uploadError);
+    return;
+  }
+
+  const { data: urlData } = supabase.storage
+    .from("voice-notes")
+    .getPublicUrl(uploadData.path);
+
+  const { error: msgError } = await supabase.from("messages").insert({
+    conversation_id: conversationId,
+    content: urlData.publicUrl,
+    sender_type: role === "admin" ? "designer" : "customer",
+    is_audio: true,
+  });
+
+  if (msgError) console.error("Failed to send voice message:", msgError);
+};
 
       mediaRecorder.start();
       setIsRecording(true);

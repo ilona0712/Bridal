@@ -4,6 +4,7 @@ export type ChatMessage = {
   content: string;
   sender_type: "customer" | "designer";
   created_at: string;
+  is_audio: boolean;
 };
 
 export type ConversationSummary = {

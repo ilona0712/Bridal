@@ -8,12 +8,12 @@ type OwnerChatMessageBubbleProps = {
 
 export default function OwnerChatMessageBubble({
   message,
-  role
+  role,
 }: OwnerChatMessageBubbleProps) {
   const isMine =
-  (role === "admin" && message.sender_type === "designer") ||
-  (role !== "admin" && message.sender_type === "customer");
-  const hasAudio = false;
+    (role === "admin" && message.sender_type === "designer") ||
+    (role !== "admin" && message.sender_type === "customer");
+  const hasAudio = message.is_audio === true;
 
   return (
     <div className={`flex gap-3 items-end ${isMine ? "justify-end" : ""}`}>
@@ -23,11 +23,7 @@ export default function OwnerChatMessageBubble({
         </div>
       )}
 
-      <div
-        className={`flex flex-col gap-1 ${
-          isMine ? "items-end" : "items-start"
-        }`}
-      >
+      <div className={`flex flex-col gap-1 ${isMine ? "items-end" : "items-start"}`}>
         <div
           className={[
             "rounded-3xl px-5 py-4 shadow-sm backdrop-blur-sm transition-all",
@@ -37,40 +33,38 @@ export default function OwnerChatMessageBubble({
               : "bg-white/90 text-stone-800 rounded-bl-md border border-stone-200/70",
           ].join(" ")}
         >
-          {message.content && (
-            <p className="text-sm leading-relaxed whitespace-pre-line">
-              {message.content}
-            </p>
-          )}
-
-          {hasAudio && (
-            <div className="space-y-3">
+          {hasAudio ? (
+            <div className="space-y-2">
               <div className="flex items-center gap-2 text-xs text-stone-500">
-                <div
-                  className={`w-7 h-7 rounded-full flex items-center justify-center ${
-                    isMine
-                      ? "bg-white/50 border border-white/60"
-                      : "bg-amber-50 border border-amber-100"
-                  }`}
-                >
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center ${
+                  isMine ? "bg-white/50 border border-white/60" : "bg-amber-50 border border-amber-100"
+                }`}>
                   <Mic className="w-3.5 h-3.5" />
                 </div>
                 <span className="font-medium">Voice message</span>
               </div>
-
-              <audio
-                controls
-                className="w-full h-10 rounded-xl"
-                preload="metadata"
-              >
-                <source src={""} type="audio/webm" />
-                Your browser does not support audio playback.
-              </audio>
+              {message.content ? (
+                <audio controls className="w-full h-10 rounded-xl" preload="metadata">
+                  <source src={message.content} />
+                </audio>
+              ) : (
+                <p className="text-xs text-stone-400">Audio unavailable</p>
+              )}
             </div>
+          ) : (
+            <p className="text-sm leading-relaxed whitespace-pre-line">
+              {message.content}
+            </p>
           )}
         </div>
 
-        <span className="text-xs text-stone-400 px-2">{new Date(message.created_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}</span>
+        <span className="text-xs text-stone-400 px-2">
+          {new Date(message.created_at).toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          })}
+        </span>
       </div>
 
       {isMine && (
