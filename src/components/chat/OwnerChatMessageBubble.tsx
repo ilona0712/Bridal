@@ -3,13 +3,16 @@ import type { ChatMessage } from "../../types/chat";
 
 type OwnerChatMessageBubbleProps = {
   message: ChatMessage;
-  currentUserId: string;
+  role: string | null;
 };
 
 export default function OwnerChatMessageBubble({
   message,
+  role
 }: OwnerChatMessageBubbleProps) {
-  const isMine = message.sender_type === "customer";
+  const isMine =
+  (role === "admin" && message.sender_type === "designer") ||
+  (role !== "admin" && message.sender_type === "customer");
   const hasAudio = false;
 
   return (

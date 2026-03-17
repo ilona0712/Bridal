@@ -5,11 +5,13 @@ import type { ChatMessage } from "../../types/chat";
 type OwnerChatMessagesListProps = {
   messages: ChatMessage[];
   currentUserId: string;
+  role: string | null;
 };
 
 export default function OwnerChatMessagesList({
   messages,
   currentUserId,
+  role
 }: OwnerChatMessagesListProps) {
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
@@ -20,11 +22,11 @@ export default function OwnerChatMessagesList({
   return (
     <div className="h-[500px] overflow-y-auto p-6 space-y-4 bg-stone-50/30">
       {messages.map((message) => (
-  <OwnerChatMessageBubble
-    key={message.id}
-    message={message}
-    currentUserId={currentUserId}
-  />
+<OwnerChatMessageBubble
+  key={message.id}
+  message={message}
+  role={role}
+/>
 ))}
       <div ref={bottomRef} />
     </div>

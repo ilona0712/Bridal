@@ -26,6 +26,7 @@ export default function ChatWithOwnerPage() {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingStream, setRecordingStream] = useState<MediaStream | null>(null);
   const [loading, setLoading] = useState(true);
+  console.log("conversationId:", conversationId, "role:", role);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -81,6 +82,7 @@ export default function ChatWithOwnerPage() {
         .select("*")
         .eq("conversation_id", conversationId)
         .order("created_at", { ascending: true });
+        console.log("messages data:", data, "error:", error);
 
       if (error) {
         console.error("Failed to fetch messages:", error);
@@ -117,6 +119,7 @@ export default function ChatWithOwnerPage() {
 
   const handleSendMessage = async () => {
     const trimmed = inputValue.trim();
+    console.log("sending:", trimmed, "conversationId:", conversationId, "role:", role);
     if (!trimmed || !conversationId) return;
 
     setInputValue("");
@@ -207,8 +210,11 @@ export default function ChatWithOwnerPage() {
             onBack={() => navigate(role === "admin" ? "/clients-chats" : "/")}
           />
 
-          <OwnerChatMessagesList messages={messages} currentUserId={session?.user?.id ?? ""} />
-
+          <OwnerChatMessagesList
+  messages={messages}
+  currentUserId={session?.user?.id ?? ""}
+  role={role}
+/>
           <div className="relative" ref={emojiButtonAreaRef}>
             {showEmojiPicker && (
               <div ref={emojiPickerRef} className="absolute bottom-20 left-4 z-20 shadow-xl">
