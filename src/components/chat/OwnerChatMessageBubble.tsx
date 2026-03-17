@@ -1,5 +1,6 @@
 import { Mic, User } from "lucide-react";
 import type { ChatMessage } from "../../types/chat";
+import { useEffect, useState } from "react";
 
 type OwnerChatMessageBubbleProps = {
   message: ChatMessage;
@@ -14,6 +15,19 @@ export default function OwnerChatMessageBubble({
     (role === "admin" && message.sender_type === "designer") ||
     (role !== "admin" && message.sender_type === "customer");
   const hasAudio = message.is_audio === true;
+
+  const [duration, setDuration] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!hasAudio || !message.content) return;
+    const audio = new Audio(message.content);
+    audio.addEventListener("loadedmetadata", () => {
+      const secs = Math.floor(audio.duration);
+      const m = Math.floor(secs / 60);
+      const s = secs % 60;
+      setDuration(`${m}:${s.toString().padStart(2, "0")}`);
+    });
+  }, [hasAudio, message.content]);
 
   return (
     <div className={`flex gap-3 items-end ${isMine ? "justify-end" : ""}`}>
@@ -48,6 +62,9 @@ export default function OwnerChatMessageBubble({
                   <Mic className="w-3.5 h-3.5" />
                 </div>
                 <span className="font-medium">Voice message</span>
+                {duration && (
+                  <span className="text-stone-400">{duration}</span>
+                )}
               </div>
               {message.content ? (
                 <audio
