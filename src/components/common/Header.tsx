@@ -1,32 +1,61 @@
-import { Sparkles, MessageCircle, User, LogOut } from "lucide-react"
-import { Link, useNavigate } from "react-router-dom"
-import { useSession } from "../../routes"
-import { signOut } from "../../auth"
+import { useEffect, useState } from "react";
+import { Sparkles, MessageCircle, User, LogOut } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useSession } from "../../routes";
+import { signOut } from "../../auth";
+import { supabase } from "../../../lib/supabase";
 
 interface HeaderProps {
-  subtitle?: string
-  fixed?: boolean
+  subtitle?: string;
+  fixed?: boolean;
 }
 
 export default function Header({
   subtitle = "Your Dream Gown Awaits",
   fixed = false,
 }: HeaderProps) {
-  const session = useSession()
-  const navigate = useNavigate()
-  const unreadCount = 3
+  const session = useSession();
+  const navigate = useNavigate();
+  const unreadCount = 3;
 
-  const isAdmin = session?.user?.user_metadata?.role === "admin"
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
+
+  const isAdmin = session?.user?.user_metadata?.role === "admin";
 
   const displayName =
     session?.user?.user_metadata?.full_name ||
     session?.user?.user_metadata?.first_name ||
     session?.user?.email?.split("@")[0] ||
-    null
+    null;
+
+  useEffect(() => {
+    const loadProfileImage = async () => {
+      if (!session?.user) {
+        setProfileImageUrl(null);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("profile_image_url")
+        .eq("id", session.user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Failed to load header profile image:", error);
+        setProfileImageUrl(null);
+        return;
+      }
+
+      setProfileImageUrl(data?.profile_image_url || null);
+    };
+
+    loadProfileImage();
+  }, [session]);
 
   async function handleSignOut() {
-    await signOut()
-    navigate("/login")
+    await signOut();
+    navigate("/login");
   }
 
   return (
@@ -53,44 +82,49 @@ export default function Header({
               </div>
             </Link>
 
-            {/* DESKTOP USER SECTION */}
-{/* DESKTOP USER SECTION */}
-{session ? (
-  <div className="hidden lg:flex items-center gap-4 ml-auto">
+            {session ? (
+              <div className="hidden lg:flex items-center gap-4 ml-auto">
+                <div className="rounded-full border border-stone-200 bg-white/70 px-4 py-2 shadow-sm">
+                  <span className="text-sm text-stone-700">
+                    Welcome,{" "}
+                    <span className="font-semibold">
+                      {isAdmin ? "Admin" : displayName || "Customer"}
+                    </span>
+                  </span>
+                </div>
 
-    <div className="rounded-full border border-stone-200 bg-white/70 px-4 py-2 shadow-sm">
-      <span className="text-sm text-stone-700">
-        Welcome, <span className="font-semibold">
-          {isAdmin ? "Admin" : displayName || "Customer"}
-        </span>
-      </span>
-    </div>
+                <Link
+                  to="/profile"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-stone-200 bg-white/70 hover:bg-stone-50 overflow-hidden"
+                  title="Profile"
+                >
+                  {profileImageUrl ? (
+                    <img
+                      src={profileImageUrl}
+                      alt="Profile"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <User className="h-5 w-5 text-stone-600" />
+                  )}
+                </Link>
 
-    <Link
-      to="/profile"
-      className="flex h-10 w-10 items-center justify-center rounded-full border border-stone-200 bg-white/70 hover:bg-stone-50"
-      title="Profile"
-    >
-      <User className="h-5 w-5 text-stone-600" />
-    </Link>
-
-    <button
-      onClick={handleSignOut}
-      className="flex items-center gap-2 rounded-full border border-stone-200 px-4 py-2 text-sm text-stone-600 hover:bg-stone-50"
-    >
-      <LogOut className="h-4 w-4" />
-      Sign Out
-    </button>
-
-  </div>
-) : (
-  <Link
-    to="/login"
-    className="hidden lg:inline-flex ml-auto rounded-full bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 px-6 py-2 text-sm text-stone-700 hover:shadow-md"
-  >
-    Sign In
-  </Link>
-)}
+                <button
+                  onClick={handleSignOut}
+                  className="flex items-center gap-2 rounded-full border border-stone-200 px-4 py-2 text-sm text-stone-600 hover:bg-stone-50"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <Link
+                to="/login"
+                className="hidden lg:inline-flex ml-auto rounded-full bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 px-6 py-2 text-sm text-stone-700 hover:shadow-md"
+              >
+                Sign In
+              </Link>
+            )}
           </div>
 
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4">
@@ -150,36 +184,43 @@ export default function Header({
               </Link>
             )}
 
-            {/* MOBILE USER SECTION */}
-{session ? (
-  <div className="flex items-center gap-2 lg:hidden">
-    <Link
-      to="/profile"
-      className="flex h-9 w-9 items-center justify-center rounded-full border border-stone-200 bg-white/70 shadow-sm hover:bg-stone-50"
-      title="Profile"
-    >
-      <User className="h-4 w-4 text-stone-600" />
-    </Link>
+            {session ? (
+              <div className="flex items-center gap-2 lg:hidden">
+                <Link
+                  to="/profile"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-stone-200 bg-white/70 shadow-sm hover:bg-stone-50 overflow-hidden"
+                  title="Profile"
+                >
+                  {profileImageUrl ? (
+                    <img
+                      src={profileImageUrl}
+                      alt="Profile"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <User className="h-4 w-4 text-stone-600" />
+                  )}
+                </Link>
 
-    <button
-      onClick={handleSignOut}
-      className="flex h-9 w-9 items-center justify-center rounded-full border border-stone-200 bg-white/70 shadow-sm hover:bg-stone-50"
-      title="Sign out"
-    >
-      <LogOut className="h-4 w-4 text-stone-600" />
-    </button>
-  </div>
-) : (
-  <Link
-    to="/login"
-    className="lg:hidden rounded-full bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 px-4 py-2 text-sm text-stone-700 hover:shadow-md"
-  >
-    Sign In
-  </Link>
-)}
+                <button
+                  onClick={handleSignOut}
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-stone-200 bg-white/70 shadow-sm hover:bg-stone-50"
+                  title="Sign out"
+                >
+                  <LogOut className="h-4 w-4 text-stone-600" />
+                </button>
+              </div>
+            ) : (
+              <Link
+                to="/login"
+                className="lg:hidden rounded-full bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 px-4 py-2 text-sm text-stone-700 hover:shadow-md"
+              >
+                Sign In
+              </Link>
+            )}
           </div>
         </div>
       </div>
     </header>
-  )
+  );
 }

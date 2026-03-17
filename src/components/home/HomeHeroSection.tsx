@@ -1,6 +1,6 @@
 import { Heart } from "lucide-react";
 import { Link } from "react-router-dom";
-import { ImageWithFallback } from "../../figma/ImageWithFallback";
+import { ImageWithFallback } from "../../assets/ImageWithFallback";
 
 export default function HomeHeroSection() {
   return (
@@ -26,7 +26,7 @@ export default function HomeHeroSection() {
 
           <div className="flex gap-4">
             <Link
-              to="/consultation"
+              to="/isabella"
               className="px-8 py-4 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 text-stone-700 rounded-xl hover:shadow-lg transition-all"
             >
               Start Consultation

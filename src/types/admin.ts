@@ -1,8 +1,14 @@
 export type ActiveTab = "list" | "add" | "collections";
 
+export type AdminCollection = {
+  id: string;
+  name: string;
+};
+
 export type EditingCollection = {
-  old: string;
-  new: string;
+  id: string;
+  oldName: string;
+  newName: string;
 };
 
 export type DressFormData = {

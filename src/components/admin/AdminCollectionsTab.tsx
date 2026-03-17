@@ -1,9 +1,9 @@
 import { Check, Edit2, FolderPlus, Plus, Save, Trash2, X } from "lucide-react";
-import type { EditingCollection } from "../../types/admin";
+import type { AdminCollection, EditingCollection } from "../../types/admin";
 import type { Dress } from "../../types/dress";
 
 type AdminCollectionsTabProps = {
-  collections: string[];
+  collections: AdminCollection[];
   dresses: Dress[];
   newCollectionName: string;
   editingCollection: EditingCollection | null;
@@ -11,15 +11,16 @@ type AdminCollectionsTabProps = {
   selectedDressesForCollection: string[];
   selectedDressesForEditCollection: string[];
   showDressSelectionForEdit: boolean;
+  collectionNameError: string;
   onNewCollectionNameChange: (value: string) => void;
   onToggleAddingCollectionMode: () => void;
   onAddCollection: () => void;
-  onStartEditingCollection: (collectionName: string) => void;
+  onStartEditingCollection: (collection: AdminCollection) => void;
   onEditingCollectionNameChange: (value: string) => void;
   onToggleShowDressSelectionForEdit: () => void;
   onUpdateCollection: () => void;
   onCancelEditCollection: () => void;
-  onDeleteCollection: (collectionName: string) => void;
+  onDeleteCollection: (collection: AdminCollection) => void;
   onToggleDressForCollection: (dressId: string) => void;
   onToggleDressForEditCollection: (dressId: string) => void;
 };
@@ -33,6 +34,7 @@ export default function AdminCollectionsTab({
   selectedDressesForCollection,
   selectedDressesForEditCollection,
   showDressSelectionForEdit,
+  collectionNameError,
   onNewCollectionNameChange,
   onToggleAddingCollectionMode,
   onAddCollection,
@@ -71,6 +73,10 @@ export default function AdminCollectionsTab({
               {addingCollectionMode ? "Cancel" : "Select Dresses"}
             </button>
           </div>
+
+          {collectionNameError && !editingCollection && (
+            <p className="text-sm text-red-600">{collectionNameError}</p>
+          )}
 
           {addingCollectionMode && (
             <div className="border-t border-stone-200 pt-4 mt-4">
@@ -141,30 +147,37 @@ export default function AdminCollectionsTab({
         <div className="space-y-3">
           {collections.map((collection) => {
             const dressCount = dresses.filter((dress) =>
-              dress.collections.includes(collection),
+              dress.collections.includes(collection.name),
             ).length;
 
-            const isEditing = editingCollection?.old === collection;
+            const isEditing = editingCollection?.id === collection.id;
 
             return (
               <div
-                key={collection}
+                key={collection.id}
                 className="bg-stone-50/50 rounded-xl border border-stone-200 overflow-hidden"
               >
                 <div className="flex items-center justify-between p-4">
                   {isEditing && editingCollection ? (
-                    <input
-                      type="text"
-                      value={editingCollection.new}
-                      onChange={(e) =>
-                        onEditingCollectionNameChange(e.target.value)
-                      }
-                      className="flex-1 px-3 py-2 bg-white border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-200/50 text-stone-800"
-                    />
+                    <div className="flex-1">
+                      <input
+                        type="text"
+                        value={editingCollection.newName}
+                        onChange={(e) =>
+                          onEditingCollectionNameChange(e.target.value)
+                        }
+                        className="w-full px-3 py-2 bg-white border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-200/50 text-stone-800"
+                      />
+                      {collectionNameError && (
+                        <p className="mt-2 text-sm text-red-600">
+                          {collectionNameError}
+                        </p>
+                      )}
+                    </div>
                   ) : (
                     <div>
                       <h3 className="font-medium text-stone-800">
-                        {collection}
+                        {collection.name}
                       </h3>
                       <p className="text-xs text-stone-500">
                         {dressCount} dress{dressCount !== 1 ? "es" : ""}

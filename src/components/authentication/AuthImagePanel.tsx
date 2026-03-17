@@ -1,4 +1,4 @@
-import { ImageWithFallback } from "../../figma/ImageWithFallback";
+import { ImageWithFallback } from "../../assets/ImageWithFallback";
 
 type AuthImagePanelProps = {
   src: string;

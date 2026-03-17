@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 
 export default function HomePage() {
-  const [collections, setCollections] = useState<string[]>([]);
+  const [, setCollections] = useState<string[]>([]);
   useEffect(() => {
     const fetchCollections = async () => {
       const { data, error } = await supabase

@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState, type MouseEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Sparkles, SlidersHorizontal } from "lucide-react";
-import { supabase } from "../../lib/supabase";
 import { useRole } from "../routes";
 import {
   collections,
@@ -19,40 +18,12 @@ import GalleryFilters from "../components/gallery/GalleryFilters";
 import DressCard from "../components/gallery/DressCard";
 import DressDetailsModal from "../components/gallery/DressDetailsModal";
 import DressContextMenu from "../components/gallery/DressContextMenu";
-
-type GalleryDressRow = {
-  id: string | number;
-  name: string | null;
-  silhouette: string | null;
-  base_price: number | string | null;
-  status: string | null;
-  dress_images?: Array<{
-    image_url: string | null;
-    is_primary: boolean | null;
-  }> | null;
-  dress_collections?: Array<{
-    collections?: {
-      name: string | null;
-    } | null;
-  }> | null;
-  dress_attribute_values?: Array<{
-    attribute_values?: {
-      value_key: string | null;
-      label: string | null;
-      attributes?: {
-        key: string | null;
-      } | null;
-    } | null;
-  }> | null;
-};
+import { useGalleryData } from "../hooks/gallery/useGalleryData";
+import { useGalleryFavorites } from "../hooks/gallery/useGalleryFavorites";
 
 export default function GalleryPage() {
   const [searchParams] = useSearchParams();
-  const [allCollections, setAllCollections] = useState<string[]>(collections);
-
-  const [allDresses, setAllDresses] = useState<Dress[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { allCollections, allDresses, loading, error } = useGalleryData(collections);
 
   const role = useRole();
   const isAdmin = role === "admin";
@@ -69,9 +40,9 @@ export default function GalleryPage() {
   const [selectedSleeveStyle, setSelectedSleeveStyle] = useState("All");
   const [showFilters, setShowFilters] = useState(false);
 
-  const [favoriteDressIds, setFavoriteDressIds] = useState<string[]>([]);
+ 
 
-  useEffect(() => {
+ useEffect(() => {
   const collectionFromUrl = searchParams.get("collection");
 
   if (collectionFromUrl) {
@@ -81,26 +52,9 @@ export default function GalleryPage() {
   }
 }, [searchParams]);
 
-  useEffect(() => {
-    const savedFavorites = localStorage.getItem("favoriteDressIds");
+ const { favoriteDressIds, toggleFavorite } = useGalleryFavorites(isAdmin);
 
-    if (savedFavorites) {
-      setFavoriteDressIds(JSON.parse(savedFavorites));
-    }
-  }, []);
-
-  const toggleFavorite = (dressId: string) => {
-    if (isAdmin) return;
-
-    setFavoriteDressIds((prev) => {
-      const updated = prev.includes(dressId)
-        ? prev.filter((id) => id !== dressId)
-        : [...prev, dressId];
-
-      localStorage.setItem("favoriteDressIds", JSON.stringify(updated));
-      return updated;
-    });
-  };
+ 
 
   const [selectedDress, setSelectedDress] = useState<Dress | null>(null);
   const [contextMenu, setContextMenu] = useState<{
@@ -123,132 +77,13 @@ export default function GalleryPage() {
     );
   };
 
-  useEffect(() => {
-    const fetchDresses = async () => {
-      setLoading(true);
-      setError(null);
-
-      const { data, error } = await supabase
-        .from("dresses")
-        .select(
-          `
-  id,
-  name,
-  silhouette,
-  base_price,
-  status,
-  dress_images (
-    image_url,
-    is_primary
-  ),
-  dress_collections (
-    collections (
-      name
-    )
-  ),
-  dress_attribute_values (
-    attribute_values (
-      value_key,
-      label,
-      attributes (
-        key
-      )
-    )
-  )
-  `,
-        )
-        .returns<GalleryDressRow[]>();
-
-      if (error) {
-        console.error("Gallery fetch failed:", error);
-        setError(error.message);
-        setLoading(false);
-        return;
-      }
-
-      const mappedDresses: Dress[] = (data || []).map((dress) => {
-        const primaryImage =
-          dress.dress_images?.find((img) => img.is_primary)?.image_url ||
-          dress.dress_images?.[0]?.image_url ||
-          "/placeholder.png";
-
-        const allImages = (dress.dress_images || [])
-        .map((img) => img.image_url)
-        .filter((url): url is string => Boolean(url));
-
-        const collectionNames = Array.from(
-          new Set(
-            (dress.dress_collections || [])
-              .map((link) => link.collections?.name)
-              .filter((name): name is string => Boolean(name)),
-          ),
-        );
-        const attributeEntries = (dress.dress_attribute_values || [])
-          .map((link) => link.attribute_values)
-          .filter(Boolean);
-
-        const sizeLabels = attributeEntries
-          .filter((value) => value?.attributes?.key === "size")
-          .map((value) => Number(value?.label))
-          .filter((value) => !Number.isNaN(value))
-          .sort((a, b) => a - b);
-
-        const neckline =
-          attributeEntries.find(
-            (value) => value?.attributes?.key === "neckline",
-          )?.label ?? "";
-
-        const fabric =
-          attributeEntries.find((value) => value?.attributes?.key === "fabric")
-            ?.label ?? "";
-
-        const trainLength =
-          attributeEntries.find(
-            (value) => value?.attributes?.key === "train_length",
-          )?.label ?? "";
-
-        const sleeveStyle =
-          attributeEntries.find(
-            (value) => value?.attributes?.key === "sleeve_style",
-          )?.label ?? "";
-
-        return {
-          id: String(dress.id),
-          name: dress.name ?? "Unnamed Dress",
-          collections:
-            collectionNames.length > 0 ? collectionNames : ["Uncategorized"],
-          price: Number(dress.base_price ?? 0),
-          image: primaryImage,
-          images: allImages.length > 0 ? allImages : ["/placeholder.png"],
-          sizes: sizeLabels,
-          neckline,
-          silhouette: dress.silhouette ?? "",
-          fabric,
-          trainLength,
-          sleeveStyle,
-          isVisible: dress.status === "published",
-        };
-      });
-
-      const dbCollections = Array.from(
-        new Set(
-          mappedDresses.flatMap((dress) => dress.collections).filter(Boolean),
-        ),
-      );
-
-      setAllCollections(["All", ...dbCollections]);
-      setAllDresses(mappedDresses);
-      setLoading(false);
-    };
-
-    fetchDresses();
-  }, []);
+  
 
   const handleClickOutside = () => {
     setContextMenu({ visible: false, x: 0, y: 0, dress: null });
   };
 
-  const handleRightClick = (e: React.MouseEvent, dress: Dress) => {
+  const handleRightClick = (e: MouseEvent, dress: Dress) => {
     e.preventDefault();
     setContextMenu({
       visible: true,

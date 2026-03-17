@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ImageWithFallback } from "../../figma/ImageWithFallback";
+import { ImageWithFallback } from "../../assets/ImageWithFallback";
 import type { Dress } from "../../types/dress";
 
 type DressContextMenuProps = {
