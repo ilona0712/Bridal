@@ -12,18 +12,18 @@ type AdminDressFormTabProps = {
   collections: string[];
   dragActive: boolean;
   fileInputRef: RefObject<HTMLInputElement | null>;
-  availableSizes: number[];
-  necklines: string[];
-  silhouettes: string[];
-  fabrics: string[];
-  trainLengths: string[];
-  sleeveStyles: string[];
+  availableSizes: readonly number[];
+  necklines: readonly string[];
+  silhouettes: readonly string[];
+  fabrics: readonly string[];
+  trainLengths: readonly string[];
+  sleeveStyles: readonly string[];
   isEditingDress: boolean;
   onSubmit: (e: FormEvent<HTMLFormElement>) => void;
   onCancel: () => void;
   onNameChange: (value: string) => void;
   onCollectionToggle: (collection: string) => void;
-  onPriceChange: (value: number) => void;
+  onPriceChange: (value: number | null) => void;
   onImageChange: (value: string) => void;
   onRemoveImage: (index: number) => void;
   onSizeToggle: (size: number) => void;
@@ -134,7 +134,7 @@ export default function AdminDressFormTab({
               min="0"
               value={formData.price ?? ""}
               onChange={(e) =>
-                onPriceChange(e.target.value === "" ? 0 : Number(e.target.value))
+                onPriceChange(e.target.value === "" ?  null : Number(e.target.value))
               }
               placeholder="e.g., 3500"
               className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 placeholder:text-stone-400"

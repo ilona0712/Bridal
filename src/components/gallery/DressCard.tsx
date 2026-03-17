@@ -1,6 +1,6 @@
 import { Heart } from "lucide-react";
 import type { MouseEvent } from "react";
-import { ImageWithFallback } from "../../figma/ImageWithFallback";
+import { ImageWithFallback } from "../../assets/ImageWithFallback";
 import type { Dress } from "../../types/dress";
 
 type DressCardProps = {

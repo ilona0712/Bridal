@@ -1,221 +1,35 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-  type ChangeEvent,
-  type DragEvent,
-  type FormEvent,
-} from "react";
-import { supabase } from "../../lib/supabase";
+import { useState, type FormEvent } from "react";
 import Header from "../components/common/Header";
 import AdminCollectionsTab from "../components/admin/AdminCollectionsTab";
 import AdminDressFormTab from "../components/admin/AdminDressFormTab";
 import AdminDressListTab from "../components/admin/AdminDressListTab";
 import AdminPageHeader from "../components/admin/AdminPageHeader";
 import AdminTabs from "../components/admin/AdminTabs";
+import { useAdminDressForm } from "../hooks/admin/useAdminDressForm";
 import type {
   ActiveTab,
-  DressFormData,
+  AdminCollection,
   EditingCollection,
 } from "../types/admin";
 import type { Dress } from "../types/dress";
-
-type AdminDressRow = {
-  id: string | number;
-  name: string | null;
-  silhouette: string | null;
-  base_price: number | string | null;
-  status: string | null;
-  dress_images?: Array<{
-    image_url: string | null;
-    is_primary: boolean | null;
-  }> | null;
-  dress_collections?: Array<{
-    collections?: {
-      name: string | null;
-    } | null;
-  }> | null;
-  dress_attribute_values?: Array<{
-    attribute_values?: {
-      value_key: string | null;
-      label: string | null;
-      attributes?: {
-        key: string | null;
-      } | null;
-    } | null;
-  }> | null;
-};
-
-type CollectionRow = {
-  name: string | null;
-};
-
-type CollectionLookupRow = {
-  id: string | number;
-  name: string | null;
-};
-
-type AttributeValueLookupRow = {
-  id: string;
-  label: string | null;
-  value_key: string | null;
-  attributes?: {
-    key: string | null;
-  } | null;
-};
-
-function mapDressRowToUiDress(dress: AdminDressRow): Dress {
-  const primaryImage =
-    dress.dress_images?.find((img) => img.is_primary)?.image_url ||
-    dress.dress_images?.[0]?.image_url ||
-    "/placeholder.png";
-
-  const allImages = [...(dress.dress_images || [])]
-    .sort(
-      (a, b) =>
-        Number(Boolean(b.is_primary)) - Number(Boolean(a.is_primary)),
-    )
-    .map((img) => img.image_url)
-    .filter((url): url is string => Boolean(url));
-
-  const collectionNames = Array.from(
-    new Set(
-      (dress.dress_collections || [])
-        .map((link) => link.collections?.name)
-        .filter((name): name is string => Boolean(name)),
-    ),
-  );
-
-  const attributeEntries = (dress.dress_attribute_values || [])
-    .map((link) => link.attribute_values)
-    .filter(Boolean);
-
-  const sizeLabels = attributeEntries
-    .filter((value) => value?.attributes?.key === "size")
-    .map((value) => Number(value?.label))
-    .filter((value) => !Number.isNaN(value))
-    .sort((a, b) => a - b);
-
-  const neckline =
-    attributeEntries.find((value) => value?.attributes?.key === "neckline")
-      ?.label ?? "";
-
-  const fabric =
-    attributeEntries.find((value) => value?.attributes?.key === "fabric")
-      ?.label ?? "";
-
-  const trainLength =
-    attributeEntries.find((value) => value?.attributes?.key === "train_length")
-      ?.label ?? "";
-
-  const sleeveStyle =
-    attributeEntries.find((value) => value?.attributes?.key === "sleeve_style")
-      ?.label ?? "";
-
-  return {
-    id: String(dress.id),
-    name: dress.name ?? "Unnamed Dress",
-    collections: collectionNames,
-    price: Number(dress.base_price ?? 0),
-    image: primaryImage,
-    images: allImages.length > 0 ? allImages : ["/placeholder.png"],
-    sizes: sizeLabels,
-    neckline,
-    silhouette: dress.silhouette ?? "",
-    fabric,
-    trainLength,
-    sleeveStyle,
-    isVisible: dress.status === "published",
-  };
-}
-
-async function syncDressAttributes(dressId: string, formData: DressFormData) {
-  const selectedAttributeLabels: string[] = [
-    ...formData.sizes.map(String),
-    ...(formData.neckline ? [formData.neckline] : []),
-    ...(formData.fabric ? [formData.fabric] : []),
-    ...(formData.trainLength ? [formData.trainLength] : []),
-    ...(formData.sleeveStyle ? [formData.sleeveStyle] : []),
-  ];
-
-  const uniqueLabels = Array.from(new Set(selectedAttributeLabels));
-
-  const { error: deleteError } = await supabase
-    .from("dress_attribute_values")
-    .delete()
-    .eq("dress_id", dressId);
-
-  if (deleteError) {
-    throw new Error(deleteError.message);
-  }
-
-  if (uniqueLabels.length === 0) {
-    return;
-  }
-
-  const { data: attributeValueRows, error: attributeLookupError } =
-    await supabase
-      .from("attribute_values")
-      .select(
-        `
-        id,
-        label,
-        value_key,
-        attributes (
-          key
-        )
-      `,
-      )
-      .in("label", uniqueLabels)
-      .returns<AttributeValueLookupRow[]>();
-
-  if (attributeLookupError) {
-    throw new Error(attributeLookupError.message);
-  }
-
-  const selectedSizeLabels = new Set(formData.sizes.map(String));
-
-  const selectedIds = (attributeValueRows || [])
-    .filter((row) => {
-      const attributeKey = row.attributes?.key ?? null;
-      const label = row.label ?? "";
-
-      if (attributeKey === "size") return selectedSizeLabels.has(label);
-      if (attributeKey === "neckline") return formData.neckline === label;
-      if (attributeKey === "fabric") return formData.fabric === label;
-      if (attributeKey === "train_length") return formData.trainLength === label;
-      if (attributeKey === "sleeve_style") return formData.sleeveStyle === label;
-
-      return false;
-    })
-    .map((row) => row.id);
-
-  if (selectedIds.length === 0) {
-    return;
-  }
-
-  const { error: insertError } = await supabase
-    .from("dress_attribute_values")
-    .insert(
-      selectedIds.map((attributeValueId) => ({
-        dress_id: dressId,
-        attribute_value_id: attributeValueId,
-      })),
-    );
-
-  if (insertError) {
-    throw new Error(insertError.message);
-  }
-}
+import { useAdminData } from "../hooks/admin/useAdminData";
+import { ADMIN_DRESS_FORM_OPTIONS } from "../utils/admin/adminDressFormConfig";
+import {
+  createDress,
+  deleteDressById,
+  updateDress,
+  updateDressVisibility,
+} from "../services/admin/adminDressService";
+import {
+  createCollection,
+  deleteCollectionById,
+  updateCollection,
+} from "../services/admin/adminCollectionService";
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("list");
-
-  const [dresses, setDresses] = useState<Dress[]>([]);
-  const [collections, setCollections] = useState<string[]>([]);
-  const [loadingInitialData, setLoadingInitialData] = useState(true);
-  const [initialDataError, setInitialDataError] = useState<string | null>(null);
-
+  const [collectionNameError, setCollectionNameError] = useState("");
+  const normalizeCollectionName = (value: string) => value.trim().toLowerCase();
   const [editingDress, setEditingDress] = useState<Dress | null>(null);
   const [newCollectionName, setNewCollectionName] = useState("");
   const [editingCollection, setEditingCollection] =
@@ -229,223 +43,39 @@ export default function AdminPage() {
   ] = useState<string[]>([]);
   const [showDressSelectionForEdit, setShowDressSelectionForEdit] =
     useState(false);
-  const [dragActive, setDragActive] = useState(false);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const {
+    formData,
+    setFormData,
+    dragActive,
+    fileInputRef,
+    imageFiles,
+    handleSizeToggle,
+    handleCollectionToggle,
+    resetForm,
+    handleDrag,
+    handleDrop,
+    handleFileInput,
+    removeImage,
+    startEditingDress,
+  } = useAdminDressForm();
+  const {
+    necklines,
+    silhouettes,
+    fabrics,
+    trainLengths,
+    sleeveStyles,
+    availableSizes,
+  } = ADMIN_DRESS_FORM_OPTIONS;
 
-  const [formData, setFormData] = useState<DressFormData>({
-    name: "",
-    collections: [],
-    price: null,
-    image: "",
-    images: [],
-    sizes: [],
-    neckline: "",
-    silhouette: "",
-    fabric: "",
-    trainLength: "",
-    sleeveStyle: "",
-  });
-
-  const necklines = ["Sweetheart", "V-Neck", "Off-Shoulder", "Halter"];
-  const silhouettes = ["A-Line", "Ball Gown", "Mermaid", "Sheath"];
-  const fabrics = ["Lace", "Satin", "Chiffon", "Crepe", "Tulle"];
-  const trainLengths = ["No Train", "Court", "Chapel", "Cathedral"];
-  const sleeveStyles = ["Sleeveless", "Cap Sleeve", "Long Sleeve"];
-
-  const availableSizes = [32, 34, 36, 38, 40, 42, 44, 46];
-
-  useEffect(() => {
-    const fetchAdminData = async () => {
-      setLoadingInitialData(true);
-      setInitialDataError(null);
-
-      const [
-        { data: dressesData, error: dressesError },
-        { data: collectionsData, error: collectionsError },
-      ] = await Promise.all([
-        supabase
-          .from("dresses")
-          .select(
-            `
-            id,
-            name,
-            silhouette,
-            base_price,
-            status,
-            dress_images (
-              image_url,
-              is_primary
-            ),
-            dress_collections (
-              collections (
-                name
-              )
-            ),
-            dress_attribute_values (
-              attribute_values (
-                value_key,
-                label,
-                attributes (
-                  key
-                )
-              )
-            )
-          `,
-          )
-          .returns<AdminDressRow[]>(),
-        supabase
-          .from("collections")
-          .select("name")
-          .order("name", { ascending: true })
-          .returns<CollectionRow[]>(),
-      ]);
-
-      if (dressesError) {
-        console.error("Admin dresses fetch failed:", dressesError);
-        setInitialDataError(dressesError.message);
-        setLoadingInitialData(false);
-        return;
-      }
-
-      if (collectionsError) {
-        console.error("Admin collections fetch failed:", collectionsError);
-        setInitialDataError(collectionsError.message);
-        setLoadingInitialData(false);
-        return;
-      }
-
-      const mappedDresses = (dressesData || []).map(mapDressRowToUiDress);
-      const mappedCollections = (collectionsData || [])
-        .map((collection) => collection.name)
-        .filter((name): name is string => Boolean(name));
-
-      setDresses(mappedDresses);
-      setCollections(mappedCollections);
-      setLoadingInitialData(false);
-    };
-
-    fetchAdminData();
-  }, []);
-
-  const handleSizeToggle = (size: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      sizes: prev.sizes.includes(size)
-        ? prev.sizes.filter((s) => s !== size)
-        : [...prev.sizes, size].sort((a, b) => a - b),
-    }));
-  };
-
-  const handleCollectionToggle = (collection: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      collections: prev.collections.includes(collection)
-        ? prev.collections.filter((c) => c !== collection)
-        : [...prev.collections, collection],
-    }));
-  };
-
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      collections: [],
-      price: null,
-      image: "",
-      images: [],
-      sizes: [],
-      neckline: "",
-      silhouette: "",
-      fabric: "",
-      trainLength: "",
-      sleeveStyle: "",
-    });
-    setEditingDress(null);
-  };
-
-  const handleDrag = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
-  };
-
-  const handleFiles = (files: FileList | File[]) => {
-    const currentCount = formData.images.length;
-    const incomingFiles = Array.from(files).slice(0, 6 - currentCount);
-
-    if (incomingFiles.length === 0) {
-      alert("You can upload up to 6 images only.");
-      return;
-    }
-
-    Promise.all(
-      incomingFiles.map(
-        (file) =>
-          new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-
-            reader.onload = (e) => {
-              const result = e.target?.result;
-              if (typeof result === "string") resolve(result);
-              else reject(new Error("Failed to read file"));
-            };
-
-            reader.onerror = () => reject(new Error("Failed to read file"));
-            reader.readAsDataURL(file);
-          }),
-      ),
-    )
-      .then((uploadedImages) => {
-        setFormData((prev) => {
-          const nextImages = [...prev.images, ...uploadedImages].slice(0, 6);
-
-          return {
-            ...prev,
-            images: nextImages,
-            image: nextImages[0] || "",
-          };
-        });
-      })
-      .catch((error) => {
-        console.error("Image upload error:", error);
-        alert("Failed to upload one or more images.");
-      });
-  };
-
-  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleFiles(e.dataTransfer.files);
-    }
-  };
-
-  const handleFileInput = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      handleFiles(e.target.files);
-    }
-  };
-
-  const removeImage = (indexToRemove: number) => {
-    setFormData((prev) => {
-      const nextImages = prev.images.filter(
-        (_, index) => index !== indexToRemove,
-      );
-
-      return {
-        ...prev,
-        images: nextImages,
-        image: nextImages[0] || "",
-      };
-    });
-  };
+  const {
+    dresses,
+    setDresses,
+    collections,
+    setCollections,
+    loadingInitialData,
+    initialDataError,
+  } = useAdminData();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -467,114 +97,8 @@ export default function AdminPage() {
 
     if (editingDress) {
       try {
-        const { error: dressUpdateError } = await supabase
-          .from("dresses")
-          .update({
-            name: formData.name.trim(),
-            description: null,
-            silhouette: formData.silhouette || null,
-            base_price: formData.price,
-            status: "published",
-          })
-          .eq("id", editingDress.id);
-
-        if (dressUpdateError) {
-          console.error("Dress update failed:", dressUpdateError);
-          alert(`Failed to update dress: ${dressUpdateError.message}`);
-          return;
-        }
-
-        const { error: deleteImagesError } = await supabase
-          .from("dress_images")
-          .delete()
-          .eq("dress_id", editingDress.id);
-
-        if (deleteImagesError) {
-          console.error("Dress images delete failed:", deleteImagesError);
-          alert(`Failed to update dress image: ${deleteImagesError.message}`);
-          return;
-        }
-
-        const imageRows = formData.images.map((img, index) => ({
-          dress_id: editingDress.id,
-          image_url: img,
-          is_primary: index === 0,
-        }));
-
-        const { error: insertImageError } = await supabase
-          .from("dress_images")
-          .insert(imageRows);
-
-        if (insertImageError) {
-          console.error("Dress image insert failed:", insertImageError);
-          alert(`Failed to update dress image: ${insertImageError.message}`);
-          return;
-        }
-
-        const { error: deleteLinksError } = await supabase
-          .from("dress_collections")
-          .delete()
-          .eq("dress_id", editingDress.id);
-
-        if (deleteLinksError) {
-          console.error(
-            "Dress collection links delete failed:",
-            deleteLinksError,
-          );
-          alert(
-            `Failed to update dress collections: ${deleteLinksError.message}`,
-          );
-          return;
-        }
-
-        const { data: collectionRows, error: collectionsLookupError } =
-          await supabase
-            .from("collections")
-            .select("id, name")
-            .in("name", formData.collections)
-            .returns<CollectionLookupRow[]>();
-
-        if (collectionsLookupError) {
-          console.error("Collection lookup failed:", collectionsLookupError);
-          alert(
-            `Failed to update dress collections: ${collectionsLookupError.message}`,
-          );
-          return;
-        }
-
-        const collectionIds = (collectionRows || [])
-          .map((row) => row.id)
-          .filter(Boolean);
-
-        if (collectionIds.length > 0) {
-          const { error: insertLinksError } = await supabase
-            .from("dress_collections")
-            .insert(
-              collectionIds.map((collectionId) => ({
-                dress_id: editingDress.id,
-                collection_id: collectionId,
-              })),
-            );
-
-          if (insertLinksError) {
-            console.error(
-              "Dress collection links insert failed:",
-              insertLinksError,
-            );
-            alert(
-              `Failed to update dress collections: ${insertLinksError.message}`,
-            );
-            return;
-          }
-        }
-
-        try {
-          await syncDressAttributes(editingDress.id, formData);
-        } catch (err) {
-          console.error("Dress attributes sync failed:", err);
-          alert("Dress updated, but attributes could not be linked.");
-          return;
-        }
+        const result = await updateDress(editingDress.id, formData, imageFiles);
+        const updatedDress = result.dress;
 
         setDresses((prev) =>
           prev.map((dress) =>
@@ -583,10 +107,12 @@ export default function AdminPage() {
                   ...dress,
                   ...formData,
                   id: editingDress.id,
-                  image: formData.images[0] || formData.image,
-                  images: [...formData.images],
-                  price: formData.price ?? 0,
-                  isVisible: true,
+                  name: updatedDress.name ?? formData.name.trim(),
+                  image: result.imageUrls[0] || formData.image,
+                  images: [...result.imageUrls],
+                  price: Number(updatedDress.base_price ?? formData.price ?? 0),
+                  silhouette: updatedDress.silhouette ?? formData.silhouette,
+                  isVisible: updatedDress.status === "published",
                 }
               : dress,
           ),
@@ -594,117 +120,32 @@ export default function AdminPage() {
 
         alert("Dress updated successfully!");
         resetForm();
+        setEditingDress(null);
         setActiveTab("list");
         return;
       } catch (err) {
         console.error("Unexpected update dress error:", err);
-        alert("Unexpected error while updating dress.");
+        alert(
+          err instanceof Error
+            ? err.message
+            : "Unexpected error while updating dress.",
+        );
         return;
       }
     }
 
     try {
-      const { data: insertedDress, error: dressInsertError } = await supabase
-        .from("dresses")
-        .insert({
-          name: formData.name.trim(),
-          description: null,
-          silhouette: formData.silhouette || null,
-          base_price: formData.price,
-          is_customizable: false,
-          status: "published",
-        })
-        .select("id, name, silhouette, base_price, status")
-        .single();
-
-      if (dressInsertError || !insertedDress) {
-        console.error("Dress insert failed:", dressInsertError);
-        alert(dressInsertError?.message || "Failed to create dress.");
-        return;
-      }
-
+      const result = await createDress(formData, imageFiles);
+      const insertedDress = result.dress;
       const newDressId = String(insertedDress.id);
-
-      const imageRows = formData.images.map((img, index) => ({
-        dress_id: insertedDress.id,
-        image_url: img,
-        is_primary: index === 0,
-      }));
-
-      const { error: imageInsertError } = await supabase
-        .from("dress_images")
-        .insert(imageRows);
-
-      if (imageInsertError) {
-        console.error("Dress image insert failed:", imageInsertError);
-        alert(
-          `Dress created, but image insert failed: ${imageInsertError.message}`,
-        );
-        return;
-      }
-
-      const { data: collectionRows, error: collectionsLookupError } =
-        await supabase
-          .from("collections")
-          .select("id, name")
-          .in("name", formData.collections)
-          .returns<CollectionLookupRow[]>();
-
-      if (collectionsLookupError) {
-        console.error("Collection lookup failed:", collectionsLookupError);
-        alert(
-          `Dress created, but collection lookup failed: ${collectionsLookupError.message}`,
-        );
-        return;
-      }
-
-      const collectionIds = (collectionRows || [])
-        .map((row) => row.id)
-        .filter(Boolean);
-
-      if (collectionIds.length !== formData.collections.length) {
-        alert(
-          "Dress created, but one or more selected collections were not found in the database.",
-        );
-      }
-
-      if (collectionIds.length > 0) {
-        const dressCollectionRows = collectionIds.map((collectionId) => ({
-          dress_id: insertedDress.id,
-          collection_id: collectionId,
-        }));
-
-        const { error: dressCollectionsInsertError } = await supabase
-          .from("dress_collections")
-          .insert(dressCollectionRows);
-
-        if (dressCollectionsInsertError) {
-          console.error(
-            "Dress collection links insert failed:",
-            dressCollectionsInsertError,
-          );
-          alert(
-            `Dress created, but collection linking failed: ${dressCollectionsInsertError.message}`,
-          );
-          return;
-        }
-      }
-
-      try {
-        await syncDressAttributes(newDressId, formData);
-      } catch (err) {
-        console.error("Dress attributes sync failed:", err);
-        alert("Dress saved, but attributes could not be linked.");
-        return;
-      }
 
       const createdDressForUi: Dress = {
         id: newDressId,
         name: insertedDress.name ?? formData.name.trim(),
         collections: [...formData.collections],
-        price: Number(insertedDress.base_price ?? formData.price),
-        image: formData.images[0] || formData.image.trim(),
-        images: [...formData.images],
+        price: Number(insertedDress.base_price ?? formData.price ?? 0),
+        image: result.imageUrls[0] || formData.image.trim(),
+        images: [...result.imageUrls],
         sizes: [...formData.sizes],
         neckline: formData.neckline,
         silhouette: insertedDress.silhouette ?? formData.silhouette,
@@ -716,36 +157,24 @@ export default function AdminPage() {
 
       setDresses((prev) => [createdDressForUi, ...prev]);
 
-      setCollections((prev) => {
-        const merged = new Set([...prev, ...formData.collections]);
-        return Array.from(merged).sort((a, b) => a.localeCompare(b));
-      });
-
       alert("Dress created successfully!");
 
       resetForm();
+      setEditingDress(null);
       setActiveTab("list");
     } catch (err) {
       console.error("Unexpected create dress error:", err);
-      alert("Unexpected error while creating dress.");
+      alert(
+        err instanceof Error
+          ? err.message
+          : "Unexpected error while creating dress.",
+      );
     }
   };
 
   const handleEdit = (dress: Dress) => {
     setEditingDress(dress);
-    setFormData({
-      name: dress.name,
-      collections: dress.collections,
-      price: dress.price ?? null,
-      image: dress.image,
-      images: dress.images ?? [dress.image],
-      sizes: dress.sizes,
-      neckline: dress.neckline,
-      silhouette: dress.silhouette,
-      fabric: dress.fabric,
-      trainLength: dress.trainLength,
-      sleeveStyle: dress.sleeveStyle,
-    });
+    startEditingDress(dress);
     setActiveTab("add");
   };
 
@@ -755,67 +184,16 @@ export default function AdminPage() {
     }
 
     try {
-      const { error: dressAttributeValuesDeleteError } = await supabase
-        .from("dress_attribute_values")
-        .delete()
-        .eq("dress_id", id);
-
-      if (dressAttributeValuesDeleteError) {
-        console.error(
-          "Dress attribute values delete failed:",
-          dressAttributeValuesDeleteError,
-        );
-        alert(
-          `Failed to delete dress attributes: ${dressAttributeValuesDeleteError.message}`,
-        );
-        return;
-      }
-
-      const { error: dressCollectionsDeleteError } = await supabase
-        .from("dress_collections")
-        .delete()
-        .eq("dress_id", id);
-
-      if (dressCollectionsDeleteError) {
-        console.error(
-          "Dress collection links delete failed:",
-          dressCollectionsDeleteError,
-        );
-        alert(
-          `Failed to delete dress links: ${dressCollectionsDeleteError.message}`,
-        );
-        return;
-      }
-
-      const { error: dressImagesDeleteError } = await supabase
-        .from("dress_images")
-        .delete()
-        .eq("dress_id", id);
-
-      if (dressImagesDeleteError) {
-        console.error("Dress images delete failed:", dressImagesDeleteError);
-        alert(
-          `Failed to delete dress images: ${dressImagesDeleteError.message}`,
-        );
-        return;
-      }
-
-      const { error: dressDeleteError } = await supabase
-        .from("dresses")
-        .delete()
-        .eq("id", id);
-
-      if (dressDeleteError) {
-        console.error("Dress delete failed:", dressDeleteError);
-        alert(`Failed to delete dress: ${dressDeleteError.message}`);
-        return;
-      }
-
+      await deleteDressById(id);
       setDresses((prev) => prev.filter((dress) => dress.id !== id));
       alert("Dress deleted successfully!");
     } catch (err) {
       console.error("Unexpected delete dress error:", err);
-      alert("Unexpected error while deleting dress.");
+      alert(
+        err instanceof Error
+          ? err.message
+          : "Unexpected error while deleting dress.",
+      );
     }
   };
 
@@ -828,19 +206,9 @@ export default function AdminPage() {
     }
 
     const nextIsVisible = !targetDress.isVisible;
-    const nextStatus = nextIsVisible ? "published" : "draft";
 
     try {
-      const { error } = await supabase
-        .from("dresses")
-        .update({ status: nextStatus })
-        .eq("id", id);
-
-      if (error) {
-        console.error("Dress visibility update failed:", error);
-        alert(`Failed to update visibility: ${error.message}`);
-        return;
-      }
+      await updateDressVisibility(id, nextIsVisible);
 
       setDresses((prev) =>
         prev.map((dress) =>
@@ -849,7 +217,11 @@ export default function AdminPage() {
       );
     } catch (err) {
       console.error("Unexpected visibility update error:", err);
-      alert("Unexpected error while updating visibility.");
+      alert(
+        err instanceof Error
+          ? err.message
+          : "Unexpected error while updating visibility.",
+      );
     }
   };
 
@@ -861,66 +233,27 @@ export default function AdminPage() {
       return;
     }
 
-    if (collections.includes(trimmedName)) {
-      alert("Collection already exists!");
+    const nameAlreadyExists = collections.some(
+      (collection) =>
+        normalizeCollectionName(collection.name) ===
+        normalizeCollectionName(trimmedName),
+    );
+
+    if (nameAlreadyExists) {
+      setCollectionNameError("Collection name already exists.");
       return;
     }
-
+    setCollectionNameError("");
     try {
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession();
-
-      if (sessionError || !session?.user?.id) {
-        console.error("Session fetch failed:", sessionError);
-        alert("Could not get current user.");
-        return;
-      }
-
-      const { data: insertedCollection, error: insertCollectionError } =
-        await supabase
-          .from("collections")
-          .insert({
-            name: trimmedName,
-            description: trimmedName,
-            season: "General",
-            year: new Date().getFullYear(),
-            is_active: true,
-            created_by: session.user.id,
-          })
-          .select("id, name")
-          .single();
-
-      if (insertCollectionError || !insertedCollection) {
-        console.error("Collection insert failed:", insertCollectionError);
-        alert(insertCollectionError?.message || "Failed to create collection.");
-        return;
-      }
-
-      if (selectedDressesForCollection.length > 0) {
-        const dressCollectionRows = selectedDressesForCollection.map(
-          (dressId) => ({
-            dress_id: dressId,
-            collection_id: insertedCollection.id,
-          }),
-        );
-
-        const { error: linkError } = await supabase
-          .from("dress_collections")
-          .insert(dressCollectionRows);
-
-        if (linkError) {
-          console.error("Collection linking failed:", linkError);
-          alert(`Collection created, but linking failed: ${linkError.message}`);
-          return;
-        }
-      }
+      const insertedCollection = await createCollection(
+        trimmedName,
+        selectedDressesForCollection,
+      );
 
       setCollections((prev) =>
-        [...prev, insertedCollection.name]
-          .filter(Boolean)
-          .sort((a, b) => a.localeCompare(b)),
+        [...prev, insertedCollection].sort((a, b) =>
+          a.name.localeCompare(b.name),
+        ),
       );
 
       if (selectedDressesForCollection.length > 0) {
@@ -940,81 +273,60 @@ export default function AdminPage() {
       alert("Collection created successfully!");
     } catch (err) {
       console.error("Unexpected create collection error:", err);
-      alert("Unexpected error while creating collection.");
+      alert(
+        err instanceof Error
+          ? err.message
+          : "Unexpected error while creating collection.",
+      );
     }
+    setCollectionNameError("");
   };
 
   const handleUpdateCollection = async () => {
     if (!editingCollection) return;
 
-    const trimmedName = editingCollection.new.trim();
+    const trimmedName = editingCollection.newName.trim();
 
     if (!trimmedName) {
       alert("Collection name cannot be empty!");
       return;
     }
 
-    if (
-      collections.includes(trimmedName) &&
-      editingCollection.old !== trimmedName
-    ) {
-      alert("Collection name already exists!");
+    const nameAlreadyExists = collections.some(
+      (collection) =>
+        collection.id !== editingCollection.id &&
+        normalizeCollectionName(collection.name) ===
+          normalizeCollectionName(trimmedName),
+    );
+
+    if (nameAlreadyExists) {
+      setCollectionNameError("Collection name already exists.");
       return;
     }
-
+    setCollectionNameError("");
     try {
-      const { data: existingCollection, error: lookupError } = await supabase
-        .from("collections")
-        .select("id, name")
-        .eq("name", editingCollection.old)
-        .single();
-
-      if (lookupError || !existingCollection) {
-        console.error("Collection lookup failed:", lookupError);
-        alert(lookupError?.message || "Failed to find collection.");
-        return;
-      }
-
-      const { error: updateError } = await supabase
-        .from("collections")
-        .update({ name: trimmedName })
-        .eq("id", existingCollection.id);
-
-      if (updateError) {
-        console.error("Collection update failed:", updateError);
-        alert(`Failed to update collection: ${updateError.message}`);
-        return;
-      }
-
-      if (selectedDressesForEditCollection.length > 0) {
-        const linkRows = selectedDressesForEditCollection.map((dressId) => ({
-          dress_id: dressId,
-          collection_id: existingCollection.id,
-        }));
-
-        const { error: linkError } = await supabase
-          .from("dress_collections")
-          .insert(linkRows);
-
-        if (linkError) {
-          console.error("Collection link insert failed:", linkError);
-          alert(`Collection renamed, but linking failed: ${linkError.message}`);
-          return;
-        }
-      }
+      await updateCollection(
+        editingCollection.id,
+        trimmedName,
+        selectedDressesForEditCollection,
+      );
 
       setCollections((prev) =>
         prev
           .map((collection) =>
-            collection === editingCollection.old ? trimmedName : collection,
+            collection.id === editingCollection.id
+              ? { ...collection, name: trimmedName }
+              : collection,
           )
-          .sort((a, b) => a.localeCompare(b)),
+          .sort((a, b) => a.name.localeCompare(b.name)),
       );
 
       setDresses((prev) =>
         prev.map((dress) => {
-          const renamedCollections = dress.collections.map((collection) =>
-            collection === editingCollection.old ? trimmedName : collection,
+          const renamedCollections = dress.collections.map((collectionName) =>
+            collectionName === editingCollection.oldName
+              ? trimmedName
+              : collectionName,
           );
 
           const withAddedCollection =
@@ -1036,13 +348,17 @@ export default function AdminPage() {
       alert("Collection updated successfully!");
     } catch (err) {
       console.error("Unexpected update collection error:", err);
-      alert("Unexpected error while updating collection.");
+      alert(
+        err instanceof Error
+          ? err.message
+          : "Unexpected error while updating collection.",
+      );
     }
   };
 
-  const handleDeleteCollection = async (collectionName: string) => {
+  const handleDeleteCollection = async (collection: AdminCollection) => {
     const dressesInCollection = dresses.filter((dress) =>
-      dress.collections.includes(collectionName),
+      dress.collections.includes(collection.name),
     );
 
     if (dressesInCollection.length > 0) {
@@ -1054,49 +370,17 @@ export default function AdminPage() {
     }
 
     try {
-      const { data: existingCollection, error: lookupError } = await supabase
-        .from("collections")
-        .select("id, name")
-        .eq("name", collectionName)
-        .single();
-
-      if (lookupError || !existingCollection) {
-        console.error("Collection lookup failed:", lookupError);
-        alert(lookupError?.message || "Failed to find collection.");
-        return;
-      }
-
-      const { error: unlinkError } = await supabase
-        .from("dress_collections")
-        .delete()
-        .eq("collection_id", existingCollection.id);
-
-      if (unlinkError) {
-        console.error("Collection unlink failed:", unlinkError);
-        alert(`Failed to unlink dresses: ${unlinkError.message}`);
-        return;
-      }
-
-      const { error: deleteError } = await supabase
-        .from("collections")
-        .delete()
-        .eq("id", existingCollection.id);
-
-      if (deleteError) {
-        console.error("Collection delete failed:", deleteError);
-        alert(`Failed to delete collection: ${deleteError.message}`);
-        return;
-      }
+      await deleteCollectionById(collection.id);
 
       setCollections((prev) =>
-        prev.filter((collection) => collection !== collectionName),
+        prev.filter((item) => item.id !== collection.id),
       );
 
       setDresses((prev) =>
         prev.map((dress) => ({
           ...dress,
           collections: dress.collections.filter(
-            (collection) => collection !== collectionName,
+            (collectionName) => collectionName !== collection.name,
           ),
         })),
       );
@@ -1104,7 +388,11 @@ export default function AdminPage() {
       alert("Collection deleted successfully!");
     } catch (err) {
       console.error("Unexpected delete collection error:", err);
-      alert("Unexpected error while deleting collection.");
+      alert(
+        err instanceof Error
+          ? err.message
+          : "Unexpected error while deleting collection.",
+      );
     }
   };
 
@@ -1139,10 +427,12 @@ export default function AdminPage() {
             onListClick={() => {
               setActiveTab("list");
               resetForm();
+              setEditingDress(null);
             }}
             onAddClick={() => {
               setActiveTab("add");
               resetForm();
+              setEditingDress(null);
             }}
             onCollectionsClick={() => setActiveTab("collections")}
           />
@@ -1171,7 +461,7 @@ export default function AdminPage() {
             {activeTab === "add" && (
               <AdminDressFormTab
                 formData={formData}
-                collections={collections}
+                collections={collections.map((collection) => collection.name)}
                 dragActive={dragActive}
                 fileInputRef={fileInputRef}
                 availableSizes={availableSizes}
@@ -1184,6 +474,7 @@ export default function AdminPage() {
                 onSubmit={handleSubmit}
                 onCancel={() => {
                   resetForm();
+                  setEditingDress(null);
                   setActiveTab("list");
                 }}
                 onNameChange={(value) =>
@@ -1222,6 +513,7 @@ export default function AdminPage() {
             {activeTab === "collections" && (
               <AdminCollectionsTab
                 collections={collections}
+                collectionNameError={collectionNameError}
                 dresses={dresses}
                 newCollectionName={newCollectionName}
                 editingCollection={editingCollection}
@@ -1231,27 +523,34 @@ export default function AdminPage() {
                   selectedDressesForEditCollection
                 }
                 showDressSelectionForEdit={showDressSelectionForEdit}
-                onNewCollectionNameChange={setNewCollectionName}
+                onNewCollectionNameChange={(value) => {
+                  setNewCollectionName(value);
+                  setCollectionNameError("");
+                }}
                 onToggleAddingCollectionMode={() =>
                   setAddingCollectionMode((prev) => !prev)
                 }
                 onAddCollection={handleAddCollection}
-                onStartEditingCollection={(collectionName) =>
+                onStartEditingCollection={(collection) => {
+                  setCollectionNameError("");
                   setEditingCollection({
-                    old: collectionName,
-                    new: collectionName,
-                  })
-                }
-                onEditingCollectionNameChange={(value) =>
+                    id: collection.id,
+                    oldName: collection.name,
+                    newName: collection.name,
+                  });
+                }}
+                onEditingCollectionNameChange={(value) => {
                   setEditingCollection((prev) =>
-                    prev ? { ...prev, new: value } : prev,
-                  )
-                }
+                    prev ? { ...prev, newName: value } : prev,
+                  );
+                  setCollectionNameError("");
+                }}
                 onToggleShowDressSelectionForEdit={() =>
                   setShowDressSelectionForEdit((prev) => !prev)
                 }
                 onUpdateCollection={handleUpdateCollection}
                 onCancelEditCollection={() => {
+                  setCollectionNameError("");
                   setEditingCollection(null);
                   setShowDressSelectionForEdit(false);
                   setSelectedDressesForEditCollection([]);

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { MessageCircle, X, ChevronLeft, ChevronRight } from "lucide-react";
-import { ImageWithFallback } from "../../figma/ImageWithFallback";
+import { ImageWithFallback } from "../../assets/ImageWithFallback";
 import type { Dress } from "../../types/dress";
 
 type DressDetailsModalProps = {
