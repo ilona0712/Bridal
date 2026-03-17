@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/supabase";
 import {
-  mapDressRowToUiDress,
   type AdminDressRow,
 } from "../../utils/admin/adminDressHelpers";
+import {
+  mapDressRowToUiDress
+} from "../../utils/common/mapDressRowToUiDress"
 import type { AdminCollection } from "../../types/admin";
 import type { Dress } from "../../types/dress";
 
