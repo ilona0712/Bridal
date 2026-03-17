@@ -23,11 +23,14 @@ export default function OwnerChatMessageBubble({
         </div>
       )}
 
-      <div className={`flex flex-col gap-1 ${isMine ? "items-end" : "items-start"}`}>
+      <div
+        className={`flex flex-col gap-1 ${isMine ? "items-end" : "items-start"}`}
+        style={{ maxWidth: "70%" }}
+      >
         <div
           className={[
-            "rounded-3xl px-5 py-4 shadow-sm backdrop-blur-sm transition-all",
-            hasAudio ? "min-w-[250px] max-w-[320px]" : "max-w-[80%]",
+            "rounded-3xl px-5 py-4 shadow-sm backdrop-blur-sm transition-all w-fit",
+            hasAudio ? "min-w-[250px] max-w-full" : "max-w-full",
             isMine
               ? "bg-gradient-to-br from-stone-300 via-pink-100 to-stone-200 text-stone-800 rounded-br-md border border-pink-100/60"
               : "bg-white/90 text-stone-800 rounded-bl-md border border-stone-200/70",
@@ -36,15 +39,22 @@ export default function OwnerChatMessageBubble({
           {hasAudio ? (
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-xs text-stone-500">
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center ${
-                  isMine ? "bg-white/50 border border-white/60" : "bg-amber-50 border border-amber-100"
-                }`}>
+                <div
+                  className={`w-7 h-7 rounded-full flex items-center justify-center ${isMine
+                      ? "bg-white/50 border border-white/60"
+                      : "bg-amber-50 border border-amber-100"
+                    }`}
+                >
                   <Mic className="w-3.5 h-3.5" />
                 </div>
                 <span className="font-medium">Voice message</span>
               </div>
               {message.content ? (
-                <audio controls className="w-full h-10 rounded-xl" preload="metadata">
+                <audio
+                  controls
+                  className="w-full h-10 rounded-xl"
+                  preload="metadata"
+                >
                   <source src={message.content} />
                 </audio>
               ) : (
@@ -52,7 +62,7 @@ export default function OwnerChatMessageBubble({
               )}
             </div>
           ) : (
-            <p className="text-sm leading-relaxed whitespace-pre-line">
+            <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">
               {message.content}
             </p>
           )}
