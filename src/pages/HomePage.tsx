@@ -4,37 +4,40 @@ import HowItWorksSection from "../components/home/HowItWorksSection";
 import CollectionSection from "../components/home/CollectionSection";
 import HomeCtaSection from "../components/home/HomeCtaSection";
 import HomeFooter from "../components/home/HomeFooter";
-import { useEffect, useState } from "react";
-import { supabase } from "../../lib/supabase";
+import CursorTrail from "../components/home/CursorTrail";
+import { motion } from "framer-motion";
+import ScrollProgressBar from "../components/home/ScrollProgressBar";
+import { useEffect } from "react";
 
 export default function HomePage() {
-  const [, setCollections] = useState<string[]>([]);
   useEffect(() => {
-    const fetchCollections = async () => {
-      const { data, error } = await supabase
-        .from("collections")
-        .select("name")
-        .order("name");
+    document.documentElement.style.scrollbarWidth = "none";
+    const style = document.createElement("style");
+    style.id = "hide-scrollbar-home";
+    style.textContent = "html::-webkit-scrollbar { display: none; }";
+    document.head.appendChild(style);
 
-      if (error) {
-        console.error(error);
-        return;
-      }
-
-      const names = data.map((c) => c.name);
-      setCollections(names);
+    return () => {
+      document.documentElement.style.scrollbarWidth = "";
+      document.getElementById("hide-scrollbar-home")?.remove();
     };
-
-    fetchCollections();
   }, []);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
+      className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100"
+    >
+      <CursorTrail />
+      <ScrollProgressBar />
       <Header subtitle="Your Dream dress Awaits" />
       <HomeHeroSection />
       <HowItWorksSection />
       <CollectionSection />
       <HomeCtaSection />
       <HomeFooter />
-    </div>
+    </motion.div>
   );
 }

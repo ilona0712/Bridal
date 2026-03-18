@@ -1,34 +1,71 @@
-import { Heart } from "lucide-react"
-import { Link } from "react-router-dom"
-import { ImageWithFallback } from "../../assets/ImageWithFallback"
-import { useSiteSettings } from "../../hooks/useSiteSettings"
+import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import { ImageWithFallback } from "../../assets/ImageWithFallback";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
+import FloatingPetals from "./FloatingPetals";
 
 export default function HomeHeroSection() {
-  const { settings, loading } = useSiteSettings()
+  const { settings, loading } = useSiteSettings();
+
+  const words = (loading ? "Find Your Perfect Dress" : settings.hero_title).split(" ");
 
   return (
-    <section className="container mx-auto px-6 py-20">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center max-w-7xl mx-auto">
+    <section className="container mx-auto px-6 py-20 relative overflow-hidden">
+      <FloatingPetals />
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center max-w-7xl mx-auto relative z-10">
+
+        {/* Text side */}
         <div className="space-y-8">
-          <div className="space-y-4">
-            <div className="inline-block px-4 py-2 bg-stone-100/70 rounded-full border border-stone-200/50">
-              <span className="text-sm text-stone-600">
-                ✨ AI-Powered Bridal Consultant
-              </span>
-            </div>
 
-            <h1 className="font-serif text-6xl leading-tight text-stone-800">
-              {loading ? "Find Your Perfect Dress" : settings.hero_title}
-            </h1>
+          {/* Badge */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="inline-block px-4 py-2 bg-stone-100/70 rounded-full border border-stone-200/50"
+          >
+            <span className="text-sm text-stone-600">✨ AI-Powered Bridal Consultant</span>
+          </motion.div>
 
-            <p className="text-lg text-stone-600">
-              {loading
-                ? "Chat with our intelligent consultant to design and customize your dream wedding dress."
-                : settings.hero_subtitle}
-            </p>
-          </div>
+          {/* Title word by word */}
+          <h1 className="font-serif text-6xl leading-tight text-stone-800">
+            {words.map((word, i) => (
+              <motion.span
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.6,
+                  delay: 0.2 + i * 0.12,
+                  ease: "easeOut",
+                }}
+                className="inline-block mr-4"
+              >
+                {word}
+              </motion.span>
+            ))}
+          </h1>
 
-          <div className="flex gap-4">
+          {/* Subtitle */}
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.7, ease: "easeOut" }}
+            className="text-lg text-stone-600"
+          >
+            {loading
+              ? "Chat with our intelligent consultant to design and customize your dream wedding dress."
+              : settings.hero_subtitle}
+          </motion.p>
+
+          {/* Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.9, ease: "easeOut" }}
+            className="flex gap-4"
+          >
             <Link
               to="/isabella"
               className="px-8 py-4 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 text-stone-700 rounded-xl hover:shadow-lg transition-all"
@@ -41,48 +78,30 @@ export default function HomeHeroSection() {
             >
               Learn More
             </Link>
-          </div>
-
-          <div className="flex gap-8 pt-4">
-            <div>
-              <div className="text-3xl font-serif text-stone-800">10,000+</div>
-              <div className="text-sm text-stone-500">Happy Brides</div>
-            </div>
-            <div>
-              <div className="text-3xl font-serif text-stone-800">500+</div>
-              <div className="text-sm text-stone-500">Unique Designs</div>
-            </div>
-            <div>
-              <div className="text-3xl font-serif text-stone-800">24/7</div>
-              <div className="text-sm text-stone-500">AI Support</div>
-            </div>
-          </div>
+          </motion.div>
         </div>
 
-        <div className="relative">
+        {/* Image side */}
+        <motion.div
+          initial={{ opacity: 0, x: 60 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.9, delay: 0.4, ease: "easeOut" }}
+          className="relative"
+        >
           <div className="absolute inset-0 bg-gradient-to-br from-pink-100/20 to-transparent rounded-3xl" />
           <div className="aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
             <ImageWithFallback
-              src={loading
-                ? "https://images.unsplash.com/photo-1761671613669-3b17b4a71bb9?auto=format&fit=crop&w=1080&q=80"
-                : settings.hero_image_url}
+              src={
+                loading
+                  ? "https://images.unsplash.com/photo-1761671613669-3b17b4a71bb9?auto=format&fit=crop&w=1080&q=80"
+                  : settings.hero_image_url
+              }
               alt="Happy Bride"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
             />
           </div>
-          <div className="absolute -bottom-6 -left-6 bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-xl border border-stone-200/50">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 rounded-full flex items-center justify-center">
-                <Heart className="w-6 h-6 text-stone-600" />
-              </div>
-              <div>
-                <div className="text-sm text-stone-800">Sarah M.</div>
-                <div className="text-xs text-stone-500">Found her dream dress in 20 min</div>
-              </div>
-            </div>
-          </div>
-        </div>
+        </motion.div>
       </div>
     </section>
-  )
+  );
 }

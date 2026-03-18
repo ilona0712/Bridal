@@ -1,5 +1,6 @@
 import CollectionCard from "./CollectionCard";
 import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import { supabase } from "../../../lib/supabase";
 
 export default function CollectionSection() {
@@ -7,43 +8,41 @@ export default function CollectionSection() {
   const [collections, setCollections] = useState<CollectionWithImages[]>([]);
 
   useEffect(() => {
-  const fetchCollections = async () => {
-    const { data } = await supabase
-      .from("collections")
-      .select(`
-        id,
-        name,
-        dresses (
+    const fetchCollections = async () => {
+      const { data } = await supabase
+        .from("collections")
+        .select(`
           id,
-          dress_images (
-            image_url,
-            is_primary
+          name,
+          dresses (
+            id,
+            dress_images (
+              image_url,
+              is_primary
+            )
           )
-        )
-      `)
-      .eq("is_active", true)
-      .order("name");
+        `)
+        .eq("is_active", true)
+        .order("name");
 
-    if (data) {
-      const mapped = data.map((c) => {
-        // gather all images from all dresses in this collection
-        const allImages = c.dresses.flatMap((d) =>
-          d.dress_images.map((img) => img.image_url)
-        );
-        // prefer primary images first
-        const primaryImages = c.dresses.flatMap((d) =>
-          d.dress_images.filter((img) => img.is_primary).map((img) => img.image_url)
-        );
-        return {
-          name: c.name,
-          images: primaryImages.length > 0 ? primaryImages : allImages,
-        };
-      });
-      setCollections(mapped);
-    }
-  };
-  fetchCollections();
-}, []);
+      if (data) {
+        const mapped = data.map((c) => {
+          const allImages = c.dresses.flatMap((d) =>
+            d.dress_images.map((img) => img.image_url)
+          );
+          const primaryImages = c.dresses.flatMap((d) =>
+            d.dress_images.filter((img) => img.is_primary).map((img) => img.image_url)
+          );
+          return {
+            name: c.name,
+            images: primaryImages.length > 0 ? primaryImages : allImages,
+          };
+        });
+        setCollections(mapped);
+      }
+    };
+    fetchCollections();
+  }, []);
 
   const firstRow = useMemo(() => {
     if (collections.length === 4) return collections.slice(0, 2);
@@ -57,15 +56,26 @@ export default function CollectionSection() {
     return [];
   }, [collections]);
 
-  const renderCard = (collection: CollectionWithImages) => (
-  <CollectionCard
-    key={collection.name}
-    images={collection.images}
-    imageAlt={collection.name}
-    name={collection.name}
-    style="Collection"
-  />
-);
+  const renderCard = (collection: CollectionWithImages, index: number) => (
+    <motion.div
+      key={collection.name}
+      initial={{ opacity: 0, y: 40, rotate: -2 }}
+      whileInView={{ opacity: 1, y: 0, rotate: 0 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{
+        duration: 0.6,
+        delay: index * 0.12,
+        ease: "easeOut",
+      }}
+    >
+      <CollectionCard
+        images={collection.images}
+        imageAlt={collection.name}
+        name={collection.name}
+        style="Collection"
+      />
+    </motion.div>
+  );
 
   return (
     <section className="container mx-auto px-6 py-20">
@@ -81,17 +91,17 @@ export default function CollectionSection() {
 
         {collections.length <= 3 && (
           <div className="mx-auto grid max-w-5xl gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            {collections.map(renderCard)}
+            {collections.map((c, i) => renderCard(c, i))}
           </div>
         )}
 
         {collections.length === 4 && (
           <div className="mx-auto max-w-4xl space-y-8">
             <div className="grid gap-8 grid-cols-1 sm:grid-cols-2">
-              {firstRow.map(renderCard)}
+              {firstRow.map((c, i) => renderCard(c, i))}
             </div>
             <div className="grid gap-8 grid-cols-1 sm:grid-cols-2">
-              {secondRow.map(renderCard)}
+              {secondRow.map((c, i) => renderCard(c, i))}
             </div>
           </div>
         )}
@@ -99,17 +109,17 @@ export default function CollectionSection() {
         {collections.length === 5 && (
           <div className="mx-auto max-w-5xl space-y-8">
             <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              {firstRow.map(renderCard)}
+              {firstRow.map((c, i) => renderCard(c, i))}
             </div>
             <div className="mx-auto grid max-w-3xl gap-8 grid-cols-1 sm:grid-cols-2">
-              {secondRow.map(renderCard)}
+              {secondRow.map((c, i) => renderCard(c, i))}
             </div>
           </div>
         )}
 
         {collections.length >= 6 && (
           <div className="mx-auto grid max-w-6xl gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            {collections.map(renderCard)}
+            {collections.map((c, i) => renderCard(c, i))}
           </div>
         )}
       </div>
