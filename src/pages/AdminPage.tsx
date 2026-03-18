@@ -6,6 +6,7 @@ import AdminDressListTab from "../components/admin/AdminDressListTab";
 import AdminPageHeader from "../components/admin/AdminPageHeader";
 import AdminTabs from "../components/admin/AdminTabs";
 import { useAdminDressForm } from "../hooks/admin/useAdminDressForm";
+import AdminSiteSettingsTab from "../components/admin/AdminSiteSettingsTab"
 import type {
   ActiveTab,
   AdminCollection,
@@ -435,6 +436,7 @@ export default function AdminPage() {
               setEditingDress(null);
             }}
             onCollectionsClick={() => setActiveTab("collections")}
+            onSettingsClick={() => setActiveTab("settings")}
           />
         </div>
 
@@ -559,6 +561,9 @@ export default function AdminPage() {
                 onToggleDressForCollection={toggleDressForCollection}
                 onToggleDressForEditCollection={toggleDressForEditCollection}
               />
+            )}
+            {activeTab === "settings" && (
+              <AdminSiteSettingsTab />
             )}
           </>
         )}

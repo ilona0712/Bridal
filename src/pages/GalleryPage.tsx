@@ -1,22 +1,8 @@
 import { useEffect, useState, type MouseEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Sparkles, SlidersHorizontal } from "lucide-react";
-<<<<<<< HEAD
 import { useRole, useSession } from "../routes";
-import {
-  collections,
-  sizes,
-  necklines,
-  silhouettes,
-  fabrics,
-  trainLengths,
-  sleeveStyles,
-} from "../data/galleryFilters";
-=======
-import { supabase } from "../../lib/supabase";
-import { useRole } from "../routes";
 import { sizes } from "../data/galleryFilters";
->>>>>>> d19cb7c (feat: gallery filtering dynamic from database for customizing homepage)
 import type { Dress } from "../types/dress";
 
 import Header from "../components/common/Header";
@@ -24,110 +10,59 @@ import GalleryFilters from "../components/gallery/GalleryFilters";
 import DressCard from "../components/gallery/DressCard";
 import DressDetailsModal from "../components/gallery/DressDetailsModal";
 import DressContextMenu from "../components/gallery/DressContextMenu";
-<<<<<<< HEAD
 import { useGalleryData } from "../hooks/gallery/useGalleryData";
 import { useGalleryFavorites } from "../hooks/gallery/useGalleryFavorites";
 
 export default function GalleryPage() {
   const [searchParams] = useSearchParams();
-  const { allCollections, allDresses, loading, error } = useGalleryData(collections);
-
-  const role = useRole();
-  const session = useSession();
-=======
-
-type GalleryDressRow = {
-  id: string | number;
-  name: string | null;
-  silhouette: string | null;
-  base_price: number | string | null;
-  status: string | null;
-  dress_images?: Array<{
-    image_url: string | null;
-    is_primary: boolean | null;
-  }> | null;
-  dress_collections?: Array<{
-    collections?: { name: string | null } | null;
-  }> | null;
-  dress_attribute_values?: Array<{
-    attribute_values?: {
-      value_key: string | null;
-      label: string | null;
-      attributes?: { key: string | null } | null;
-    } | null;
-  }> | null;
-};
-
-export default function GalleryPage() {
-  const [allDresses,    setAllDresses]    = useState<Dress[]>([]);
-  const [loading,       setLoading]       = useState(true);
-  const [error,         setError]         = useState<string | null>(null);
-
-  // Dynamic filter options built from real data
-  const [allCollections,   setAllCollections]   = useState<string[]>(["All"]);
-  const [allNecklines,     setAllNecklines]     = useState<string[]>(["All"]);
-  const [allSilhouettes,   setAllSilhouettes]   = useState<string[]>(["All"]);
-  const [allFabrics,       setAllFabrics]       = useState<string[]>(["All"]);
-  const [allTrainLengths,  setAllTrainLengths]  = useState<string[]>(["All"]);
-  const [allSleeveStyles,  setAllSleeveStyles]  = useState<string[]>(["All"]);
 
   const role    = useRole();
->>>>>>> d19cb7c (feat: gallery filtering dynamic from database for customizing homepage)
+  const session = useSession();
   const isAdmin = role === "admin";
+
+  // ── Data from custom hooks ───────────────────────────────
+  const {
+    allCollections,
+    allDresses,
+    allNecklines,
+    allSilhouettes,
+    allFabrics,
+    allTrainLengths,
+    allSleeveStyles,
+    loading,
+    error,
+  } = useGalleryData();
+
+  const { favoriteDressIds, toggleFavorite } = useGalleryFavorites(isAdmin, session);
 
   const visibleBaseDresses = isAdmin
     ? allDresses
     : allDresses.filter((d) => d.isVisible);
 
-  // Selected filters
-  const [selectedCollections,  setSelectedCollections]  = useState<string[]>([]);
-  const [selectedSize,         setSelectedSize]         = useState<number | null>(null);
-  const [selectedNeckline,     setSelectedNeckline]     = useState("All");
-  const [selectedSilhouette,   setSelectedSilhouette]   = useState("All");
-  const [selectedFabric,       setSelectedFabric]       = useState("All");
-  const [selectedTrainLength,  setSelectedTrainLength]  = useState("All");
-  const [selectedSleeveStyle,  setSelectedSleeveStyle]  = useState("All");
-  const [showFilters,          setShowFilters]          = useState(false);
+  // ── Selected filters ─────────────────────────────────────
+  const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
+  const [selectedSize,        setSelectedSize]        = useState<number | null>(null);
+  const [selectedNeckline,    setSelectedNeckline]    = useState("All");
+  const [selectedSilhouette,  setSelectedSilhouette]  = useState("All");
+  const [selectedFabric,      setSelectedFabric]      = useState("All");
+  const [selectedTrainLength, setSelectedTrainLength] = useState("All");
+  const [selectedSleeveStyle, setSelectedSleeveStyle] = useState("All");
+  const [showFilters,         setShowFilters]         = useState(false);
 
-<<<<<<< HEAD
- 
-
- useEffect(() => {
-  const collectionFromUrl = searchParams.get("collection");
-
-  if (collectionFromUrl) {
-    setSelectedCollections([collectionFromUrl]);
-  } else {
-    setSelectedCollections([]);
-  }
-}, [searchParams]);
-
- const { favoriteDressIds, toggleFavorite } = useGalleryFavorites(isAdmin, session);
-
- 
-=======
-  const [favoriteDressIds, setFavoriteDressIds] = useState<string[]>([]);
-  const [selectedDress,    setSelectedDress]    = useState<Dress | null>(null);
+  const [selectedDress, setSelectedDress] = useState<Dress | null>(null);
   const [contextMenu, setContextMenu] = useState<{
     visible: boolean; x: number; y: number; dress: Dress | null;
   }>({ visible: false, x: 0, y: 0, dress: null });
 
+  // ── Sync collection filter with URL params ───────────────
   useEffect(() => {
-    const saved = localStorage.getItem("favoriteDressIds");
-    if (saved) setFavoriteDressIds(JSON.parse(saved));
-  }, []);
-
-  const toggleFavorite = (dressId: string) => {
-    if (isAdmin) return;
-    setFavoriteDressIds((prev) => {
-      const updated = prev.includes(dressId)
-        ? prev.filter((id) => id !== dressId)
-        : [...prev, dressId];
-      localStorage.setItem("favoriteDressIds", JSON.stringify(updated));
-      return updated;
-    });
-  };
->>>>>>> d19cb7c (feat: gallery filtering dynamic from database for customizing homepage)
+    const collectionFromUrl = searchParams.get("collection");
+    if (collectionFromUrl) {
+      setSelectedCollections([collectionFromUrl]);
+    } else {
+      setSelectedCollections([]);
+    }
+  }, [searchParams]);
 
   const toggleCollection = (collection: string) => {
     if (collection === "All") { setSelectedCollections([]); return; }
@@ -138,135 +73,23 @@ export default function GalleryPage() {
     );
   };
 
-<<<<<<< HEAD
-  
-
-  const handleClickOutside = () => {
-    setContextMenu({ visible: false, x: 0, y: 0, dress: null });
-  };
-
-  const handleRightClick = (e: MouseEvent, dress: Dress) => {
-    e.preventDefault();
-    setContextMenu({
-      visible: true,
-      x: e.clientX,
-      y: e.clientY,
-      dress,
-    });
-  };
-
-=======
-  // ── Fetch dresses ──────────────────────────────────────────
-  useEffect(() => {
-    const fetchDresses = async () => {
-      setLoading(true);
-      setError(null);
-
-      const { data, error } = await supabase
-        .from("dresses")
-        .select(`
-          id, name, silhouette, base_price, status,
-          dress_images ( image_url, is_primary ),
-          dress_collections ( collections ( name ) ),
-          dress_attribute_values (
-            attribute_values ( value_key, label, attributes ( key ) )
-          )
-        `)
-        .returns<GalleryDressRow[]>();
-
-      if (error) {
-        console.error("Gallery fetch failed:", error);
-        setError(error.message);
-        setLoading(false);
-        return;
-      }
-
-      const mappedDresses: Dress[] = (data || []).map((dress) => {
-        const primaryImage =
-          dress.dress_images?.find((img) => img.is_primary)?.image_url ||
-          dress.dress_images?.[0]?.image_url ||
-          "/placeholder.png";
-
-        const collectionNames = Array.from(new Set(
-          (dress.dress_collections || [])
-            .map((link) => link.collections?.name)
-            .filter((name): name is string => Boolean(name))
-        ));
-
-        const attrs = (dress.dress_attribute_values || [])
-          .map((link) => link.attribute_values)
-          .filter(Boolean);
-
-        const getAttr = (key: string) =>
-          attrs.find((a) => a?.attributes?.key === key)?.label ?? "";
-
-        const sizeLabels = attrs
-          .filter((a) => a?.attributes?.key === "size")
-          .map((a) => Number(a?.label))
-          .filter((n) => !Number.isNaN(n))
-          .sort((a, b) => a - b);
-
-        return {
-          id:           String(dress.id),
-          name:         dress.name ?? "Unnamed Dress",
-          collections:  collectionNames.length > 0 ? collectionNames : ["Uncategorized"],
-          price:        Number(dress.base_price ?? 0),
-          image:        primaryImage,
-          sizes:        sizeLabels,
-          neckline:     getAttr("neckline"),
-          silhouette:   dress.silhouette ?? "",
-          fabric:       getAttr("fabric"),
-          trainLength:  getAttr("train_length"),
-          sleeveStyle:  getAttr("sleeve_style"),
-          isVisible:    dress.status === "published",
-        };
-      });
-
-      // ── Build dynamic filter options from real data ────────
-      const unique = (arr: string[]) =>
-        ["All", ...Array.from(new Set(arr.filter(Boolean).sort()))];
-
-      setAllCollections(["All", ...Array.from(new Set(
-        mappedDresses.flatMap((d) => d.collections).filter(Boolean).sort()
-      ))]);
-      setAllNecklines(unique(mappedDresses.map((d) => d.neckline)));
-      setAllSilhouettes(unique(mappedDresses.map((d) => d.silhouette)));
-      setAllFabrics(unique(mappedDresses.map((d) => d.fabric)));
-      setAllTrainLengths(unique(mappedDresses.map((d) => d.trainLength)));
-      setAllSleeveStyles(unique(mappedDresses.map((d) => d.sleeveStyle)));
-
-      setAllDresses(mappedDresses);
-      setLoading(false);
-    };
-
-    fetchDresses();
-  }, []);
-
-  // ── Filter logic ───────────────────────────────────────────
->>>>>>> d19cb7c (feat: gallery filtering dynamic from database for customizing homepage)
+  // ── Filter logic ─────────────────────────────────────────
   const filteredDresses = visibleBaseDresses.filter((dress) => {
     if (selectedCollections.length > 0 &&
       !dress.collections.some((c) => selectedCollections.includes(c)))
       return false;
-
     if (selectedSize !== null && !dress.sizes.includes(selectedSize))
       return false;
-
     if (selectedNeckline !== "All" && dress.neckline !== selectedNeckline)
       return false;
-
     if (selectedSilhouette !== "All" && dress.silhouette !== selectedSilhouette)
       return false;
-
     if (selectedFabric !== "All" && dress.fabric !== selectedFabric)
       return false;
-
     if (selectedTrainLength !== "All" && dress.trainLength !== selectedTrainLength)
       return false;
-
     if (selectedSleeveStyle !== "All" && dress.sleeveStyle !== selectedSleeveStyle)
       return false;
-
     return true;
   });
 
@@ -283,7 +106,7 @@ export default function GalleryPage() {
   const handleClickOutside = () =>
     setContextMenu({ visible: false, x: 0, y: 0, dress: null });
 
-  const handleRightClick = (e: React.MouseEvent, dress: Dress) => {
+  const handleRightClick = (e: MouseEvent, dress: Dress) => {
     e.preventDefault();
     setContextMenu({ visible: true, x: e.clientX, y: e.clientY, dress });
   };

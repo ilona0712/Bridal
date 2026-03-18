@@ -1,4 +1,4 @@
-export type ActiveTab = "list" | "add" | "collections";
+export type ActiveTab = "list" | "add" | "collections" | "settings";
 
 export type AdminCollection = {
   id: string;

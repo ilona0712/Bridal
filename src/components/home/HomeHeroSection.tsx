@@ -1,8 +1,11 @@
-import { Heart } from "lucide-react";
-import { Link } from "react-router-dom";
-import { ImageWithFallback } from "../../assets/ImageWithFallback";
+import { Heart } from "lucide-react"
+import { Link } from "react-router-dom"
+import { ImageWithFallback } from "../../assets/ImageWithFallback"
+import { useSiteSettings } from "../../hooks/useSiteSettings"
 
 export default function HomeHeroSection() {
+  const { settings, loading } = useSiteSettings()
+
   return (
     <section className="container mx-auto px-6 py-20">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center max-w-7xl mx-auto">
@@ -15,12 +18,13 @@ export default function HomeHeroSection() {
             </div>
 
             <h1 className="font-serif text-6xl leading-tight text-stone-800">
-              Find Your Perfect Dress
+              {loading ? "Find Your Perfect Dress" : settings.hero_title}
             </h1>
 
             <p className="text-lg text-stone-600">
-              Chat with our intelligent consultant to design and customize your
-              dream wedding dress. Every detail, every wish, brought to life.
+              {loading
+                ? "Chat with our intelligent consultant to design and customize your dream wedding dress."
+                : settings.hero_subtitle}
             </p>
           </div>
 
@@ -29,7 +33,7 @@ export default function HomeHeroSection() {
               to="/isabella"
               className="px-8 py-4 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 text-stone-700 rounded-xl hover:shadow-lg transition-all"
             >
-              Start Consultation
+              {loading ? "Start Consultation" : settings.hero_cta_text}
             </Link>
             <Link
               to="#features"
@@ -57,15 +61,15 @@ export default function HomeHeroSection() {
 
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-br from-pink-100/20 to-transparent rounded-3xl" />
-
           <div className="aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
             <ImageWithFallback
-              src="https://images.unsplash.com/photo-1761671613669-3b17b4a71bb9?auto=format&fit=crop&w=1080&q=80"
+              src={loading
+                ? "https://images.unsplash.com/photo-1761671613669-3b17b4a71bb9?auto=format&fit=crop&w=1080&q=80"
+                : settings.hero_image_url}
               alt="Happy Bride"
               className="w-full h-full object-cover"
             />
           </div>
-
           <div className="absolute -bottom-6 -left-6 bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-xl border border-stone-200/50">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 rounded-full flex items-center justify-center">
@@ -73,14 +77,12 @@ export default function HomeHeroSection() {
               </div>
               <div>
                 <div className="text-sm text-stone-800">Sarah M.</div>
-                <div className="text-xs text-stone-500">
-                  Found her dream dress in 20 min
-                </div>
+                <div className="text-xs text-stone-500">Found her dream dress in 20 min</div>
               </div>
             </div>
           </div>
         </div>
       </div>
     </section>
-  );
+  )
 }

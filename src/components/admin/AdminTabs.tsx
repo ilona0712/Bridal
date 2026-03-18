@@ -7,6 +7,7 @@ type AdminTabsProps = {
   onListClick: () => void;
   onAddClick: () => void;
   onCollectionsClick: () => void;
+  onSettingsClick: () => void;
 };
 
 export default function AdminTabs({
@@ -16,13 +17,14 @@ export default function AdminTabs({
   onListClick,
   onAddClick,
   onCollectionsClick,
+  onSettingsClick,
 }: AdminTabsProps) {
   return (
-    <div className="flex gap-2 border-b border-stone-200">
+    <div className="flex gap-2 border-b border-stone-200 overflow-x-auto">
       <button
         type="button"
         onClick={onListClick}
-        className={`px-6 py-3 font-medium transition-colors ${
+        className={`px-6 py-3 font-medium transition-colors whitespace-nowrap ${
           activeTab === "list"
             ? "text-stone-800 border-b-2 border-stone-800"
             : "text-stone-500 hover:text-stone-700"
@@ -34,7 +36,7 @@ export default function AdminTabs({
       <button
         type="button"
         onClick={onAddClick}
-        className={`px-6 py-3 font-medium transition-colors ${
+        className={`px-6 py-3 font-medium transition-colors whitespace-nowrap ${
           activeTab === "add"
             ? "text-stone-800 border-b-2 border-stone-800"
             : "text-stone-500 hover:text-stone-700"
@@ -46,7 +48,7 @@ export default function AdminTabs({
       <button
         type="button"
         onClick={onCollectionsClick}
-        className={`px-6 py-3 font-medium transition-colors ${
+        className={`px-6 py-3 font-medium transition-colors whitespace-nowrap ${
           activeTab === "collections"
             ? "text-stone-800 border-b-2 border-stone-800"
             : "text-stone-500 hover:text-stone-700"
@@ -54,6 +56,18 @@ export default function AdminTabs({
       >
         Manage Collections
       </button>
+
+      <button
+        type="button"
+        onClick={onSettingsClick}
+        className={`px-6 py-3 font-medium transition-colors whitespace-nowrap ${
+          activeTab === "settings"
+            ? "text-stone-800 border-b-2 border-stone-800"
+            : "text-stone-500 hover:text-stone-700"
+        }`}
+      >
+        Site Settings
+      </button>
     </div>
-  );
+  )
 }
