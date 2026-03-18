@@ -54,9 +54,17 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
 
           <div className="flex items-center justify-between gap-3">
             <Link to="/" className="flex min-w-0 items-center gap-2 sm:gap-3">
-              <div className="flex h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300">
-                <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-stone-600" />
-              </div>
+              <div className="flex h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 overflow-hidden">
+                {settings.logo_image_url ? (
+                <img
+                src={settings.logo_image_url}
+                alt="Logo"
+                className="h-full w-full object-cover rounded-full"
+              />
+            ) : (
+            <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-stone-600" />
+            )}
+            </div>
               <div className="min-w-0">
                 <h1 className="truncate font-serif text-base sm:text-lg md:text-xl text-stone-800">
                   {settings.logo_text}

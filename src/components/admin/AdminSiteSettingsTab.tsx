@@ -108,6 +108,33 @@ export default function AdminSiteSettingsTab() {
                 className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 text-stone-800" />
               <p className="text-xs text-stone-400">Small text under the logo name</p>
             </div>
+            <div className="space-y-2">
+  <label className="text-sm text-stone-600">Logo Image URL</label>
+  <input
+    type="text"
+    value={current.logo_image_url}
+    onChange={(e) => handleChange("logo_image_url", e.target.value)}
+    placeholder="https://your-logo-image.com/logo.png"
+    className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 text-stone-800"
+  />
+  <p className="text-xs text-stone-400">
+    Paste a URL for your logo image. Leave empty to use the default icon.
+  </p>
+  {/* Preview */}
+  {current.logo_image_url && (
+    <div className="flex items-center gap-3 mt-2">
+      <div className="w-10 h-10 rounded-full overflow-hidden border border-stone-200 bg-stone-50">
+        <img
+          src={current.logo_image_url}
+          alt="Logo preview"
+          className="w-full h-full object-cover"
+          onError={(e) => { (e.target as HTMLImageElement).style.display = "none" }}
+        />
+      </div>
+      <span className="text-xs text-stone-500">Logo preview</span>
+    </div>
+  )}
+</div>
           </div>
 
           {/* Hero Content */}
@@ -184,9 +211,13 @@ export default function AdminSiteSettingsTab() {
           </h3>
           <div className="border border-stone-200 rounded-2xl overflow-hidden">
             <div className="bg-white/80 border-b border-stone-200/50 px-6 py-3 flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 rounded-full flex items-center justify-center">
-                <span className="text-xs">✦</span>
-              </div>
+              <div className="w-8 h-8 bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 rounded-full overflow-hidden flex items-center justify-center">
+  {current.logo_image_url ? (
+    <img src={current.logo_image_url} alt="Logo" className="w-full h-full object-cover" />
+  ) : (
+    <span className="text-xs">✦</span>
+  )}
+</div>
               <div>
                 <div className="font-serif text-sm text-stone-800">{current.logo_text}</div>
                 <div className="text-xs text-stone-500">{current.logo_tagline}</div>
