@@ -1,6 +1,7 @@
 import { useEffect, useState, type MouseEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Sparkles, SlidersHorizontal } from "lucide-react";
+<<<<<<< HEAD
 import { useRole, useSession } from "../routes";
 import {
   collections,
@@ -11,6 +12,11 @@ import {
   trainLengths,
   sleeveStyles,
 } from "../data/galleryFilters";
+=======
+import { supabase } from "../../lib/supabase";
+import { useRole } from "../routes";
+import { sizes } from "../data/galleryFilters";
+>>>>>>> d19cb7c (feat: gallery filtering dynamic from database for customizing homepage)
 import type { Dress } from "../types/dress";
 
 import Header from "../components/common/Header";
@@ -18,6 +24,7 @@ import GalleryFilters from "../components/gallery/GalleryFilters";
 import DressCard from "../components/gallery/DressCard";
 import DressDetailsModal from "../components/gallery/DressDetailsModal";
 import DressContextMenu from "../components/gallery/DressContextMenu";
+<<<<<<< HEAD
 import { useGalleryData } from "../hooks/gallery/useGalleryData";
 import { useGalleryFavorites } from "../hooks/gallery/useGalleryFavorites";
 
@@ -27,20 +34,62 @@ export default function GalleryPage() {
 
   const role = useRole();
   const session = useSession();
+=======
+
+type GalleryDressRow = {
+  id: string | number;
+  name: string | null;
+  silhouette: string | null;
+  base_price: number | string | null;
+  status: string | null;
+  dress_images?: Array<{
+    image_url: string | null;
+    is_primary: boolean | null;
+  }> | null;
+  dress_collections?: Array<{
+    collections?: { name: string | null } | null;
+  }> | null;
+  dress_attribute_values?: Array<{
+    attribute_values?: {
+      value_key: string | null;
+      label: string | null;
+      attributes?: { key: string | null } | null;
+    } | null;
+  }> | null;
+};
+
+export default function GalleryPage() {
+  const [allDresses,    setAllDresses]    = useState<Dress[]>([]);
+  const [loading,       setLoading]       = useState(true);
+  const [error,         setError]         = useState<string | null>(null);
+
+  // Dynamic filter options built from real data
+  const [allCollections,   setAllCollections]   = useState<string[]>(["All"]);
+  const [allNecklines,     setAllNecklines]     = useState<string[]>(["All"]);
+  const [allSilhouettes,   setAllSilhouettes]   = useState<string[]>(["All"]);
+  const [allFabrics,       setAllFabrics]       = useState<string[]>(["All"]);
+  const [allTrainLengths,  setAllTrainLengths]  = useState<string[]>(["All"]);
+  const [allSleeveStyles,  setAllSleeveStyles]  = useState<string[]>(["All"]);
+
+  const role    = useRole();
+>>>>>>> d19cb7c (feat: gallery filtering dynamic from database for customizing homepage)
   const isAdmin = role === "admin";
+
   const visibleBaseDresses = isAdmin
     ? allDresses
-    : allDresses.filter((dress) => dress.isVisible);
+    : allDresses.filter((d) => d.isVisible);
 
-  const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
-  const [selectedSize, setSelectedSize] = useState<number | null>(null);
-  const [selectedNeckline, setSelectedNeckline] = useState("All");
-  const [selectedSilhouette, setSelectedSilhouette] = useState("All");
-  const [selectedFabric, setSelectedFabric] = useState("All");
-  const [selectedTrainLength, setSelectedTrainLength] = useState("All");
-  const [selectedSleeveStyle, setSelectedSleeveStyle] = useState("All");
-  const [showFilters, setShowFilters] = useState(false);
+  // Selected filters
+  const [selectedCollections,  setSelectedCollections]  = useState<string[]>([]);
+  const [selectedSize,         setSelectedSize]         = useState<number | null>(null);
+  const [selectedNeckline,     setSelectedNeckline]     = useState("All");
+  const [selectedSilhouette,   setSelectedSilhouette]   = useState("All");
+  const [selectedFabric,       setSelectedFabric]       = useState("All");
+  const [selectedTrainLength,  setSelectedTrainLength]  = useState("All");
+  const [selectedSleeveStyle,  setSelectedSleeveStyle]  = useState("All");
+  const [showFilters,          setShowFilters]          = useState(false);
 
+<<<<<<< HEAD
  
 
  useEffect(() => {
@@ -56,28 +105,40 @@ export default function GalleryPage() {
  const { favoriteDressIds, toggleFavorite } = useGalleryFavorites(isAdmin, session);
 
  
-
-  const [selectedDress, setSelectedDress] = useState<Dress | null>(null);
+=======
+  const [favoriteDressIds, setFavoriteDressIds] = useState<string[]>([]);
+  const [selectedDress,    setSelectedDress]    = useState<Dress | null>(null);
   const [contextMenu, setContextMenu] = useState<{
-    visible: boolean;
-    x: number;
-    y: number;
-    dress: Dress | null;
+    visible: boolean; x: number; y: number; dress: Dress | null;
   }>({ visible: false, x: 0, y: 0, dress: null });
 
-  const toggleCollection = (collection: string) => {
-    if (collection === "All") {
-      setSelectedCollections([]);
-      return;
-    }
+  useEffect(() => {
+    const saved = localStorage.getItem("favoriteDressIds");
+    if (saved) setFavoriteDressIds(JSON.parse(saved));
+  }, []);
 
+  const toggleFavorite = (dressId: string) => {
+    if (isAdmin) return;
+    setFavoriteDressIds((prev) => {
+      const updated = prev.includes(dressId)
+        ? prev.filter((id) => id !== dressId)
+        : [...prev, dressId];
+      localStorage.setItem("favoriteDressIds", JSON.stringify(updated));
+      return updated;
+    });
+  };
+>>>>>>> d19cb7c (feat: gallery filtering dynamic from database for customizing homepage)
+
+  const toggleCollection = (collection: string) => {
+    if (collection === "All") { setSelectedCollections([]); return; }
     setSelectedCollections((prev) =>
       prev.includes(collection)
-        ? prev.filter((item) => item !== collection)
-        : [...prev, collection],
+        ? prev.filter((c) => c !== collection)
+        : [...prev, collection]
     );
   };
 
+<<<<<<< HEAD
   
 
   const handleClickOutside = () => {
@@ -94,48 +155,117 @@ export default function GalleryPage() {
     });
   };
 
+=======
+  // ── Fetch dresses ──────────────────────────────────────────
+  useEffect(() => {
+    const fetchDresses = async () => {
+      setLoading(true);
+      setError(null);
+
+      const { data, error } = await supabase
+        .from("dresses")
+        .select(`
+          id, name, silhouette, base_price, status,
+          dress_images ( image_url, is_primary ),
+          dress_collections ( collections ( name ) ),
+          dress_attribute_values (
+            attribute_values ( value_key, label, attributes ( key ) )
+          )
+        `)
+        .returns<GalleryDressRow[]>();
+
+      if (error) {
+        console.error("Gallery fetch failed:", error);
+        setError(error.message);
+        setLoading(false);
+        return;
+      }
+
+      const mappedDresses: Dress[] = (data || []).map((dress) => {
+        const primaryImage =
+          dress.dress_images?.find((img) => img.is_primary)?.image_url ||
+          dress.dress_images?.[0]?.image_url ||
+          "/placeholder.png";
+
+        const collectionNames = Array.from(new Set(
+          (dress.dress_collections || [])
+            .map((link) => link.collections?.name)
+            .filter((name): name is string => Boolean(name))
+        ));
+
+        const attrs = (dress.dress_attribute_values || [])
+          .map((link) => link.attribute_values)
+          .filter(Boolean);
+
+        const getAttr = (key: string) =>
+          attrs.find((a) => a?.attributes?.key === key)?.label ?? "";
+
+        const sizeLabels = attrs
+          .filter((a) => a?.attributes?.key === "size")
+          .map((a) => Number(a?.label))
+          .filter((n) => !Number.isNaN(n))
+          .sort((a, b) => a - b);
+
+        return {
+          id:           String(dress.id),
+          name:         dress.name ?? "Unnamed Dress",
+          collections:  collectionNames.length > 0 ? collectionNames : ["Uncategorized"],
+          price:        Number(dress.base_price ?? 0),
+          image:        primaryImage,
+          sizes:        sizeLabels,
+          neckline:     getAttr("neckline"),
+          silhouette:   dress.silhouette ?? "",
+          fabric:       getAttr("fabric"),
+          trainLength:  getAttr("train_length"),
+          sleeveStyle:  getAttr("sleeve_style"),
+          isVisible:    dress.status === "published",
+        };
+      });
+
+      // ── Build dynamic filter options from real data ────────
+      const unique = (arr: string[]) =>
+        ["All", ...Array.from(new Set(arr.filter(Boolean).sort()))];
+
+      setAllCollections(["All", ...Array.from(new Set(
+        mappedDresses.flatMap((d) => d.collections).filter(Boolean).sort()
+      ))]);
+      setAllNecklines(unique(mappedDresses.map((d) => d.neckline)));
+      setAllSilhouettes(unique(mappedDresses.map((d) => d.silhouette)));
+      setAllFabrics(unique(mappedDresses.map((d) => d.fabric)));
+      setAllTrainLengths(unique(mappedDresses.map((d) => d.trainLength)));
+      setAllSleeveStyles(unique(mappedDresses.map((d) => d.sleeveStyle)));
+
+      setAllDresses(mappedDresses);
+      setLoading(false);
+    };
+
+    fetchDresses();
+  }, []);
+
+  // ── Filter logic ───────────────────────────────────────────
+>>>>>>> d19cb7c (feat: gallery filtering dynamic from database for customizing homepage)
   const filteredDresses = visibleBaseDresses.filter((dress) => {
-    if (
-      selectedCollections.length > 0 &&
-      !dress.collections.some((collection) =>
-        selectedCollections.includes(collection),
-      )
-    ) {
+    if (selectedCollections.length > 0 &&
+      !dress.collections.some((c) => selectedCollections.includes(c)))
       return false;
-    }
 
-    if (selectedSize !== null && !dress.sizes.includes(selectedSize)) {
+    if (selectedSize !== null && !dress.sizes.includes(selectedSize))
       return false;
-    }
 
-    if (selectedNeckline !== "All" && dress.neckline !== selectedNeckline) {
+    if (selectedNeckline !== "All" && dress.neckline !== selectedNeckline)
       return false;
-    }
 
-    if (
-      selectedSilhouette !== "All" &&
-      dress.silhouette !== selectedSilhouette
-    ) {
+    if (selectedSilhouette !== "All" && dress.silhouette !== selectedSilhouette)
       return false;
-    }
 
-    if (selectedFabric !== "All" && dress.fabric !== selectedFabric) {
+    if (selectedFabric !== "All" && dress.fabric !== selectedFabric)
       return false;
-    }
 
-    if (
-      selectedTrainLength !== "All" &&
-      dress.trainLength !== selectedTrainLength
-    ) {
+    if (selectedTrainLength !== "All" && dress.trainLength !== selectedTrainLength)
       return false;
-    }
 
-    if (
-      selectedSleeveStyle !== "All" &&
-      dress.sleeveStyle !== selectedSleeveStyle
-    ) {
+    if (selectedSleeveStyle !== "All" && dress.sleeveStyle !== selectedSleeveStyle)
       return false;
-    }
 
     return true;
   });
@@ -150,6 +280,14 @@ export default function GalleryPage() {
     setSelectedSleeveStyle("All");
   };
 
+  const handleClickOutside = () =>
+    setContextMenu({ visible: false, x: 0, y: 0, dress: null });
+
+  const handleRightClick = (e: React.MouseEvent, dress: Dress) => {
+    e.preventDefault();
+    setContextMenu({ visible: true, x: e.clientX, y: e.clientY, dress });
+  };
+
   return (
     <div
       className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100"
@@ -160,16 +298,11 @@ export default function GalleryPage() {
       <div className="container mx-auto px-6 py-8 max-w-7xl">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
-            <h1 className="font-serif text-4xl text-stone-800 mb-2">
-              Our Collection
-            </h1>
+            <h1 className="font-serif text-4xl text-stone-800 mb-2">Our Collection</h1>
             <p className="text-stone-600">
-              {loading
-                ? "Loading gowns..."
-                : `${filteredDresses.length} gowns available`}
+              {loading ? "Loading gowns..." : `${filteredDresses.length} gowns available`}
             </p>
           </div>
-
           <button
             onClick={() => setShowFilters(!showFilters)}
             className="lg:hidden flex items-center gap-2 px-4 py-2 bg-white/60 border border-stone-200 rounded-xl text-stone-700 hover:bg-stone-50/50 transition-all"
@@ -191,11 +324,11 @@ export default function GalleryPage() {
             selectedSleeveStyle={selectedSleeveStyle}
             collections={allCollections}
             sizes={sizes}
-            necklines={necklines}
-            silhouettes={silhouettes}
-            fabrics={fabrics}
-            trainLengths={trainLengths}
-            sleeveStyles={sleeveStyles}
+            necklines={allNecklines}
+            silhouettes={allSilhouettes}
+            fabrics={allFabrics}
+            trainLengths={allTrainLengths}
+            sleeveStyles={allSleeveStyles}
             onCollectionToggle={toggleCollection}
             onSizeChange={setSelectedSize}
             onNecklineChange={setSelectedNeckline}
@@ -217,9 +350,7 @@ export default function GalleryPage() {
               </div>
             ) : filteredDresses.length === 0 ? (
               <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-12 text-center border border-stone-200/50">
-                <p className="text-stone-600 mb-4">
-                  No gowns match your filters
-                </p>
+                <p className="text-stone-600 mb-4">No gowns match your filters</p>
                 <button
                   onClick={clearFilters}
                   className="px-6 py-2 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 text-stone-700 rounded-xl hover:shadow-lg transition-all"
@@ -263,9 +394,7 @@ export default function GalleryPage() {
       <DressContextMenu
         contextMenu={contextMenu}
         onViewDetails={setSelectedDress}
-        onClose={() =>
-          setContextMenu({ visible: false, x: 0, y: 0, dress: null })
-        }
+        onClose={() => setContextMenu({ visible: false, x: 0, y: 0, dress: null })}
       />
     </div>
   );

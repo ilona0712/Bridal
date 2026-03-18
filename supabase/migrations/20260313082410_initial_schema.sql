@@ -1,7 +1,6 @@
 -- ============================================================
 -- Bride Me Up – Initial Schema Migration
 -- Generated: 2026-03-13
--- Place this file in: supabase/migrations/
 -- ============================================================
 
 
