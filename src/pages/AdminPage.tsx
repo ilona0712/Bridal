@@ -29,6 +29,7 @@ import {
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("list");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [collectionNameError, setCollectionNameError] = useState("");
   const normalizeCollectionName = (value: string) => value.trim().toLowerCase();
   const [editingDress, setEditingDress] = useState<Dress | null>(null);
@@ -57,6 +58,7 @@ export default function AdminPage() {
     handleDrag,
     handleDrop,
     handleFileInput,
+    reorderImages,
     removeImage,
     startEditingDress,
   } = useAdminDressForm();
@@ -96,6 +98,8 @@ export default function AdminPage() {
       return;
     }
 
+    setIsSubmitting(true);
+
     if (editingDress) {
       try {
         const result = await updateDress(editingDress.id, formData, imageFiles);
@@ -123,7 +127,6 @@ export default function AdminPage() {
         resetForm();
         setEditingDress(null);
         setActiveTab("list");
-        return;
       } catch (err) {
         console.error("Unexpected update dress error:", err);
         alert(
@@ -131,8 +134,10 @@ export default function AdminPage() {
             ? err.message
             : "Unexpected error while updating dress.",
         );
-        return;
+      } finally {
+        setIsSubmitting(false);
       }
+      return;
     }
 
     try {
@@ -170,6 +175,8 @@ export default function AdminPage() {
           ? err.message
           : "Unexpected error while creating dress.",
       );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -473,6 +480,7 @@ export default function AdminPage() {
                 trainLengths={trainLengths}
                 sleeveStyles={sleeveStyles}
                 isEditingDress={!!editingDress}
+                isSubmitting={isSubmitting}
                 onSubmit={handleSubmit}
                 onCancel={() => {
                   resetForm();
@@ -490,6 +498,7 @@ export default function AdminPage() {
                   setFormData((prev) => ({ ...prev, image: value }))
                 }
                 onRemoveImage={removeImage}
+                onReorderImages={reorderImages}
                 onSizeToggle={handleSizeToggle}
                 onNecklineChange={(value) =>
                   setFormData((prev) => ({ ...prev, neckline: value }))

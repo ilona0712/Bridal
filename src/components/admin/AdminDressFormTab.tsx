@@ -4,7 +4,8 @@ import type {
   FormEvent,
   RefObject,
 } from "react";
-import { Check, Plus, Upload, X } from "lucide-react";
+import { useRef, useState } from "react";
+import { Check, Loader2, Plus, Upload, X } from "lucide-react";
 import type { DressFormData } from "../../types/admin";
 
 type AdminDressFormTabProps = {
@@ -19,6 +20,7 @@ type AdminDressFormTabProps = {
   trainLengths: readonly string[];
   sleeveStyles: readonly string[];
   isEditingDress: boolean;
+  isSubmitting: boolean;
   onSubmit: (e: FormEvent<HTMLFormElement>) => void;
   onCancel: () => void;
   onNameChange: (value: string) => void;
@@ -26,6 +28,7 @@ type AdminDressFormTabProps = {
   onPriceChange: (value: number | null) => void;
   onImageChange: (value: string) => void;
   onRemoveImage: (index: number) => void;
+  onReorderImages: (fromIndex: number, toIndex: number) => void;
   onSizeToggle: (size: number) => void;
   onNecklineChange: (value: string) => void;
   onSilhouetteChange: (value: string) => void;
@@ -36,6 +39,87 @@ type AdminDressFormTabProps = {
   onDrop: (e: DragEvent<HTMLDivElement>) => void;
   onFileInputChange: (e: ChangeEvent<HTMLInputElement>) => void;
 };
+
+function ImagePreviewGrid({
+  images,
+  onRemove,
+  onReorder,
+}: {
+  images: string[];
+  onRemove: (index: number) => void;
+  onReorder: (fromIndex: number, toIndex: number) => void;
+}) {
+  const dragIndexRef = useRef<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  return (
+    <div className="space-y-3">
+      <label className="text-sm text-stone-700">
+        Image Preview{" "}
+        <span className="text-xs text-stone-500">
+          — drag to reorder, leftmost is primary
+        </span>
+      </label>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        {images.map((img, index) => (
+          <div
+            key={`${img}-${index}`}
+            draggable
+            onDragStart={() => {
+              dragIndexRef.current = index;
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragOverIndex(index);
+            }}
+            onDragLeave={() => setDragOverIndex(null)}
+            onDrop={(e) => {
+              e.preventDefault();
+              if (dragIndexRef.current !== null) {
+                onReorder(dragIndexRef.current, index);
+              }
+              dragIndexRef.current = null;
+              setDragOverIndex(null);
+            }}
+            onDragEnd={() => {
+              dragIndexRef.current = null;
+              setDragOverIndex(null);
+            }}
+            className={`relative rounded-xl overflow-hidden border bg-white cursor-grab active:cursor-grabbing transition-all duration-150 ${
+              dragOverIndex === index
+                ? "border-pink-400 ring-2 ring-pink-200 scale-[1.02]"
+                : "border-stone-200"
+            }`}
+          >
+            <img
+              src={img}
+              alt={`Dress preview ${index + 1}`}
+              className="w-full h-44 object-cover pointer-events-none"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = "none";
+              }}
+            />
+
+            {index === 0 && (
+              <div className="absolute top-2 left-2 px-2 py-1 rounded-full bg-stone-800/80 text-white text-xs">
+                Primary
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => onRemove(index)}
+              className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-sm"
+            >
+              <X className="w-4 h-4 text-stone-700" />
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function AdminDressFormTab({
   formData,
@@ -49,6 +133,7 @@ export default function AdminDressFormTab({
   trainLengths,
   sleeveStyles,
   isEditingDress,
+  isSubmitting,
   onSubmit,
   onCancel,
   onNameChange,
@@ -56,6 +141,7 @@ export default function AdminDressFormTab({
   onPriceChange,
   onImageChange,
   onRemoveImage,
+  onReorderImages,
   onSizeToggle,
   onNecklineChange,
   onSilhouetteChange,
@@ -198,41 +284,11 @@ export default function AdminDressFormTab({
           </div>
 
           {formData.images.length > 0 && (
-            <div className="space-y-3">
-              <label className="text-sm text-stone-700">Image Preview</label>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {formData.images.map((img, index) => (
-                  <div
-                    key={`${img}-${index}`}
-                    className="relative rounded-xl overflow-hidden border border-stone-200 bg-white"
-                  >
-                    <img
-                      src={img}
-                      alt={`Dress preview ${index + 1}`}
-                      className="w-full h-44 object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none";
-                      }}
-                    />
-
-                    {index === 0 && (
-                      <div className="absolute top-2 left-2 px-2 py-1 rounded-full bg-stone-800/80 text-white text-xs">
-                        Primary
-                      </div>
-                    )}
-
-                    <button
-                      type="button"
-                      onClick={() => onRemoveImage(index)}
-                      className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-sm"
-                    >
-                      <X className="w-4 h-4 text-stone-700" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <ImagePreviewGrid
+              images={formData.images}
+              onRemove={onRemoveImage}
+              onReorder={onReorderImages}
+            />
           )}
         </div>
 
@@ -360,9 +416,13 @@ export default function AdminDressFormTab({
         <div className="flex gap-4 pt-6">
           <button
             type="submit"
-            className="flex-1 py-4 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 text-stone-700 rounded-xl hover:shadow-lg transition-all duration-300 font-medium"
+            disabled={isSubmitting}
+            className="flex-1 py-4 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 text-stone-700 rounded-xl hover:shadow-lg transition-all duration-300 font-medium disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:shadow-none flex items-center justify-center gap-2"
           >
-            {isEditingDress ? "Update Dress" : "Add Dress to Gallery"}
+            {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+            {isSubmitting
+              ? isEditingDress ? "Updating..." : "Adding..."
+              : isEditingDress ? "Update Dress" : "Add Dress to Gallery"}
           </button>
 
           <button

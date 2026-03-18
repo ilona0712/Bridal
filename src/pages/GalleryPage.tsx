@@ -80,15 +80,15 @@ export default function GalleryPage() {
       return false;
     if (selectedSize !== null && !dress.sizes.includes(selectedSize))
       return false;
-    if (selectedNeckline !== "All" && dress.neckline !== selectedNeckline)
+    if (selectedNeckline !== "All" && dress.neckline && dress.neckline !== selectedNeckline)
       return false;
-    if (selectedSilhouette !== "All" && dress.silhouette !== selectedSilhouette)
+    if (selectedSilhouette !== "All" && dress.silhouette && dress.silhouette !== selectedSilhouette)
       return false;
-    if (selectedFabric !== "All" && dress.fabric !== selectedFabric)
+    if (selectedFabric !== "All" && dress.fabric && dress.fabric !== selectedFabric)
       return false;
-    if (selectedTrainLength !== "All" && dress.trainLength !== selectedTrainLength)
+    if (selectedTrainLength !== "All" && dress.trainLength && dress.trainLength !== selectedTrainLength)
       return false;
-    if (selectedSleeveStyle !== "All" && dress.sleeveStyle !== selectedSleeveStyle)
+    if (selectedSleeveStyle !== "All" && dress.sleeveStyle && dress.sleeveStyle !== selectedSleeveStyle)
       return false;
     return true;
   });
