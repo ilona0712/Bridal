@@ -1,7 +1,7 @@
 import { useEffect, useState, type MouseEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Sparkles, SlidersHorizontal } from "lucide-react";
-import { useRole } from "../routes";
+import { useRole, useSession } from "../routes";
 import {
   collections,
   sizes,
@@ -26,6 +26,7 @@ export default function GalleryPage() {
   const { allCollections, allDresses, loading, error } = useGalleryData(collections);
 
   const role = useRole();
+  const session = useSession();
   const isAdmin = role === "admin";
   const visibleBaseDresses = isAdmin
     ? allDresses
@@ -52,7 +53,7 @@ export default function GalleryPage() {
   }
 }, [searchParams]);
 
- const { favoriteDressIds, toggleFavorite } = useGalleryFavorites(isAdmin);
+ const { favoriteDressIds, toggleFavorite } = useGalleryFavorites(isAdmin, session);
 
  
 

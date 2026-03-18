@@ -4,6 +4,8 @@ import { signOut } from "../auth";
 import { useSession } from "../routes";
 import { supabase } from "../../lib/supabase";
 import type { Dress } from "../types/dress";
+import { mapDressRowToUiDress } from "../utils/common/mapDressRowToUiDress";
+import type { GalleryDressRow } from "../utils/gallery/galleryDressHelper";
 
 import ProfilePageHeader from "../components/profile/ProfilePageHeader";
 import ProfileHeroSection from "../components/profile/ProfileHeroSection";
@@ -85,16 +87,91 @@ export default function ProfilePage() {
     loadProfile();
   }, [session]);
 
-  useEffect(() => {
-    const savedFavorites = localStorage.getItem("favoriteDressIds");
-    if (savedFavorites) {
-      setFavoriteDressIds(JSON.parse(savedFavorites));
-    }
-  }, []);
 
   useEffect(() => {
-    const fetchDresses = async () => {
-      const { data, error } = await supabase
+    const loadFavoriteDresses = async () => {
+      if (isAdmin) {
+        setFavoriteDressIds([]);
+        setAllDresses([]);
+        return;
+      }
+
+      if (!session?.user) {
+        const savedFavorites = localStorage.getItem("favoriteDressIds");
+        const localFavoriteIds: string[] = savedFavorites
+          ? JSON.parse(savedFavorites)
+          : [];
+
+        setFavoriteDressIds(localFavoriteIds);
+
+        if (localFavoriteIds.length === 0) {
+          setAllDresses([]);
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from("dresses")
+          .select(
+            `
+            id,
+            name,
+            silhouette,
+            base_price,
+            status,
+            dress_images (
+              image_url,
+              is_primary
+            ),
+            dress_collections (
+              collections (
+                name
+              )
+            ),
+            dress_attribute_values (
+              attribute_values (
+                value_key,
+                label,
+                attributes (
+                  key
+                )
+              )
+            )
+            `,
+          )
+          .in("id", localFavoriteIds)
+          .returns<GalleryDressRow[]>();
+
+        if (error) {
+          console.error("Failed to load guest favorite dresses:", error);
+          setAllDresses([]);
+          return;
+        }
+
+        setAllDresses((data || []).map(mapDressRowToUiDress));
+        return;
+      }
+
+      const { data: favoriteRows, error: favoritesError } = await supabase
+        .from("favorite_dresses")
+        .select("dress_id")
+        .eq("user_id", session.user.id);
+
+      if (favoritesError) {
+        console.error("Failed to load favorite ids:", favoritesError);
+        setFavoriteDressIds([]);
+        setAllDresses([]);
+        return;
+      }
+
+      const ids = (favoriteRows || []).map((row) => row.dress_id);
+      setFavoriteDressIds(ids);
+
+      if (ids.length === 0) {
+        setAllDresses([]);
+        return;
+      }
+
+      const { data: dressesData, error: dressesError } = await supabase
         .from("dresses")
         .select(
           `
@@ -102,61 +179,41 @@ export default function ProfilePage() {
           name,
           silhouette,
           base_price,
-          collections (
-            name
-          ),
+          status,
           dress_images (
             image_url,
             is_primary
+          ),
+          dress_collections (
+            collections (
+              name
+            )
+          ),
+          dress_attribute_values (
+            attribute_values (
+              value_key,
+              label,
+              attributes (
+                key
+              )
+            )
           )
-        `,
+          `,
         )
-        .eq("status", "published");
+        .in("id", ids)
+        .returns<GalleryDressRow[]>();
 
-      if (error) {
-        console.error("Failed to load dresses for favorites:", error);
+      if (dressesError) {
+        console.error("Failed to load favorite dresses:", dressesError);
+        setAllDresses([]);
         return;
       }
 
-      const mappedDresses: Dress[] = (data || []).map((dress: any) => {
-        const imageList =
-          Array.isArray(dress.dress_images) && dress.dress_images.length > 0
-            ? dress.dress_images
-                .map((img: any) => img.image_url)
-                .filter((url: any) => typeof url === "string" && url.length > 0)
-            : [];
-
-        const primaryImage =
-          dress.dress_images?.find((img: any) => img.is_primary)?.image_url ||
-          imageList[0] ||
-          "/placeholder.png";
-
-        const collectionName = Array.isArray(dress.collections)
-          ? dress.collections[0]?.name
-          : dress.collections?.name;
-
-        return {
-          id: String(dress.id),
-          name: dress.name,
-          collections: collectionName ? [collectionName] : ["Uncategorized"],
-          price: Number(dress.base_price ?? 0),
-          image: primaryImage,
-          images: imageList.length > 0 ? imageList : [primaryImage],
-          sizes: [36, 38, 40, 42],
-          neckline: "V-Neck",
-          silhouette: dress.silhouette || "A-Line",
-          fabric: "Satin",
-          trainLength: "Medium",
-          sleeveStyle: "Sleeveless",
-          isVisible: true,
-        };
-      });
-
-      setAllDresses(mappedDresses);
+      setAllDresses((dressesData || []).map(mapDressRowToUiDress));
     };
 
-    fetchDresses();
-  }, []);
+    loadFavoriteDresses();
+  }, [session, isAdmin]);
 
   const favoriteDresses = allDresses.filter((dress) =>
     favoriteDressIds.includes(dress.id),
