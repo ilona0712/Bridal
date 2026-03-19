@@ -13,7 +13,11 @@ export type ConversationSummary = {
   id: string;
   customer_id: string;
   clientName: string;
+  profileImageUrl?: string | null;
   lastMessage: string;
+  lastMessageType: "text" | "image" | "audio";
+  lastMessageAt: string | null;
+  unreadCount: number;
   timestamp: string;
   unread: boolean;
 };

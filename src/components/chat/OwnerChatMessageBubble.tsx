@@ -5,11 +5,15 @@ import { useEffect, useState } from "react";
 type OwnerChatMessageBubbleProps = {
   message: ChatMessage;
   role: string | null;
+  myAvatarUrl?: string | null;
+  otherAvatarUrl?: string | null;
 };
 
 export default function OwnerChatMessageBubble({
   message,
   role,
+  myAvatarUrl,
+  otherAvatarUrl,
 }: OwnerChatMessageBubbleProps) {
   const isMine =
     (role === "admin" && message.sender_type === "designer") ||
@@ -33,8 +37,12 @@ export default function OwnerChatMessageBubble({
   return (
     <div className={`flex gap-3 items-end ${isMine ? "justify-end" : ""}`}>
       {!isMine && (
-        <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center border border-amber-200/50 bg-gradient-to-br from-amber-100 via-amber-50 to-stone-100 shadow-sm">
-          <User className="w-5 h-5 text-stone-600" />
+        <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center border border-amber-200/50 bg-gradient-to-br from-amber-100 via-amber-50 to-stone-100 shadow-sm overflow-hidden">
+          {otherAvatarUrl ? (
+            <img src={otherAvatarUrl} alt="avatar" className="w-full h-full object-cover" />
+          ) : (
+            <User className="w-5 h-5 text-stone-600" />
+          )}
         </div>
       )}
 
@@ -105,8 +113,12 @@ export default function OwnerChatMessageBubble({
       </div>
 
       {isMine && (
-        <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-gradient-to-br from-stone-200 to-stone-100 border border-stone-200/70 shadow-sm">
-          <User className="w-5 h-5 text-stone-500" />
+        <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-gradient-to-br from-stone-200 to-stone-100 border border-stone-200/70 shadow-sm overflow-hidden">
+          {myAvatarUrl ? (
+            <img src={myAvatarUrl} alt="avatar" className="w-full h-full object-cover" />
+          ) : (
+            <User className="w-5 h-5 text-stone-500" />
+          )}
         </div>
       )}
     </div>

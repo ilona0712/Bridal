@@ -6,11 +6,15 @@ type OwnerChatMessagesListProps = {
   messages: ChatMessage[];
   currentUserId: string;
   role: string | null;
+  myAvatarUrl?: string | null;
+  otherAvatarUrl?: string | null;
 };
 
 export default function OwnerChatMessagesList({
   messages,
-  role
+  role,
+  myAvatarUrl,
+  otherAvatarUrl,
 }: OwnerChatMessagesListProps) {
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
@@ -25,6 +29,8 @@ export default function OwnerChatMessagesList({
   key={message.id}
   message={message}
   role={role}
+  myAvatarUrl={myAvatarUrl}
+  otherAvatarUrl={otherAvatarUrl}
 />
 ))}
       <div ref={bottomRef} />

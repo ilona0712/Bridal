@@ -15,10 +15,9 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
   const session = useSession()
   const navigate = useNavigate()
   const { settings } = useSiteSettings()
-  const unreadCount = 3
-
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
 
   const isAdmin = session?.user?.user_metadata?.role === "admin"
   const displayName =
@@ -42,6 +41,49 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
     }
     loadProfileImage()
   }, [session])
+
+  useEffect(() => {
+    if (!isAdmin || !session?.user) return;
+
+    const fetchUnreadConvCount = async () => {
+      const { data: convs } = await supabase.from("conversations").select("id");
+      if (!convs?.length) { setUnreadCount(0); return; }
+
+      const { data: reads } = await supabase
+        .from("conversation_reads")
+        .select("conversation_id, last_read_at")
+        .eq("user_id", session.user.id);
+
+      const readMap = new Map((reads ?? []).map((r) => [r.conversation_id, r.last_read_at]));
+
+      const results = await Promise.all(
+        convs.map(async (conv) => {
+          const lastReadAt = readMap.get(conv.id) ?? null;
+          const base = supabase
+            .from("messages")
+            .select("id", { count: "exact", head: true })
+            .eq("conversation_id", conv.id)
+            .eq("sender_type", "customer");
+          const { count } = lastReadAt
+            ? await base.gt("created_at", lastReadAt)
+            : await base;
+          return (count ?? 0) > 0 ? 1 : 0;
+        })
+      );
+
+      setUnreadCount(results.reduce((a, b) => a + b, 0));
+    };
+
+    fetchUnreadConvCount();
+
+    const channel = supabase
+      .channel("header-unread-count")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, fetchUnreadConvCount)
+      .on("postgres_changes", { event: "*", schema: "public", table: "conversation_reads" }, fetchUnreadConvCount)
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [isAdmin, session?.user?.id]);
 
   async function handleSignOut() {
     await signOut()

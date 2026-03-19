@@ -2,11 +2,13 @@ import { ArrowLeft, User } from "lucide-react";
 
 type OwnerChatHeaderProps = {
   clientName?: string;
+  profileImageUrl?: string | null;
   onBack?: () => void;
 };
 
 export default function OwnerChatHeader({
   clientName,
+  profileImageUrl,
   onBack,
 }: OwnerChatHeaderProps) {
   return (
@@ -25,8 +27,12 @@ export default function OwnerChatHeader({
         )}
 
         {/* Avatar */}
-        <div className="w-14 h-14 bg-white/80 rounded-full flex items-center justify-center border-2 border-amber-200/30">
-          <User className="w-7 h-7 text-stone-600" />
+        <div className="w-14 h-14 bg-white/80 rounded-full flex items-center justify-center border-2 border-amber-200/30 overflow-hidden">
+          {profileImageUrl ? (
+            <img src={profileImageUrl} alt={clientName ?? "Client"} className="w-full h-full object-cover" />
+          ) : (
+            <User className="w-7 h-7 text-stone-600" />
+          )}
         </div>
 
         {/* Name + status */}

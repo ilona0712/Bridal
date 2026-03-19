@@ -26,6 +26,8 @@ export default function ChatWithOwnerPage() {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingStream, setRecordingStream] = useState<MediaStream | null>(null);
   const [loading, setLoading] = useState(true);
+  const [myAvatarUrl, setMyAvatarUrl] = useState<string | null>(null);
+  const [otherAvatarUrl, setOtherAvatarUrl] = useState<string | null>(null);
   console.log("conversationId:", conversationId, "role:", role);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -39,6 +41,12 @@ export default function ChatWithOwnerPage() {
     if (!session?.user) return;
     if (role === "admin") {
       // admin already has conversationId from navigation state
+      if (stateConversationId) {
+        supabase.from("conversation_reads").upsert(
+          { conversation_id: stateConversationId, user_id: session.user.id, last_read_at: new Date().toISOString() },
+          { onConflict: "conversation_id,user_id" }
+        ).then(({ error }) => { if (error) console.error("Failed to mark conversation as read:", error); });
+      }
       setLoading(false);
       return;
     }
@@ -72,6 +80,49 @@ export default function ChatWithOwnerPage() {
 
     initConversation();
   }, [session, role]);
+
+  // Fetch profile images for current user and the other party
+  useEffect(() => {
+    if (!session?.user) return;
+
+    const fetchAvatars = async () => {
+      // Always fetch current user's avatar
+      const { data: myProfile } = await supabase
+        .from("profiles")
+        .select("profile_image_url")
+        .eq("id", session.user.id)
+        .single();
+      setMyAvatarUrl(myProfile?.profile_image_url ?? null);
+
+      if (role === "admin") {
+        // For admin: fetch the customer's avatar from conversations
+        if (!stateConversationId) return;
+        const { data: conv } = await supabase
+          .from("conversations")
+          .select("customer_id")
+          .eq("id", stateConversationId)
+          .single();
+        if (conv?.customer_id) {
+          const { data: clientProfile } = await supabase
+            .from("profiles")
+            .select("profile_image_url")
+            .eq("id", conv.customer_id)
+            .single();
+          setOtherAvatarUrl(clientProfile?.profile_image_url ?? null);
+        }
+      } else {
+        // For customer: fetch the admin's profile image
+        const { data: adminProfiles } = await supabase
+          .from("profiles")
+          .select("profile_image_url")
+          .eq("role", "admin")
+          .limit(1);
+        setOtherAvatarUrl(adminProfiles?.[0]?.profile_image_url ?? null);
+      }
+    };
+
+    fetchAvatars();
+  }, [session, role, stateConversationId]);
 
   // Step 2: load messages when conversationId is ready
   useEffect(() => {
@@ -268,6 +319,7 @@ const mediaRecorder = new MediaRecorder(stream, { mimeType });
         <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-2xl border border-stone-200/50 overflow-hidden">
           <OwnerChatHeader
             clientName={role === "admin" ? stateClientName : "Bride Me Up"}
+            profileImageUrl={otherAvatarUrl}
             onBack={() => navigate(role === "admin" ? "/clients-chats" : "/")}
           />
 
@@ -275,6 +327,8 @@ const mediaRecorder = new MediaRecorder(stream, { mimeType });
   messages={messages}
   currentUserId={session?.user?.id ?? ""}
   role={role}
+  myAvatarUrl={myAvatarUrl}
+  otherAvatarUrl={otherAvatarUrl}
 />
           <div className="relative" ref={emojiButtonAreaRef}>
             {showEmojiPicker && (
