@@ -43,9 +43,6 @@ export default function AdminPage() {
     selectedDressesForEditCollection,
     setSelectedDressesForEditCollection,
   ] = useState<string[]>([]);
-  const [showDressSelectionForEdit, setShowDressSelectionForEdit] =
-    useState(false);
-
   const {
     formData,
     setFormData,
@@ -331,28 +328,21 @@ export default function AdminPage() {
 
       setDresses((prev) =>
         prev.map((dress) => {
-          const renamedCollections = dress.collections.map((collectionName) =>
-            collectionName === editingCollection.oldName
-              ? trimmedName
-              : collectionName,
+          const collectionsWithoutThis = dress.collections.filter(
+            (c) => c !== editingCollection.oldName && c !== trimmedName,
           );
+          const updatedCollections = selectedDressesForEditCollection.includes(
+            dress.id,
+          )
+            ? [...collectionsWithoutThis, trimmedName]
+            : collectionsWithoutThis;
 
-          const withAddedCollection =
-            selectedDressesForEditCollection.includes(dress.id) &&
-            !renamedCollections.includes(trimmedName)
-              ? [...renamedCollections, trimmedName]
-              : renamedCollections;
-
-          return {
-            ...dress,
-            collections: withAddedCollection,
-          };
+          return { ...dress, collections: updatedCollections };
         }),
       );
 
       setEditingCollection(null);
       setSelectedDressesForEditCollection([]);
-      setShowDressSelectionForEdit(false);
       alert("Collection updated successfully!");
     } catch (err) {
       console.error("Unexpected update collection error:", err);
@@ -533,7 +523,6 @@ export default function AdminPage() {
                 selectedDressesForEditCollection={
                   selectedDressesForEditCollection
                 }
-                showDressSelectionForEdit={showDressSelectionForEdit}
                 onNewCollectionNameChange={(value) => {
                   setNewCollectionName(value);
                   setCollectionNameError("");
@@ -549,6 +538,10 @@ export default function AdminPage() {
                     oldName: collection.name,
                     newName: collection.name,
                   });
+                  const dressesInCollection = dresses
+                    .filter((d) => d.collections.includes(collection.name))
+                    .map((d) => d.id);
+                  setSelectedDressesForEditCollection(dressesInCollection);
                 }}
                 onEditingCollectionNameChange={(value) => {
                   setEditingCollection((prev) =>
@@ -556,14 +549,10 @@ export default function AdminPage() {
                   );
                   setCollectionNameError("");
                 }}
-                onToggleShowDressSelectionForEdit={() =>
-                  setShowDressSelectionForEdit((prev) => !prev)
-                }
                 onUpdateCollection={handleUpdateCollection}
                 onCancelEditCollection={() => {
                   setCollectionNameError("");
                   setEditingCollection(null);
-                  setShowDressSelectionForEdit(false);
                   setSelectedDressesForEditCollection([]);
                 }}
                 onDeleteCollection={handleDeleteCollection}
