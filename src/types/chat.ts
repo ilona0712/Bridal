@@ -5,6 +5,8 @@ export type ChatMessage = {
   sender_type: "customer" | "designer";
   created_at: string;
   is_audio: boolean;
+  attachment_url: string | null;
+  attachment_type: string | null;
 };
 
 export type ConversationSummary = {

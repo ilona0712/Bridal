@@ -15,6 +15,7 @@ export default function OwnerChatMessageBubble({
     (role === "admin" && message.sender_type === "designer") ||
     (role !== "admin" && message.sender_type === "customer");
   const hasAudio = message.is_audio === true;
+  const hasImage = message.attachment_type === "image" && message.attachment_url;
 
   const [duration, setDuration] = useState<string | null>(null);
 
@@ -74,10 +75,19 @@ export default function OwnerChatMessageBubble({
                 >
                   <source src={message.content} />
                 </audio>
+                
               ) : (
+                
                 <p className="text-xs text-stone-400">Audio unavailable</p>
               )}
             </div>
+          ) : hasImage ? (
+            <img
+              src={message.attachment_url!}
+              alt="attachment"
+              className="w-full max-w-[250px] rounded-xl object-cover cursor-pointer"
+              onClick={() => window.open(message.attachment_url!, "_blank")}
+            />
           ) : (
             <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">
               {message.content}

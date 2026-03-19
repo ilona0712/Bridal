@@ -134,6 +134,35 @@ export default function ChatWithOwnerPage() {
     if (error) console.error("Failed to send message:", error);
   };
 
+  const handleSendImage = async (file: File) => {
+    if (!conversationId) return;
+
+    const fileName = `${session?.user?.id}-${Date.now()}.${file.name.split(".").pop()}`;
+
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("chat-images")
+      .upload(fileName, file, { contentType: file.type });
+
+    if (uploadError) {
+      console.error("Image upload failed:", uploadError);
+      return;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from("chat-images")
+      .getPublicUrl(uploadData.path);
+
+    const { error } = await supabase.from("messages").insert({
+      conversation_id: conversationId,
+      content: urlData.publicUrl,
+      sender_type: role === "admin" ? "designer" : "customer",
+      attachment_url: urlData.publicUrl,
+      attachment_type: "image",
+    });
+
+    if (error) console.error("Failed to send image:", error);
+  };
+
   const handleEmojiClick = (emojiData: { emoji: string }) => {
     setInputValue((prev) => prev + emojiData.emoji);
   };
@@ -261,6 +290,7 @@ const mediaRecorder = new MediaRecorder(stream, { mimeType });
               onToggleEmoji={() => setShowEmojiPicker((prev) => !prev)}
               onStartRecording={handleStartRecording}
               onStopRecording={handleStopRecording}
+              onSendImage={handleSendImage}
               isRecording={isRecording}
               recordingStream={recordingStream}
             />
