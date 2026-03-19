@@ -238,7 +238,7 @@ export default function IsabellaPage() {
             </div>
           )}
 
-          <div className={dressFromGallery ? "lg:col-span-2" : ""}>
+          <div className={dressFromGallery ? "lg:col-span-2" : "lg:col-span-3"}>
             <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-2xl border border-stone-200/50 overflow-hidden">
               {/* Chat Header */}
               <div className="bg-gradient-to-r from-stone-200 via-pink-100/30 to-stone-200 px-6 py-5 border-b border-stone-200/50">
