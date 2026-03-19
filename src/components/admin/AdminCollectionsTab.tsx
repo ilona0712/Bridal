@@ -1,4 +1,4 @@
-import { Check, Edit2, FolderPlus, Plus, Save, Trash2, X } from "lucide-react";
+import { Check, Edit2, FolderPlus, Save, Trash2, X } from "lucide-react";
 import type { AdminCollection, EditingCollection } from "../../types/admin";
 import type { Dress } from "../../types/dress";
 
@@ -10,14 +10,12 @@ type AdminCollectionsTabProps = {
   addingCollectionMode: boolean;
   selectedDressesForCollection: string[];
   selectedDressesForEditCollection: string[];
-  showDressSelectionForEdit: boolean;
   collectionNameError: string;
   onNewCollectionNameChange: (value: string) => void;
   onToggleAddingCollectionMode: () => void;
   onAddCollection: () => void;
   onStartEditingCollection: (collection: AdminCollection) => void;
   onEditingCollectionNameChange: (value: string) => void;
-  onToggleShowDressSelectionForEdit: () => void;
   onUpdateCollection: () => void;
   onCancelEditCollection: () => void;
   onDeleteCollection: (collection: AdminCollection) => void;
@@ -33,14 +31,12 @@ export default function AdminCollectionsTab({
   addingCollectionMode,
   selectedDressesForCollection,
   selectedDressesForEditCollection,
-  showDressSelectionForEdit,
   collectionNameError,
   onNewCollectionNameChange,
   onToggleAddingCollectionMode,
   onAddCollection,
   onStartEditingCollection,
   onEditingCollectionNameChange,
-  onToggleShowDressSelectionForEdit,
   onUpdateCollection,
   onCancelEditCollection,
   onDeleteCollection,
@@ -190,15 +186,6 @@ export default function AdminCollectionsTab({
                       <>
                         <button
                           type="button"
-                          onClick={onToggleShowDressSelectionForEdit}
-                          className="px-3 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg transition-colors text-sm flex items-center gap-2"
-                        >
-                          <Plus className="w-4 h-4" />
-                          {showDressSelectionForEdit ? "Hide" : "Add Dresses"}
-                        </button>
-
-                        <button
-                          type="button"
                           onClick={onUpdateCollection}
                           className="px-3 py-2 bg-stone-800 text-white rounded-lg hover:bg-stone-700 transition-colors text-sm flex items-center gap-2"
                         >
@@ -238,10 +225,10 @@ export default function AdminCollectionsTab({
                   </div>
                 </div>
 
-                {isEditing && showDressSelectionForEdit && (
+                {isEditing && (
                   <div className="border-t border-stone-200 p-4 bg-white/30">
                     <p className="text-sm text-stone-600 mb-3">
-                      Select dresses to modify in this collection:
+                      Select dresses in this collection (highlighted = included):
                     </p>
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-96 overflow-y-auto">

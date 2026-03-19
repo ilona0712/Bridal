@@ -111,6 +111,24 @@ export function useAdminDressForm() {
     }
   };
 
+  const reorderImages = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) return;
+
+    setFormData((prev) => {
+      const nextImages = [...prev.images];
+      const [moved] = nextImages.splice(fromIndex, 1);
+      nextImages.splice(toIndex, 0, moved);
+      return { ...prev, images: nextImages, image: nextImages[0] || "" };
+    });
+
+    setImageFiles((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      return next;
+    });
+  };
+
   const removeImage = (indexToRemove: number) => {
     setFormData((prev) => {
       const nextImages = prev.images.filter(
@@ -161,6 +179,7 @@ export function useAdminDressForm() {
     handleDrag,
     handleDrop,
     handleFileInput,
+    reorderImages,
     removeImage,
     startEditingDress,
   };

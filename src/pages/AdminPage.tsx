@@ -29,6 +29,7 @@ import {
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("list");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [collectionNameError, setCollectionNameError] = useState("");
   const normalizeCollectionName = (value: string) => value.trim().toLowerCase();
   const [editingDress, setEditingDress] = useState<Dress | null>(null);
@@ -42,9 +43,6 @@ export default function AdminPage() {
     selectedDressesForEditCollection,
     setSelectedDressesForEditCollection,
   ] = useState<string[]>([]);
-  const [showDressSelectionForEdit, setShowDressSelectionForEdit] =
-    useState(false);
-
   const {
     formData,
     setFormData,
@@ -57,6 +55,7 @@ export default function AdminPage() {
     handleDrag,
     handleDrop,
     handleFileInput,
+    reorderImages,
     removeImage,
     startEditingDress,
   } = useAdminDressForm();
@@ -96,6 +95,8 @@ export default function AdminPage() {
       return;
     }
 
+    setIsSubmitting(true);
+
     if (editingDress) {
       try {
         const result = await updateDress(editingDress.id, formData, imageFiles);
@@ -123,7 +124,6 @@ export default function AdminPage() {
         resetForm();
         setEditingDress(null);
         setActiveTab("list");
-        return;
       } catch (err) {
         console.error("Unexpected update dress error:", err);
         alert(
@@ -131,8 +131,10 @@ export default function AdminPage() {
             ? err.message
             : "Unexpected error while updating dress.",
         );
-        return;
+      } finally {
+        setIsSubmitting(false);
       }
+      return;
     }
 
     try {
@@ -170,6 +172,8 @@ export default function AdminPage() {
           ? err.message
           : "Unexpected error while creating dress.",
       );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -324,28 +328,21 @@ export default function AdminPage() {
 
       setDresses((prev) =>
         prev.map((dress) => {
-          const renamedCollections = dress.collections.map((collectionName) =>
-            collectionName === editingCollection.oldName
-              ? trimmedName
-              : collectionName,
+          const collectionsWithoutThis = dress.collections.filter(
+            (c) => c !== editingCollection.oldName && c !== trimmedName,
           );
+          const updatedCollections = selectedDressesForEditCollection.includes(
+            dress.id,
+          )
+            ? [...collectionsWithoutThis, trimmedName]
+            : collectionsWithoutThis;
 
-          const withAddedCollection =
-            selectedDressesForEditCollection.includes(dress.id) &&
-            !renamedCollections.includes(trimmedName)
-              ? [...renamedCollections, trimmedName]
-              : renamedCollections;
-
-          return {
-            ...dress,
-            collections: withAddedCollection,
-          };
+          return { ...dress, collections: updatedCollections };
         }),
       );
 
       setEditingCollection(null);
       setSelectedDressesForEditCollection([]);
-      setShowDressSelectionForEdit(false);
       alert("Collection updated successfully!");
     } catch (err) {
       console.error("Unexpected update collection error:", err);
@@ -473,6 +470,7 @@ export default function AdminPage() {
                 trainLengths={trainLengths}
                 sleeveStyles={sleeveStyles}
                 isEditingDress={!!editingDress}
+                isSubmitting={isSubmitting}
                 onSubmit={handleSubmit}
                 onCancel={() => {
                   resetForm();
@@ -490,6 +488,7 @@ export default function AdminPage() {
                   setFormData((prev) => ({ ...prev, image: value }))
                 }
                 onRemoveImage={removeImage}
+                onReorderImages={reorderImages}
                 onSizeToggle={handleSizeToggle}
                 onNecklineChange={(value) =>
                   setFormData((prev) => ({ ...prev, neckline: value }))
@@ -524,7 +523,6 @@ export default function AdminPage() {
                 selectedDressesForEditCollection={
                   selectedDressesForEditCollection
                 }
-                showDressSelectionForEdit={showDressSelectionForEdit}
                 onNewCollectionNameChange={(value) => {
                   setNewCollectionName(value);
                   setCollectionNameError("");
@@ -540,6 +538,10 @@ export default function AdminPage() {
                     oldName: collection.name,
                     newName: collection.name,
                   });
+                  const dressesInCollection = dresses
+                    .filter((d) => d.collections.includes(collection.name))
+                    .map((d) => d.id);
+                  setSelectedDressesForEditCollection(dressesInCollection);
                 }}
                 onEditingCollectionNameChange={(value) => {
                   setEditingCollection((prev) =>
@@ -547,14 +549,10 @@ export default function AdminPage() {
                   );
                   setCollectionNameError("");
                 }}
-                onToggleShowDressSelectionForEdit={() =>
-                  setShowDressSelectionForEdit((prev) => !prev)
-                }
                 onUpdateCollection={handleUpdateCollection}
                 onCancelEditCollection={() => {
                   setCollectionNameError("");
                   setEditingCollection(null);
-                  setShowDressSelectionForEdit(false);
                   setSelectedDressesForEditCollection([]);
                 }}
                 onDeleteCollection={handleDeleteCollection}

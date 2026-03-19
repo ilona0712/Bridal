@@ -93,6 +93,11 @@ export default function DressCard({
               Sizes: {dress.sizes[0]}-{dress.sizes[dress.sizes.length - 1]}
             </span>
           )}
+          {dress.price > 0 && (
+            <span className="text-sm font-medium text-stone-800">
+              ${dress.price.toLocaleString()}
+            </span>
+          )}
         </div>
 
         {(dress.fabric || dress.sleeveStyle) && (

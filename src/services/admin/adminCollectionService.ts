@@ -91,6 +91,15 @@ export async function updateCollection(
     throw new Error(`Failed to update collection: ${updateError.message}`);
   }
 
+  const { error: unlinkError } = await supabase
+    .from("dress_collections")
+    .delete()
+    .eq("collection_id", collectionId);
+
+  if (unlinkError) {
+    throw new Error(`Failed to update dress links: ${unlinkError.message}`);
+  }
+
   if (selectedDressIds.length > 0) {
     const linkRows = selectedDressIds.map((dressId) => ({
       dress_id: dressId,

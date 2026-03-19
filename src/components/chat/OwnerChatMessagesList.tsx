@@ -10,7 +10,6 @@ type OwnerChatMessagesListProps = {
 
 export default function OwnerChatMessagesList({
   messages,
-  currentUserId,
   role
 }: OwnerChatMessagesListProps) {
   const bottomRef = useRef<HTMLDivElement | null>(null);

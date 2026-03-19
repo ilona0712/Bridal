@@ -92,35 +92,52 @@ export default function DressDetailsModal({
                     {dress.sizes[dress.sizes.length - 1]}
                   </p>
                 )}
+                {dress.price > 0 && (
+                  <p className="text-2xl font-serif text-stone-800 mt-2">
+                    ${dress.price.toLocaleString()}
+                  </p>
+                )}
               </div>
 
+              {(dress.neckline || dress.silhouette || dress.fabric || dress.trainLength || dress.sleeveStyle) && (
               <div className="space-y-4">
                 <h3 className="font-serif text-lg text-stone-800">
                   Dress Details
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <p className="text-xs text-stone-500">Neckline</p>
-                    <p className="text-sm text-stone-800">{dress.neckline}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-xs text-stone-500">Silhouette</p>
-                    <p className="text-sm text-stone-800">{dress.silhouette}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-xs text-stone-500">Fabric</p>
-                    <p className="text-sm text-stone-800">{dress.fabric}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-xs text-stone-500">Train Length</p>
-                    <p className="text-sm text-stone-800">{dress.trainLength}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-xs text-stone-500">Sleeve Style</p>
-                    <p className="text-sm text-stone-800">{dress.sleeveStyle}</p>
-                  </div>
+                  {dress.neckline && (
+                    <div className="space-y-1">
+                      <p className="text-xs text-stone-500">Neckline</p>
+                      <p className="text-sm text-stone-800">{dress.neckline}</p>
+                    </div>
+                  )}
+                  {dress.silhouette && (
+                    <div className="space-y-1">
+                      <p className="text-xs text-stone-500">Silhouette</p>
+                      <p className="text-sm text-stone-800">{dress.silhouette}</p>
+                    </div>
+                  )}
+                  {dress.fabric && (
+                    <div className="space-y-1">
+                      <p className="text-xs text-stone-500">Fabric</p>
+                      <p className="text-sm text-stone-800">{dress.fabric}</p>
+                    </div>
+                  )}
+                  {dress.trainLength && (
+                    <div className="space-y-1">
+                      <p className="text-xs text-stone-500">Train Length</p>
+                      <p className="text-sm text-stone-800">{dress.trainLength}</p>
+                    </div>
+                  )}
+                  {dress.sleeveStyle && (
+                    <div className="space-y-1">
+                      <p className="text-xs text-stone-500">Sleeve Style</p>
+                      <p className="text-sm text-stone-800">{dress.sleeveStyle}</p>
+                    </div>
+                  )}
                 </div>
               </div>
+              )}
 
               <div className="pt-6 space-y-3">
                 <button

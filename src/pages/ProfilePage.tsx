@@ -25,6 +25,8 @@ export default function ProfilePage() {
   const [email, setEmail] = useState("");
   const [dressSize, setDressSize] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
+  const [phone, setPhone] = useState("");
+  const [country, setCountry] = useState("");
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
@@ -49,7 +51,7 @@ export default function ProfilePage() {
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("full_name, dress_size, date_of_birth, profile_image_url")
+        .select("full_name, dress_size, date_of_birth, profile_image_url, phone, country")
         .eq("id", session.user.id)
         .maybeSingle();
 
@@ -81,6 +83,8 @@ export default function ProfilePage() {
       setDressSize(profileRow?.dress_size || meta.dress_size || "");
       setDateOfBirth(profileRow?.date_of_birth || meta.date_of_birth || "");
       setProfileImage(profileRow?.profile_image_url || null);
+      setPhone(profileRow?.phone || "");
+      setCountry(profileRow?.country || "");
       setProfileLoading(false);
     };
 
@@ -254,8 +258,8 @@ export default function ProfilePage() {
         dress_size: dressSize || null,
         date_of_birth: dateOfBirth || null,
         role: session.user.user_metadata?.role || "customer",
-        phone: "",
-        country: "",
+        phone: phone || "",
+        country: country || "",
         profile_image_url: publicUrl,
       },
       { onConflict: "id" },
@@ -286,8 +290,8 @@ export default function ProfilePage() {
         dress_size: dressSize || null,
         date_of_birth: dateOfBirth || null,
         role: session.user.user_metadata?.role || "customer",
-        phone: "",
-        country: "",
+        phone: phone || "",
+        country: country || "",
         profile_image_url: profileImage,
       },
       { onConflict: "id" },
@@ -360,6 +364,8 @@ export default function ProfilePage() {
                   lastName={lastName}
                   email={email}
                   dateOfBirth={dateOfBirth}
+                  phone={phone}
+                  country={country}
                   onFirstNameChange={(value) => {
                     setFirstName(value);
                     setHasChanges(true);
@@ -370,6 +376,14 @@ export default function ProfilePage() {
                   }}
                   onDateOfBirthChange={(value) => {
                     setDateOfBirth(value);
+                    setHasChanges(true);
+                  }}
+                  onPhoneChange={(value) => {
+                    setPhone(value);
+                    setHasChanges(true);
+                  }}
+                  onCountryChange={(value) => {
+                    setCountry(value);
                     setHasChanges(true);
                   }}
                 />
