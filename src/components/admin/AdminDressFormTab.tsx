@@ -1,9 +1,4 @@
-import type {
-  ChangeEvent,
-  DragEvent,
-  FormEvent,
-  RefObject,
-} from "react";
+import type { ChangeEvent, DragEvent, FormEvent, RefObject } from "react";
 import { Check, Plus, Upload, X } from "lucide-react";
 import type { DressFormData } from "../../types/admin";
 
@@ -66,6 +61,10 @@ export default function AdminDressFormTab({
   onDrop,
   onFileInputChange,
 }: AdminDressFormTabProps) {
+  const isAddToGalleryDisabled =
+    !formData.name.trim() ||
+    formData.collections.length === 0 ||
+    (formData.images.length === 0 && !formData.image.trim());
   return (
     <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 p-8 md:p-12">
       <form onSubmit={onSubmit} className="space-y-8">
@@ -134,7 +133,9 @@ export default function AdminDressFormTab({
               min="0"
               value={formData.price ?? ""}
               onChange={(e) =>
-                onPriceChange(e.target.value === "" ?  null : Number(e.target.value))
+                onPriceChange(
+                  e.target.value === "" ? null : Number(e.target.value),
+                )
               }
               placeholder="e.g., 3500"
               className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 placeholder:text-stone-400"
@@ -179,7 +180,8 @@ export default function AdminDressFormTab({
                   Browse Files
                 </button>
                 <p className="text-xs text-stone-500 mt-4">
-                  Upload up to 6 images. The first image will be the primary image.
+                  Upload up to 6 images. The first image will be the primary
+                  image.
                 </p>
               </div>
             </div>
@@ -360,7 +362,12 @@ export default function AdminDressFormTab({
         <div className="flex gap-4 pt-6">
           <button
             type="submit"
-            className="flex-1 py-4 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 text-stone-700 rounded-xl hover:shadow-lg transition-all duration-300 font-medium"
+            disabled={isAddToGalleryDisabled}
+            className={`flex-1 py-4 rounded-xl transition-all duration-300 font-medium ${
+              isAddToGalleryDisabled
+                ? "bg-stone-200 text-stone-400 cursor-not-allowed"
+                : "bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 text-stone-700 hover:shadow-lg"
+            }`}
           >
             {isEditingDress ? "Update Dress" : "Add Dress to Gallery"}
           </button>
