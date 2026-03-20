@@ -13,6 +13,8 @@ import AdminPage         from "./pages/AdminPage"
 import GalleryPage       from "./pages/GalleryPage"
 import ProfilePage       from "./pages/ProfilePage"
 import ClientsChatPage from "./pages/ClientsChatPage"
+import ForgotPasswordPage from "./pages/ForgotPasswordPage"
+import ResetPasswordPage  from "./pages/ResetPasswordPage"
 
 // ── Session context ──────────────────────────────────────────
 export const SessionContext = createContext<Session | null>(null)
@@ -42,6 +44,13 @@ export function Root({ children }: { children: React.ReactNode }) {
         ensureProfile(session.user).catch(console.error)
       }
     })
+
+    // If user didn't check Remember Me → sign out when browser closes
+    if (sessionStorage.getItem("rememberMe") === "false") {
+    window.addEventListener("beforeunload", () => {
+    supabase.auth.signOut()
+  })
+}
 
     return () => subscription.unsubscribe()
   }, [])
@@ -88,6 +97,8 @@ export const router = createBrowserRouter([
   { path: "/",            element: <HomePage /> },
   { path: "/home",        element: <HomePage /> },
   { path: "/gallery",     element: <GalleryPage /> },
+  { path: "/forgot-password", element: <ForgotPasswordPage /> },
+  { path: "/reset-password",  element: <ResetPasswordPage /> },
 
   // Customer only
   { path: "/isabella", element: <CustomerRoute><IsabellaPage /></CustomerRoute> },

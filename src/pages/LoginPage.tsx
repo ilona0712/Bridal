@@ -24,7 +24,7 @@ export default function LoginPage() {
   async function handleLogin() {
     setError("");
     setLoading(true);
-    const { error } = await signIn(email, password);
+    const { error } = await signIn(email, password, rememberMe);
     setLoading(false);
     if (error) {
       if (error.message.toLowerCase().includes("email not confirmed")) {
@@ -102,7 +102,7 @@ export default function LoginPage() {
                 />
                 <span>Remember me</span>
               </label>
-              <Link to="#" className="text-stone-600 hover:text-stone-800">
+              <Link to="/forgot-password" className="text-stone-600 hover:text-stone-800">
                 Forgot password
               </Link>
             </div>
