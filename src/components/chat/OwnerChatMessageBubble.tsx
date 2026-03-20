@@ -1,6 +1,8 @@
 import { Mic, User } from "lucide-react";
 import type { ChatMessage } from "../../types/chat";
 import { useEffect, useState } from "react";
+import { formatChatTime } from "../../utils/common/formatChatTime";
+
 
 type OwnerChatMessageBubbleProps = {
   message: ChatMessage;
@@ -104,11 +106,7 @@ export default function OwnerChatMessageBubble({
         </div>
 
         <span className="text-xs text-stone-400 px-2">
-          {new Date(message.created_at).toLocaleTimeString("en-US", {
-            hour: "numeric",
-            minute: "2-digit",
-            hour12: true,
-          })}
+          {formatChatTime(message.created_at)}
         </span>
       </div>
 

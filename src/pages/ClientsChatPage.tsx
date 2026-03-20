@@ -5,6 +5,7 @@ import Header from "../components/common/Header";
 import { supabase } from "../../lib/supabase";
 import { useSession } from "../routes";
 import type { ConversationSummary } from "../types/chat";
+import { formatChatTime } from "../utils/common/formatChatTime";
 
 export default function ClientsChatPage() {
   const session = useSession();
@@ -72,13 +73,7 @@ export default function ClientsChatPage() {
             profileImageUrl: profile?.profile_image_url ?? null,
             lastMessage: last?.content ?? "No messages yet",
             lastMessageType,
-            timestamp: last
-              ? new Date(last.created_at).toLocaleTimeString("en-US", {
-                  hour: "numeric",
-                  minute: "2-digit",
-                  hour12: true,
-                })
-              : "",
+            timestamp: last ? formatChatTime(last.created_at) : "",
             lastMessageAt: last?.created_at ?? null,
             unreadCount,
             unread: unreadCount > 0,
@@ -119,11 +114,7 @@ export default function ClientsChatPage() {
                 lastMessage: msg.content,
                 lastMessageType,
                 lastMessageAt: msg.created_at,
-                timestamp: new Date(msg.created_at).toLocaleTimeString("en-US", {
-                  hour: "numeric",
-                  minute: "2-digit",
-                  hour12: true,
-                }),
+                timestamp: formatChatTime(msg.created_at),
                 unreadCount: msg.sender_type === "customer" ? conv.unreadCount + 1 : conv.unreadCount,
                 unread: msg.sender_type === "customer" ? true : conv.unread,
               };
