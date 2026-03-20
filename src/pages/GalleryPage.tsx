@@ -10,6 +10,7 @@ import GalleryFilters from "../components/gallery/GalleryFilters";
 import DressCard from "../components/gallery/DressCard";
 import DressDetailsModal from "../components/gallery/DressDetailsModal";
 import DressContextMenu from "../components/gallery/DressContextMenu";
+import RentModal from "../components/gallery/RentModal";
 import { useGalleryData } from "../hooks/gallery/useGalleryData";
 import { useGalleryFavorites } from "../hooks/gallery/useGalleryFavorites";
 
@@ -50,6 +51,7 @@ export default function GalleryPage() {
   const [showFilters,         setShowFilters]         = useState(false);
 
   const [selectedDress, setSelectedDress] = useState<Dress | null>(null);
+  const [rentDress, setRentDress] = useState<Dress | null>(null);
   const [contextMenu, setContextMenu] = useState<{
     visible: boolean; x: number; y: number; dress: Dress | null;
   }>({ visible: false, x: 0, y: 0, dress: null });
@@ -192,6 +194,7 @@ export default function GalleryPage() {
                     isAdmin={isAdmin}
                     isFavorite={favoriteDressIds.includes(dress.id)}
                     onToggleFavorite={toggleFavorite}
+                    onRequestRent={setRentDress}
                   />
                 ))}
               </div>
@@ -204,6 +207,20 @@ export default function GalleryPage() {
         <DressDetailsModal
           dress={selectedDress}
           onClose={() => setSelectedDress(null)}
+        />
+      )}
+
+      {rentDress && (
+        <RentModal
+          dress={{
+            id: String(rentDress.id),
+            name: rentDress.name,
+            sizes:
+              rentDress.sizes?.length > 0
+                ? `${rentDress.sizes[0]}-${rentDress.sizes[rentDress.sizes.length - 1]}`
+                : undefined,
+          }}
+          onClose={() => setRentDress(null)}
         />
       )}
 

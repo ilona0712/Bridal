@@ -11,6 +11,7 @@ type DressCardProps = {
   isAdmin: boolean;
   isFavorite: boolean;
   onToggleFavorite: (dressId: string) => void;
+  onRequestRent: (dress: Dress) => void;
 };
 
 function CollectionCarousel({ collections }: { collections: string[] }) {
@@ -44,6 +45,7 @@ export default function DressCard({
   isAdmin,
   isFavorite,
   onToggleFavorite,
+  onRequestRent,
 }: DressCardProps) {
   return (
     <div
@@ -126,6 +128,7 @@ export default function DressCard({
         <button
           type="button"
           className="w-full rounded-lg bg-stone-800 py-2 text-sm text-white transition-all hover:bg-stone-700"
+          onClick={() => onRequestRent(dress)}
         >
           Request to Rent
         </button>
