@@ -1,4 +1,4 @@
-import { Mic, Send, Smile, Square, Paperclip, X, Camera } from "lucide-react";
+import { Mic, Send, Smile, Square, Paperclip, X, Camera, Plus } from "lucide-react";
 import VoiceRecorderWaveform from "./VoiceRecorderWaveform";
 import { useRef, useState } from "react";
 
@@ -31,6 +31,7 @@ export default function OwnerChatInput({
   const [previewFile, setPreviewFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showCamera, setShowCamera] = useState(false);
+  const [showAttachMenu, setShowAttachMenu] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
@@ -146,13 +147,62 @@ export default function OwnerChatInput({
       )}
 
       <div className="flex gap-1 sm:gap-3 items-end">
+
+        {/* Mobile: single + button with popup */}
+        <div className="relative sm:hidden flex-shrink-0">
+          <button
+            type="button"
+            onClick={() => setShowAttachMenu((v) => !v)}
+            className="w-10 h-10 bg-white/90 dark:bg-stone-700/90 border border-stone-200 dark:border-stone-600 rounded-full flex items-center justify-center hover:shadow-lg transition-all"
+            aria-label="More options"
+          >
+            <Plus className="w-4 h-4 text-stone-700 dark:text-stone-300" />
+          </button>
+
+          {showAttachMenu && (
+            <>
+              <div
+                className="fixed inset-0 z-10"
+                onClick={() => setShowAttachMenu(false)}
+              />
+              <div className="absolute bottom-full left-0 mb-2 z-20 flex gap-2 bg-white/95 dark:bg-stone-800/95 border border-stone-200 dark:border-stone-700 rounded-2xl p-2 shadow-xl">
+                <button
+                  type="button"
+                  onClick={() => { onToggleEmoji(); setShowAttachMenu(false); }}
+                  className="w-10 h-10 bg-stone-50 dark:bg-stone-700 border border-stone-200 dark:border-stone-600 rounded-full flex items-center justify-center hover:bg-stone-100 dark:hover:bg-stone-600 transition-all"
+                  aria-label="Open emoji picker"
+                >
+                  <Smile className="w-4 h-4 text-stone-700 dark:text-stone-300" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { fileInputRef.current?.click(); setShowAttachMenu(false); }}
+                  className="w-10 h-10 bg-stone-50 dark:bg-stone-700 border border-stone-200 dark:border-stone-600 rounded-full flex items-center justify-center hover:bg-stone-100 dark:hover:bg-stone-600 transition-all"
+                  aria-label="Attach image"
+                >
+                  <Paperclip className="w-4 h-4 text-stone-700 dark:text-stone-300" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { openCamera(); setShowAttachMenu(false); }}
+                  className="w-10 h-10 bg-stone-50 dark:bg-stone-700 border border-stone-200 dark:border-stone-600 rounded-full flex items-center justify-center hover:bg-stone-100 dark:hover:bg-stone-600 transition-all"
+                  aria-label="Take photo"
+                >
+                  <Camera className="w-4 h-4 text-stone-700 dark:text-stone-300" />
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Desktop: individual buttons */}
         <button
           type="button"
           onClick={onToggleEmoji}
-          className="w-10 h-10 sm:w-12 sm:h-12 bg-white/90 dark:bg-stone-700/90 border border-stone-200 dark:border-stone-600 rounded-full flex items-center justify-center hover:shadow-lg transition-all flex-shrink-0"
+          className="hidden sm:flex w-12 h-12 bg-white/90 dark:bg-stone-700/90 border border-stone-200 dark:border-stone-600 rounded-full items-center justify-center hover:shadow-lg transition-all flex-shrink-0"
           aria-label="Open emoji picker"
         >
-          <Smile className="w-4 h-4 sm:w-5 sm:h-5 text-stone-700" />
+          <Smile className="w-5 h-5 text-stone-700 dark:text-stone-300" />
         </button>
 
         <input
@@ -166,19 +216,19 @@ export default function OwnerChatInput({
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="w-10 h-10 sm:w-12 sm:h-12 bg-white/90 dark:bg-stone-700/90 border border-stone-200 dark:border-stone-600 rounded-full flex items-center justify-center hover:shadow-lg transition-all flex-shrink-0"
+          className="hidden sm:flex w-12 h-12 bg-white/90 dark:bg-stone-700/90 border border-stone-200 dark:border-stone-600 rounded-full items-center justify-center hover:shadow-lg transition-all flex-shrink-0"
           aria-label="Attach image"
         >
-          <Paperclip className="w-4 h-4 sm:w-5 sm:h-5 text-stone-700" />
+          <Paperclip className="w-5 h-5 text-stone-700 dark:text-stone-300" />
         </button>
 
         <button
           type="button"
           onClick={openCamera}
-          className="w-10 h-10 sm:w-12 sm:h-12 bg-white/90 dark:bg-stone-700/90 border border-stone-200 dark:border-stone-600 rounded-full flex items-center justify-center hover:shadow-lg transition-all flex-shrink-0"
+          className="hidden sm:flex w-12 h-12 bg-white/90 dark:bg-stone-700/90 border border-stone-200 dark:border-stone-600 rounded-full items-center justify-center hover:shadow-lg transition-all flex-shrink-0"
           aria-label="Take photo"
         >
-          <Camera className="w-4 h-4 sm:w-5 sm:h-5 text-stone-700" />
+          <Camera className="w-5 h-5 text-stone-700 dark:text-stone-300" />
         </button>
 
         {!isRecording ? (
@@ -207,7 +257,7 @@ export default function OwnerChatInput({
             className="w-10 h-10 sm:w-12 sm:h-12 bg-white/90 dark:bg-stone-700/90 border border-stone-200 dark:border-stone-600 rounded-full flex items-center justify-center hover:shadow-lg transition-all flex-shrink-0"
             aria-label="Start recording"
           >
-            <Mic className="w-4 h-4 sm:w-5 sm:h-5 text-stone-700" />
+            <Mic className="w-4 h-4 sm:w-5 sm:h-5 text-stone-700 dark:text-stone-300" />
           </button>
         ) : (
           <button
@@ -227,7 +277,7 @@ export default function OwnerChatInput({
             className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-amber-100/60 via-amber-50/40 to-amber-100/60 border border-amber-200/50 rounded-full flex items-center justify-center hover:shadow-lg transition-all flex-shrink-0"
             aria-label="Send"
           >
-            <Send className="w-4 h-4 sm:w-5 sm:h-5 text-stone-700" />
+            <Send className="w-4 h-4 sm:w-5 sm:h-5 text-stone-700 dark:text-stone-300" />
           </button>
         )}
       </div>

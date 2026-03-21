@@ -16,7 +16,7 @@ export default function HomeHeroSection() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center max-w-7xl mx-auto relative z-10">
 
         {/* Text side */}
-        <div className="space-y-8">
+        <div className="space-y-8 text-center lg:text-left">
 
           {/* Badge */}
           <motion.div
@@ -64,7 +64,7 @@ export default function HomeHeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.9, ease: "easeOut" }}
-            className="flex gap-4"
+            className="flex gap-4 justify-center lg:justify-start flex-wrap"
           >
             <Link
               to="/isabella"

@@ -121,8 +121,8 @@ export default function GalleryPage() {
       <Header subtitle="Gallery Collection" />
 
       <div className="container mx-auto px-6 py-8 max-w-7xl">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-          <div>
+        <div className="flex flex-col sm:flex-row justify-between items-center sm:items-center gap-4 mb-8">
+          <div className="text-center sm:text-left">
             <h1 className="font-serif text-4xl text-stone-800 dark:text-stone-100 mb-2">Our Collection</h1>
             <p className="text-stone-600 dark:text-stone-300">
               {loading ? "Loading gowns..." : `${filteredDresses.length} gowns available`}

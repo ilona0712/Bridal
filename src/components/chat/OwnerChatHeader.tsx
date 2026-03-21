@@ -22,7 +22,7 @@ export default function OwnerChatHeader({
             className="flex h-10 w-10 items-center justify-center rounded-full border border-amber-200/40 dark:border-stone-600 bg-white/80 dark:bg-stone-700/80 transition hover:bg-white dark:hover:bg-stone-600"
             title="Back"
           >
-            <ArrowLeft className="h-4 w-4 text-stone-600" />
+            <ArrowLeft className="h-4 w-4 text-stone-600 dark:text-stone-300" />
           </button>
         )}
 
@@ -31,7 +31,7 @@ export default function OwnerChatHeader({
           {profileImageUrl ? (
             <img src={profileImageUrl} alt={clientName ?? "Client"} className="w-full h-full object-cover" />
           ) : (
-            <User className="w-7 h-7 text-stone-600" />
+            <User className="w-7 h-7 text-stone-600 dark:text-stone-300" />
           )}
         </div>
 

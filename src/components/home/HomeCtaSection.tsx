@@ -40,7 +40,7 @@ export default function HomeCtaSection() {
           just a conversation away.
         </p>
 
-        <div className="flex gap-4 justify-center">
+        <div className="flex gap-4 justify-center flex-wrap">
           <Link
             to="/isabella"
             className="px-8 py-4 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-200 rounded-xl hover:shadow-lg transition-all"
