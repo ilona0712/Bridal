@@ -313,10 +313,10 @@ const mediaRecorder = new MediaRecorder(stream, { mimeType });
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100">
+    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
       <Header subtitle={role === "admin" ? "Client Conversation" : "Chat with Us"} />
       <div className="container mx-auto px-6 py-8 max-w-5xl">
-        <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-2xl border border-stone-200/50 overflow-hidden">
+        <div className="bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-3xl shadow-2xl border border-stone-200/50 dark:border-stone-700/50 overflow-hidden">
           <OwnerChatHeader
             clientName={role === "admin" ? stateClientName : "Bride Me Up"}
             profileImageUrl={otherAvatarUrl}

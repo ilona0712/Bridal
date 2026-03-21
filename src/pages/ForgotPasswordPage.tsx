@@ -25,14 +25,14 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 flex items-center justify-center p-6">
-      <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 p-12 w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950 flex items-center justify-center p-6">
+      <div className="bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 dark:border-stone-700/50 p-12 w-full max-w-md">
         <div className="text-center space-y-3 mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 rounded-full">
             <Sparkles className="w-8 h-8 text-stone-600" />
           </div>
-          <h1 className="font-serif text-3xl text-stone-800">Forgot Password</h1>
-          <p className="text-stone-500 text-sm">
+          <h1 className="font-serif text-3xl text-stone-800 dark:text-stone-100">Forgot Password</h1>
+          <p className="text-stone-500 dark:text-stone-400 text-sm">
             Enter your email and we'll send you a reset link.
           </p>
         </div>
@@ -51,15 +51,15 @@ export default function ForgotPasswordPage() {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <label className="text-sm text-stone-700">Email Address</label>
+              <label className="text-sm text-stone-700 dark:text-stone-300">Email Address</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="bride@example.com"
                 required
-                className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl
-                  focus:outline-none focus:ring-2 focus:ring-pink-200/50 text-stone-800"
+                className="w-full px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl
+                  focus:outline-none focus:ring-2 focus:ring-pink-200/50 text-stone-800 dark:text-stone-100"
               />
             </div>
 
@@ -75,7 +75,7 @@ export default function ForgotPasswordPage() {
             </button>
 
             <div className="text-center">
-              <Link to="/login" className="text-sm text-stone-600 hover:text-stone-800">
+              <Link to="/login" className="text-sm text-stone-600 dark:text-stone-300 hover:text-stone-800 dark:hover:text-stone-100">
                 Back to Sign In
               </Link>
             </div>

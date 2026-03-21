@@ -31,8 +31,8 @@ export default function HowItWorksSection() {
           ref={titleRef}
           className={`text-center mb-16 space-y-3 opacity-0 ${titleInView ? "animate-fade-slide-up" : ""}`}
         >
-          <h2 className="font-serif text-4xl text-stone-800">How It Works</h2>
-          <p className="text-stone-600">Three simple steps to your perfect gown</p>
+          <h2 className="font-serif text-4xl text-stone-800 dark:text-stone-100">How It Works</h2>
+          <p className="text-stone-600 dark:text-stone-300">Three simple steps to your perfect gown</p>
         </div>
 
         <div ref={cardsRef} className="grid grid-cols-1 md:grid-cols-3 gap-8">

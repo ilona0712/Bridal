@@ -19,9 +19,9 @@ export default function CheckEmailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 flex items-center justify-center p-6">
-      <div className="fixed inset-0 bg-stone-100/60 backdrop-blur-sm" />
-      <div className="relative z-10 bg-white rounded-3xl shadow-2xl border border-stone-200/50 p-10 w-full max-w-md text-center">
+    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950 flex items-center justify-center p-6">
+      <div className="fixed inset-0 bg-stone-100/60 dark:bg-stone-900/60 backdrop-blur-sm" />
+      <div className="relative z-10 bg-white dark:bg-stone-800 rounded-3xl shadow-2xl border border-stone-200/50 dark:border-stone-700/50 p-10 w-full max-w-md text-center">
         <div className="flex justify-center mb-6">
           <div className="relative">
             <div className="w-24 h-24 bg-gradient-to-br from-stone-100 via-pink-50 to-stone-200 rounded-full flex items-center justify-center shadow-inner">
@@ -37,11 +37,11 @@ export default function CheckEmailPage() {
           </div>
         </div>
 
-        <h1 className="font-serif text-3xl text-stone-800 mb-2">Check Your Email</h1>
-        <p className="text-stone-500 text-sm leading-relaxed mb-1">We sent a verification link to</p>
-        <p className="font-medium text-stone-700 text-base mb-6 break-all">{email || "your email address"}</p>
+        <h1 className="font-serif text-3xl text-stone-800 dark:text-stone-100 mb-2">Check Your Email</h1>
+        <p className="text-stone-500 dark:text-stone-400 text-sm leading-relaxed mb-1">We sent a verification link to</p>
+        <p className="font-medium text-stone-700 dark:text-stone-200 text-base mb-6 break-all">{email || "your email address"}</p>
 
-        <div className="bg-stone-50 rounded-2xl p-5 mb-6 text-left space-y-3">
+        <div className="bg-stone-50 dark:bg-stone-700/50 rounded-2xl p-5 mb-6 text-left space-y-3">
           {[
             { step: "1", text: "Open your email inbox" },
             { step: "2", text: "Click the verification link we sent you" },
@@ -51,7 +51,7 @@ export default function CheckEmailPage() {
               <span className="w-7 h-7 rounded-full bg-gradient-to-br from-stone-300 via-pink-200/40 to-stone-300 flex items-center justify-center text-xs font-medium text-stone-600 shrink-0">
                 {step}
               </span>
-              <span className="text-sm text-stone-600">{text}</span>
+              <span className="text-sm text-stone-600 dark:text-stone-300">{text}</span>
             </div>
           ))}
         </div>
@@ -65,13 +65,13 @@ export default function CheckEmailPage() {
             Go to Sign In
           </button>
           <button onClick={handleResend} disabled={loading}
-            className="w-full py-3 border border-stone-200 text-stone-500 rounded-xl
-              hover:bg-stone-50 transition-colors text-sm disabled:opacity-50">
+            className="w-full py-3 border border-stone-200 dark:border-stone-600 text-stone-500 dark:text-stone-400 rounded-xl
+              hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors text-sm disabled:opacity-50">
             {loading ? "Resending..." : "Resend verification email"}
           </button>
         </div>
 
-        <p className="mt-6 text-xs text-stone-400">Didn't receive it? Check your spam folder.</p>
+        <p className="mt-6 text-xs text-stone-400 dark:text-stone-500">Didn't receive it? Check your spam folder.</p>
       </div>
     </div>
   )

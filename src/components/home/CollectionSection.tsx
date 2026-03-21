@@ -81,10 +81,10 @@ export default function CollectionSection() {
     <section className="container mx-auto px-6 py-20">
       <div className="mx-auto max-w-7xl">
         <div className="mb-16 space-y-3 text-center">
-          <h2 className="font-serif text-4xl text-stone-800">
+          <h2 className="font-serif text-4xl text-stone-800 dark:text-stone-100">
             Our Collections
           </h2>
-          <p className="text-stone-600">
+          <p className="text-stone-600 dark:text-stone-300">
             Explore stunning gowns designed by brides like you
           </p>
         </div>

@@ -31,14 +31,14 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 flex items-center justify-center p-6">
-      <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 p-12 w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950 flex items-center justify-center p-6">
+      <div className="bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 dark:border-stone-700/50 p-12 w-full max-w-md">
         <div className="text-center space-y-3 mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 rounded-full">
             <Sparkles className="w-8 h-8 text-stone-600" />
           </div>
-          <h1 className="font-serif text-3xl text-stone-800">New Password</h1>
-          <p className="text-stone-500 text-sm">Enter your new password below.</p>
+          <h1 className="font-serif text-3xl text-stone-800 dark:text-stone-100">New Password</h1>
+          <p className="text-stone-500 dark:text-stone-400 text-sm">Enter your new password below.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">

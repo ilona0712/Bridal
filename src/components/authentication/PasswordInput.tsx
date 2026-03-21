@@ -30,7 +30,7 @@ export default function PasswordInput({
 }: PasswordInputProps) {
   return (
     <div className="space-y-2">
-      <label htmlFor={id} className="text-sm text-stone-700">
+      <label htmlFor={id} className="text-sm text-stone-700 dark:text-stone-300">
         {label}
       </label>
 
@@ -44,9 +44,9 @@ export default function PasswordInput({
           autoComplete={autoComplete}
           onChange={(e) => onPasswordChange(e.target.value)}
           onBlur={onBlur}
-          className="w-full px-4 py-3 pr-20 bg-stone-50/50 border border-stone-200 rounded-xl
+          className="w-full px-4 py-3 pr-20 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl
           focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50
-          text-stone-800 placeholder:text-stone-400"
+          text-stone-800 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500"
         />
 
         {password && isPasswordValid && (
@@ -56,7 +56,7 @@ export default function PasswordInput({
         <button
           type="button"
           onClick={onToggleShowPassword}
-          className="absolute inset-y-0 right-3 flex items-center text-sm text-stone-500"
+          className="absolute inset-y-0 right-3 flex items-center text-sm text-stone-500 dark:text-stone-400"
         >
           {showPassword ? (
             <EyeOff className="w-5 h-5" />

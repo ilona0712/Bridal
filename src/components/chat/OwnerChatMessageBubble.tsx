@@ -55,13 +55,13 @@ export default function OwnerChatMessageBubble({
             "rounded-3xl px-5 py-4 shadow-sm backdrop-blur-sm transition-all w-fit",
             hasAudio ? "min-w-[250px] max-w-full" : "max-w-full",
             isMine
-              ? "bg-gradient-to-br from-stone-300 via-pink-100 to-stone-200 text-stone-800 rounded-br-md border border-pink-100/60"
-              : "bg-white/90 text-stone-800 rounded-bl-md border border-stone-200/70",
+              ? "bg-gradient-to-br from-stone-300 via-pink-100 to-stone-200 dark:from-stone-600 dark:via-pink-900/20 dark:to-stone-600 text-stone-800 dark:text-stone-100 rounded-br-md border border-pink-100/60 dark:border-stone-500/60"
+              : "bg-white/90 dark:bg-stone-700/90 text-stone-800 dark:text-stone-100 rounded-bl-md border border-stone-200/70 dark:border-stone-600/70",
           ].join(" ")}
         >
           {hasAudio ? (
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-xs text-stone-500">
+              <div className="flex items-center gap-2 text-xs text-stone-500 dark:text-stone-400">
                 <div
                   className={`w-7 h-7 rounded-full flex items-center justify-center ${isMine
                       ? "bg-white/50 border border-white/60"
@@ -103,7 +103,7 @@ export default function OwnerChatMessageBubble({
           )}
         </div>
 
-        <span className="text-xs text-stone-400 px-2">
+        <span className="text-xs text-stone-400 dark:text-stone-500 px-2">
           {new Date(message.created_at).toLocaleTimeString("en-US", {
             hour: "numeric",
             minute: "2-digit",

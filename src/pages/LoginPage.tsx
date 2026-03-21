@@ -38,28 +38,28 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950 flex items-center justify-center p-6">
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
         <AuthImagePanel
           src="https://images.unsplash.com/photo-1770757588092-6fd47f8a2985?auto=format&fit=crop&w=1080&q=80"
           alt="Bridal Gown"
         />
-        <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 p-12">
+        <div className="bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 dark:border-stone-700/50 p-12">
           <div className="max-w-md mx-auto space-y-8">
             <div className="text-center space-y-3">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 rounded-full">
                 <Sparkles className="w-8 h-8 text-stone-600" />
               </div>
-              <h1 className="font-serif text-4xl text-stone-800">
+              <h1 className="font-serif text-4xl text-stone-800 dark:text-stone-100">
                 Bride Me Up
               </h1>
-              <p className="text-stone-500">
+              <p className="text-stone-500 dark:text-stone-400">
                 Your journey to the perfect dress begins here
               </p>
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm text-stone-700">
+              <label htmlFor="email" className="text-sm text-stone-700 dark:text-stone-300">
                 Email Address
               </label>
               <input
@@ -68,9 +68,9 @@ export default function LoginPage() {
                 placeholder="bride@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl
+                className="w-full px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl
                   focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50
-                  text-stone-800 placeholder:text-stone-400"
+                  text-stone-800 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500"
               />
             </div>
 
@@ -91,7 +91,7 @@ export default function LoginPage() {
             <div className="flex items-center justify-between text-sm">
               <label
                 htmlFor="remember"
-                className="flex items-center gap-2 text-stone-600 cursor-pointer"
+                className="flex items-center gap-2 text-stone-600 dark:text-stone-300 cursor-pointer"
               >
                 <input
                   id="remember"
@@ -102,7 +102,7 @@ export default function LoginPage() {
                 />
                 <span>Remember me</span>
               </label>
-              <Link to="/forgot-password" className="text-stone-600 hover:text-stone-800">
+              <Link to="/forgot-password" className="text-stone-600 dark:text-stone-300 hover:text-stone-800 dark:hover:text-stone-100">
                 Forgot password
               </Link>
             </div>
@@ -127,7 +127,7 @@ export default function LoginPage() {
                 <div className="w-full border-t border-stone-200" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white/60 text-stone-500">
+                <span className="px-4 bg-white/60 dark:bg-stone-800/60 text-stone-500 dark:text-stone-400">
                   or continue with
                 </span>
               </div>
@@ -135,11 +135,11 @@ export default function LoginPage() {
 
             <SocialLoginButons />
 
-            <div className="text-center text-sm text-stone-600">
+            <div className="text-center text-sm text-stone-600 dark:text-stone-300">
               Don&apos;t have an account?{" "}
               <Link
                 to="/signup"
-                className="text-stone-700 hover:text-stone-900"
+                className="text-stone-700 dark:text-stone-200 hover:text-stone-900 dark:hover:text-stone-50"
               >
                 Create one
               </Link>
