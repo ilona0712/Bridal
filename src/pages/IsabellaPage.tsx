@@ -158,10 +158,10 @@ export default function IsabellaPage() {
 
     return (
       <div className="lg:sticky lg:top-24 space-y-4">
-        <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-2xl border border-stone-200/50 overflow-hidden">
-          <div className="px-5 py-4 border-b border-stone-200/50 bg-gradient-to-r from-stone-200 via-pink-100/30 to-stone-200">
-            <p className="text-xs text-stone-600">Selected dress</p>
-            <h3 className="font-serif text-lg text-stone-800 leading-tight">
+        <div className="bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-3xl shadow-2xl border border-stone-200/50 dark:border-stone-700/50 overflow-hidden">
+          <div className="px-5 py-4 border-b border-stone-200/50 dark:border-stone-700/50 bg-gradient-to-r from-stone-200 via-pink-100/30 to-stone-200 dark:from-stone-700 dark:via-pink-900/20 dark:to-stone-700">
+            <p className="text-xs text-stone-600 dark:text-stone-300">Selected dress</p>
+            <h3 className="font-serif text-lg text-stone-800 dark:text-stone-100 leading-tight">
               {dressFromGallery.name}
             </h3>
           </div>
@@ -181,35 +181,35 @@ export default function IsabellaPage() {
             </div>
 
             <div className="space-y-2">
-              <p className="text-sm text-stone-700">
-                <span className="text-stone-500">Neckline:</span>{" "}
+              <p className="text-sm text-stone-700 dark:text-stone-200">
+                <span className="text-stone-500 dark:text-stone-400">Neckline:</span>{" "}
                 {dressFromGallery.neckline}
               </p>
-              <p className="text-sm text-stone-700">
-                <span className="text-stone-500">Silhouette:</span>{" "}
+              <p className="text-sm text-stone-700 dark:text-stone-200">
+                <span className="text-stone-500 dark:text-stone-400">Silhouette:</span>{" "}
                 {dressFromGallery.silhouette}
               </p>
-              <p className="text-sm text-stone-700">
-                <span className="text-stone-500">Fabric:</span>{" "}
+              <p className="text-sm text-stone-700 dark:text-stone-200">
+                <span className="text-stone-500 dark:text-stone-400">Fabric:</span>{" "}
                 {dressFromGallery.fabric}
               </p>
-              <p className="text-sm text-stone-700">
-                <span className="text-stone-500">Train:</span>{" "}
+              <p className="text-sm text-stone-700 dark:text-stone-200">
+                <span className="text-stone-500 dark:text-stone-400">Train:</span>{" "}
                 {dressFromGallery.trainLength}
               </p>
-              <p className="text-sm text-stone-700">
-                <span className="text-stone-500">Sleeves:</span>{" "}
+              <p className="text-sm text-stone-700 dark:text-stone-200">
+                <span className="text-stone-500 dark:text-stone-400">Sleeves:</span>{" "}
                 {dressFromGallery.sleeveStyle}
               </p>
-              <p className="text-sm text-stone-700">
-                <span className="text-stone-500">Sizes:</span>{" "}
+              <p className="text-sm text-stone-700 dark:text-stone-200">
+                <span className="text-stone-500 dark:text-stone-400">Sizes:</span>{" "}
                 {dressFromGallery.sizes[0]}-
                 {dressFromGallery.sizes[dressFromGallery.sizes.length - 1]}
               </p>
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-stone-200/50">
-              <p className="font-medium text-stone-800">
+            <div className="flex items-center justify-between pt-2 border-t border-stone-200/50 dark:border-stone-700/50">
+              <p className="font-medium text-stone-800 dark:text-stone-100">
                 ${dressFromGallery.price.toLocaleString()}
               </p>
 
@@ -227,7 +227,7 @@ export default function IsabellaPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100">
+    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
       <Header subtitle="Your Personal Bridal Consultant" />
 
       <div className="container mx-auto px-6 py-8 max-w-7xl">
@@ -239,27 +239,27 @@ export default function IsabellaPage() {
           )}
 
           <div className={dressFromGallery ? "lg:col-span-2" : "lg:col-span-3"}>
-            <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-2xl border border-stone-200/50 overflow-hidden">
+            <div className="bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-3xl shadow-2xl border border-stone-200/50 dark:border-stone-700/50 overflow-hidden">
               {/* Chat Header */}
-              <div className="bg-gradient-to-r from-stone-200 via-pink-100/30 to-stone-200 px-6 py-5 border-b border-stone-200/50">
+              <div className="bg-gradient-to-r from-stone-200 via-pink-100/30 to-stone-200 dark:from-stone-700 dark:via-pink-900/20 dark:to-stone-700 px-6 py-5 border-b border-stone-200/50 dark:border-stone-700/50">
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 bg-white/80 rounded-full flex items-center justify-center">
                     <Sparkles className="w-7 h-7 text-stone-600" />
                   </div>
                   <div>
-                    <h2 className="font-serif text-2xl text-stone-800">
+                    <h2 className="font-serif text-2xl text-stone-800 dark:text-stone-100">
                       Isabella
                     </h2>
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 bg-pink-300/60 rounded-full animate-pulse" />
-                      <span className="text-sm text-stone-600">Online now</span>
+                      <span className="text-sm text-stone-600 dark:text-stone-300">Online now</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Messages */}
-              <div className="h-[500px] overflow-y-auto p-6 space-y-4 bg-stone-50/30">
+              <div className="h-[500px] overflow-y-auto p-6 space-y-4 bg-stone-50/30 dark:bg-stone-900/30">
                 {messages.map((message, index) => (
                   <div
                     key={index}
@@ -276,11 +276,11 @@ export default function IsabellaPage() {
                     <div
                       className={`rounded-2xl px-5 py-4 max-w-[80%] ${
                         message.type === "bot"
-                          ? "bg-white/90 border border-stone-200/50 rounded-tl-none"
-                          : "bg-gradient-to-br from-stone-300 via-pink-200/40 to-stone-300 rounded-tr-none"
+                          ? "bg-white/90 dark:bg-stone-700/90 border border-stone-200/50 dark:border-stone-600/50 rounded-tl-none"
+                          : "bg-gradient-to-br from-stone-300 via-pink-200/40 to-stone-300 dark:from-stone-600 dark:via-pink-900/20 dark:to-stone-600 rounded-tr-none"
                       }`}
                     >
-                      <p className="text-sm text-stone-800 leading-relaxed whitespace-pre-line">
+                      <p className="text-sm text-stone-800 dark:text-stone-100 leading-relaxed whitespace-pre-line">
                         {message.text}
                       </p>
                     </div>
@@ -293,7 +293,7 @@ export default function IsabellaPage() {
               </div>
 
               {/* Input */}
-              <div className="border-t border-stone-200/50 p-6 bg-white/40">
+              <div className="border-t border-stone-200/50 dark:border-stone-700/50 p-6 bg-white/40 dark:bg-stone-800/40">
                 <div className="flex gap-3 items-end">
                   <textarea
                     value={inputValue}
@@ -301,7 +301,7 @@ export default function IsabellaPage() {
                     onKeyDown={handleKeyDown}
                     placeholder="Type your answer here..."
                     rows={1}
-                    className="flex-1 bg-white/90 border border-stone-200 rounded-2xl px-5 py-4 text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 resize-none"
+                    className="flex-1 bg-white/90 dark:bg-stone-700/90 border border-stone-200 dark:border-stone-600 rounded-2xl px-5 py-4 text-sm text-stone-800 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 resize-none"
                   />
 
                   <button
@@ -313,7 +313,7 @@ export default function IsabellaPage() {
                   </button>
                 </div>
 
-                <p className="text-xs text-stone-500 mt-3 text-center">
+                <p className="text-xs text-stone-500 dark:text-stone-400 mt-3 text-center">
                   Press Enter to send • Shift + Enter for new line
                 </p>
               </div>

@@ -25,9 +25,9 @@ export default function ProfileHeroSection({
   onImageUpload,
 }: ProfileHeroSectionProps) {
   return (
-    <div className="flex flex-col sm:flex-row items-center sm:items-end gap-6 -mt-16 pb-6 border-b border-stone-200/50">
+    <div className="flex flex-col sm:flex-row items-center sm:items-end gap-6 -mt-16 pb-6 border-b border-stone-200/50 dark:border-stone-700/50">
       <div className="relative">
-        <div className="w-32 h-32 rounded-full border-4 border-white shadow-xl overflow-hidden bg-stone-100">
+        <div className="w-32 h-32 rounded-full border-4 border-white dark:border-stone-700 shadow-xl overflow-hidden bg-stone-100 dark:bg-stone-700">
           {profileImage ? (
             <img
               src={profileImage}
@@ -58,10 +58,10 @@ export default function ProfileHeroSection({
       </div>
 
       <div className="flex-1 text-center sm:text-left">
-        <h2 className="font-serif text-3xl text-stone-800">
+        <h2 className="font-serif text-3xl text-stone-800 dark:text-stone-100">
           {firstName} {lastName}
         </h2>
-        <p className="text-stone-500 mt-1">{email}</p>
+        <p className="text-stone-500 dark:text-stone-400 mt-1">{email}</p>
 
         {isAdmin && (
           <span className="inline-block mt-2 px-3 py-1 text-xs font-semibold bg-yellow-200 text-yellow-900 rounded-full">

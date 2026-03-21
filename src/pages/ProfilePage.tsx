@@ -334,13 +334,13 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100">
+    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
       <ProfilePageHeader onLogout={handleLogout} />
 
       <div className="container mx-auto px-6 py-12">
         <div className="max-w-3xl mx-auto">
-          <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 overflow-hidden">
-            <div className="h-32 bg-gradient-to-r from-stone-200 via-pink-100/40 to-stone-200" />
+          <div className="bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 dark:border-stone-700/50 overflow-hidden">
+            <div className="h-32 bg-gradient-to-r from-stone-200 via-pink-100/40 to-stone-200 dark:from-stone-700 dark:via-pink-900/20 dark:to-stone-700" />
 
             <div className="relative px-8 sm:px-12">
               <ProfileHeroSection
@@ -415,7 +415,7 @@ export default function ProfilePage() {
           <div className="mt-8 text-center">
             <button
               onClick={handleLogout}
-              className="px-6 py-3 bg-white/60 backdrop-blur-sm border border-stone-300/50 text-stone-700 hover:bg-stone-100/50 rounded-xl transition-all flex items-center gap-2 mx-auto"
+              className="px-6 py-3 bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm border border-stone-300/50 dark:border-stone-600/50 text-stone-700 dark:text-stone-200 hover:bg-stone-100/50 dark:hover:bg-stone-700/50 rounded-xl transition-all flex items-center gap-2 mx-auto"
             >
               Logout from Bride Me Up
             </button>

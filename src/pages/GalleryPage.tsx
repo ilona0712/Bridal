@@ -115,7 +115,7 @@ export default function GalleryPage() {
 
   return (
     <div
-      className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100"
+      className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950"
       onClick={handleClickOutside}
     >
       <Header subtitle="Gallery Collection" />
@@ -123,14 +123,14 @@ export default function GalleryPage() {
       <div className="container mx-auto px-6 py-8 max-w-7xl">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
-            <h1 className="font-serif text-4xl text-stone-800 mb-2">Our Collection</h1>
-            <p className="text-stone-600">
+            <h1 className="font-serif text-4xl text-stone-800 dark:text-stone-100 mb-2">Our Collection</h1>
+            <p className="text-stone-600 dark:text-stone-300">
               {loading ? "Loading gowns..." : `${filteredDresses.length} gowns available`}
             </p>
           </div>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="lg:hidden flex items-center gap-2 px-4 py-2 bg-white/60 border border-stone-200 rounded-xl text-stone-700 hover:bg-stone-50/50 transition-all"
+            className="lg:hidden flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-stone-800/60 border border-stone-200 dark:border-stone-700 rounded-xl text-stone-700 dark:text-stone-200 hover:bg-stone-50/50 dark:hover:bg-stone-700/50 transition-all"
           >
             <SlidersHorizontal className="w-4 h-4" />
             {showFilters ? "Hide Filters" : "Show Filters"}

@@ -94,7 +94,7 @@ export default function OwnerChatInput({
   };
 
   return (
-    <div className="border-t border-stone-200/50 p-4 sm:p-6 bg-white/40">
+    <div className="border-t border-stone-200/50 dark:border-stone-700/50 p-4 sm:p-6 bg-white/40 dark:bg-stone-800/40">
 
       {/* Camera modal */}
       {showCamera && (
@@ -149,7 +149,7 @@ export default function OwnerChatInput({
         <button
           type="button"
           onClick={onToggleEmoji}
-          className="w-10 h-10 sm:w-12 sm:h-12 bg-white/90 border border-stone-200 rounded-full flex items-center justify-center hover:shadow-lg transition-all flex-shrink-0"
+          className="w-10 h-10 sm:w-12 sm:h-12 bg-white/90 dark:bg-stone-700/90 border border-stone-200 dark:border-stone-600 rounded-full flex items-center justify-center hover:shadow-lg transition-all flex-shrink-0"
           aria-label="Open emoji picker"
         >
           <Smile className="w-4 h-4 sm:w-5 sm:h-5 text-stone-700" />
@@ -166,7 +166,7 @@ export default function OwnerChatInput({
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="w-10 h-10 sm:w-12 sm:h-12 bg-white/90 border border-stone-200 rounded-full flex items-center justify-center hover:shadow-lg transition-all flex-shrink-0"
+          className="w-10 h-10 sm:w-12 sm:h-12 bg-white/90 dark:bg-stone-700/90 border border-stone-200 dark:border-stone-600 rounded-full flex items-center justify-center hover:shadow-lg transition-all flex-shrink-0"
           aria-label="Attach image"
         >
           <Paperclip className="w-4 h-4 sm:w-5 sm:h-5 text-stone-700" />
@@ -175,7 +175,7 @@ export default function OwnerChatInput({
         <button
           type="button"
           onClick={openCamera}
-          className="w-10 h-10 sm:w-12 sm:h-12 bg-white/90 border border-stone-200 rounded-full flex items-center justify-center hover:shadow-lg transition-all flex-shrink-0"
+          className="w-10 h-10 sm:w-12 sm:h-12 bg-white/90 dark:bg-stone-700/90 border border-stone-200 dark:border-stone-600 rounded-full flex items-center justify-center hover:shadow-lg transition-all flex-shrink-0"
           aria-label="Take photo"
         >
           <Camera className="w-4 h-4 sm:w-5 sm:h-5 text-stone-700" />
@@ -188,15 +188,15 @@ export default function OwnerChatInput({
             onKeyDown={onKeyDown}
             placeholder="Type your message..."
             rows={1}
-            className="flex-1 min-w-0 bg-white/90 border border-stone-200 rounded-2xl px-3 sm:px-5 py-3 sm:py-4 text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-200/50 focus:border-amber-300/50 resize-none"
+            className="flex-1 min-w-0 bg-white/90 dark:bg-stone-700/90 border border-stone-200 dark:border-stone-600 rounded-2xl px-3 sm:px-5 py-3 sm:py-4 text-sm text-stone-800 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-amber-200/50 focus:border-amber-300/50 resize-none"
           />
         ) : (
-          <div className="flex-1 min-w-0 h-[48px] sm:h-[56px] bg-white/90 border border-stone-200 rounded-2xl px-4 flex items-center gap-3">
+          <div className="flex-1 min-w-0 h-[48px] sm:h-[56px] bg-white/90 dark:bg-stone-700/90 border border-stone-200 dark:border-stone-600 rounded-2xl px-4 flex items-center gap-3">
             <VoiceRecorderWaveform
               stream={recordingStream}
               isRecording={isRecording}
             />
-            <span className="text-sm text-stone-500">Recording...</span>
+            <span className="text-sm text-stone-500 dark:text-stone-400">Recording...</span>
           </div>
         )}
 
@@ -204,7 +204,7 @@ export default function OwnerChatInput({
           <button
             type="button"
             onClick={onStartRecording}
-            className="w-10 h-10 sm:w-12 sm:h-12 bg-white/90 border border-stone-200 rounded-full flex items-center justify-center hover:shadow-lg transition-all flex-shrink-0"
+            className="w-10 h-10 sm:w-12 sm:h-12 bg-white/90 dark:bg-stone-700/90 border border-stone-200 dark:border-stone-600 rounded-full flex items-center justify-center hover:shadow-lg transition-all flex-shrink-0"
             aria-label="Start recording"
           >
             <Mic className="w-4 h-4 sm:w-5 sm:h-5 text-stone-700" />
@@ -232,7 +232,7 @@ export default function OwnerChatInput({
         )}
       </div>
 
-      <p className="text-xs text-stone-500 mt-3 text-center">
+      <p className="text-xs text-stone-500 dark:text-stone-400 mt-3 text-center">
         Press Enter to send • Shift + Enter for new line
       </p>
 

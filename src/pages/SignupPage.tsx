@@ -96,22 +96,22 @@ export default function Signup() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950 flex items-center justify-center p-6">
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
         <AuthImagePanel
           src="https://images.unsplash.com/photo-1766104797322-3826d7158c64?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3ZWRkaW5nJTIwZHJlc3MlMjBmaXR0aW5nJTIwYnJpZGV8ZW58MXx8fHwxNzcwODk2NjM5fDA&ixlib=rb-4.1.0&q=80&w=1080"
           alt="Bridal Fitting"
         />
-        <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 p-12">
+        <div className="bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 dark:border-stone-700/50 p-12">
           <div className="max-w-md mx-auto space-y-8">
             <div className="text-center space-y-3">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 rounded-full">
                 <Sparkles className="w-8 h-8 text-stone-600" />
               </div>
-              <h1 className="font-serif text-4xl text-stone-800">
+              <h1 className="font-serif text-4xl text-stone-800 dark:text-stone-100">
                 Create Your Profile
               </h1>
-              <p className="text-stone-500">
+              <p className="text-stone-500 dark:text-stone-400">
                 Begin your journey to finding the perfect dress
               </p>
             </div>
@@ -127,7 +127,7 @@ export default function Signup() {
               />
 
               <div className="space-y-2">
-                <label className="text-sm text-stone-700">
+                <label className="text-sm text-stone-700 dark:text-stone-300">
                   Email Address <span className="text-pink-400/60">*</span>
                 </label>
                 <input
@@ -135,9 +135,9 @@ export default function Signup() {
                   placeholder="emma@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl
+                  className="w-full px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl
                     focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50
-                    text-stone-800 placeholder:text-stone-400"
+                    text-stone-800 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500"
                 />
               </div>
 
@@ -160,15 +160,15 @@ export default function Signup() {
               />
 
               <div className="space-y-2">
-                <label className="text-sm text-stone-700">
+                <label className="text-sm text-stone-700 dark:text-stone-300">
                   Dress Size <span className="text-pink-400/60">*</span>
                 </label>
                 <select
                   value={dressSize}
                   onChange={(e) => setDressSize(e.target.value)}
-                  className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl
+                  className="w-full px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl
                     focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50
-                    text-stone-800 cursor-pointer"
+                    text-stone-800 dark:text-stone-100 cursor-pointer"
                 >
                   <option value="">Select your size</option>
                   {["32", "34", "36", "38", "40", "42", "44", "46"].map((s) => (
@@ -180,22 +180,22 @@ export default function Signup() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm text-stone-700">
+                <label className="text-sm text-stone-700 dark:text-stone-300">
                   Date of Birth (Optional)
                 </label>
                 <input
                   type="date"
                   value={dateOfBirth}
                   onChange={(e) => setDateOfBirth(e.target.value)}
-                  className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl
+                  className="w-full px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl
                     focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50
-                    text-stone-800"
+                    text-stone-800 dark:text-stone-100"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm text-stone-700">
+                  <label className="text-sm text-stone-700 dark:text-stone-300">
                     Phone Number (Optional)
                   </label>
                   <input
@@ -203,14 +203,14 @@ export default function Signup() {
                     placeholder="+961 03 123 456"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl
+                    className="w-full px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl
                       focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50
-                      text-stone-800 placeholder:text-stone-400"
+                      text-stone-800 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm text-stone-700">
+                  <label className="text-sm text-stone-700 dark:text-stone-300">
                     Country (Optional)
                   </label>
                   <input
@@ -218,14 +218,14 @@ export default function Signup() {
                     placeholder="e.g. Lebanon"
                     value={country}
                     onChange={(e) => setCountry(e.target.value)}
-                    className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl
+                    className="w-full px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl
                       focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50
-                      text-stone-800 placeholder:text-stone-400"
+                      text-stone-800 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500"
                   />
                 </div>
               </div>
 
-              <label className="flex items-start gap-2 text-sm text-stone-600 cursor-pointer">
+              <label className="flex items-start gap-2 text-sm text-stone-600 dark:text-stone-300 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={agreed}
@@ -260,11 +260,11 @@ export default function Signup() {
                 {loading ? "Creating account..." : "Create Account"}
               </button>
 
-              <div className="text-center text-sm text-stone-600">
+              <div className="text-center text-sm text-stone-600 dark:text-stone-300">
                 Already have an account?{" "}
                 <Link
                   to="/login"
-                  className="text-stone-700 hover:text-stone-900"
+                  className="text-stone-700 dark:text-stone-200 hover:text-stone-900 dark:hover:text-stone-50"
                 >
                   Sign in
                 </Link>

@@ -54,9 +54,9 @@ function ImagePreviewGrid({
 
   return (
     <div className="space-y-3">
-      <label className="text-sm text-stone-700">
+      <label className="text-sm text-stone-700 dark:text-stone-300">
         Image Preview{" "}
-        <span className="text-xs text-stone-500">
+        <span className="text-xs text-stone-500 dark:text-stone-400">
           — drag to reorder, leftmost is primary
         </span>
       </label>
@@ -86,10 +86,10 @@ function ImagePreviewGrid({
               dragIndexRef.current = null;
               setDragOverIndex(null);
             }}
-            className={`relative rounded-xl overflow-hidden border bg-white cursor-grab active:cursor-grabbing transition-all duration-150 ${
+            className={`relative rounded-xl overflow-hidden border bg-white dark:bg-stone-800 cursor-grab active:cursor-grabbing transition-all duration-150 ${
               dragOverIndex === index
                 ? "border-pink-400 ring-2 ring-pink-200 scale-[1.02]"
-                : "border-stone-200"
+                : "border-stone-200 dark:border-stone-600"
             }`}
           >
             <img
@@ -157,16 +157,16 @@ export default function AdminDressFormTab({
     formData.collections.length === 0 ||
     (formData.images.length === 0 && !formData.image.trim());
   return (
-    <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 p-8 md:p-12">
+    <div className="bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 dark:border-stone-700/50 p-8 md:p-12">
       <form onSubmit={onSubmit} className="space-y-8">
         <div className="space-y-6">
-          <h2 className="text-2xl font-serif text-stone-800 flex items-center gap-2">
+          <h2 className="text-2xl font-serif text-stone-800 dark:text-stone-100 flex items-center gap-2">
             <Plus className="w-6 h-6" />
             Basic Information
           </h2>
 
           <div className="space-y-2">
-            <label className="text-sm text-stone-700">
+            <label className="text-sm text-stone-700 dark:text-stone-300">
               Dress Name <span className="text-pink-400/60">*</span>
             </label>
             <input
@@ -175,16 +175,16 @@ export default function AdminDressFormTab({
               value={formData.name}
               onChange={(e) => onNameChange(e.target.value)}
               placeholder="e.g., Ethereal Grace"
-              className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 placeholder:text-stone-400"
+              className="w-full px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm text-stone-700">
+            <label className="text-sm text-stone-700 dark:text-stone-300">
               Collections <span className="text-pink-400/60">*</span>
             </label>
 
-            <p className="text-xs text-stone-500 mb-3">
+            <p className="text-xs text-stone-500 dark:text-stone-400 mb-3">
               Select all collections this dress belongs to
             </p>
 
@@ -196,8 +196,8 @@ export default function AdminDressFormTab({
                   onClick={() => onCollectionToggle(collection)}
                   className={`px-4 py-3 rounded-xl border transition-all text-sm ${
                     formData.collections.includes(collection)
-                      ? "bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 border-stone-300 text-stone-800"
-                      : "bg-stone-50/50 border-stone-200 text-stone-600 hover:bg-stone-100/50"
+                      ? "bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 border-stone-300 text-stone-800 dark:text-stone-800"
+                      : "bg-stone-50/50 dark:bg-stone-700/50 border-stone-200 dark:border-stone-600 text-stone-600 dark:text-stone-300 hover:bg-stone-100/50 dark:hover:bg-stone-600/50"
                   }`}
                 >
                   {collection}
@@ -209,15 +209,15 @@ export default function AdminDressFormTab({
             </div>
 
             {formData.collections.length > 0 && (
-              <p className="text-xs text-stone-600 mt-2">
+              <p className="text-xs text-stone-600 dark:text-stone-300 mt-2">
                 Selected: {formData.collections.join(", ")}
               </p>
             )}
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm text-stone-700">
-              Price <span className="text-stone-500">(Optional)</span>
+            <label className="text-sm text-stone-700 dark:text-stone-300">
+              Price <span className="text-stone-500 dark:text-stone-400">(Optional)</span>
             </label>
             <input
               type="number"
@@ -229,12 +229,12 @@ export default function AdminDressFormTab({
                 )
               }
               placeholder="e.g., 3500"
-              className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 placeholder:text-stone-400"
+              className="w-full px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500"
             />
           </div>
 
           <div className="space-y-3">
-            <label className="text-sm text-stone-700">
+            <label className="text-sm text-stone-700 dark:text-stone-300">
               Dress Images <span className="text-pink-400/60">*</span>
             </label>
 
@@ -246,7 +246,7 @@ export default function AdminDressFormTab({
               className={`relative border-2 border-dashed rounded-xl p-8 transition-all ${
                 dragActive
                   ? "border-pink-300 bg-pink-50/30"
-                  : "border-stone-200 bg-stone-50/30"
+                  : "border-stone-200 dark:border-stone-600 bg-stone-50/30 dark:bg-stone-700/30"
               }`}
             >
               <input
@@ -260,17 +260,17 @@ export default function AdminDressFormTab({
 
               <div className="text-center">
                 <Upload className="w-12 h-12 text-stone-400 mx-auto mb-4" />
-                <p className="text-sm text-stone-600 mb-2">
+                <p className="text-sm text-stone-600 dark:text-stone-300 mb-2">
                   Drag and drop images here, or
                 </p>
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg transition-colors text-sm"
+                  className="px-4 py-2 bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 dark:hover:bg-stone-600 text-stone-700 dark:text-stone-200 rounded-lg transition-colors text-sm"
                 >
                   Browse Files
                 </button>
-                <p className="text-xs text-stone-500 mt-4">
+                <p className="text-xs text-stone-500 dark:text-stone-400 mt-4">
                   Upload up to 6 images. The first image will be the primary
                   image.
                 </p>
@@ -282,10 +282,10 @@ export default function AdminDressFormTab({
               value={formData.image}
               onChange={(e) => onImageChange(e.target.value)}
               placeholder="Or paste a primary image URL"
-              className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 placeholder:text-stone-400"
+              className="w-full px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500"
             />
 
-            <p className="text-xs text-stone-500">
+            <p className="text-xs text-stone-500 dark:text-stone-400">
               {formData.images.length}/6 images uploaded
             </p>
           </div>
@@ -300,14 +300,14 @@ export default function AdminDressFormTab({
         </div>
 
         <div className="space-y-4">
-          <h2 className="text-2xl font-serif text-stone-800">
+          <h2 className="text-2xl font-serif text-stone-800 dark:text-stone-100">
             Available Sizes{" "}
-            <span className="text-stone-500 text-sm font-normal">
+            <span className="text-stone-500 dark:text-stone-400 text-sm font-normal">
               (Optional)
             </span>
           </h2>
 
-          <p className="text-sm text-stone-600">
+          <p className="text-sm text-stone-600 dark:text-stone-300">
             Select all sizes available for this dress
           </p>
 
@@ -319,8 +319,8 @@ export default function AdminDressFormTab({
                 onClick={() => onSizeToggle(size)}
                 className={`px-4 py-2 rounded-lg border transition-all ${
                   formData.sizes.includes(size)
-                    ? "bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 border-stone-300 text-stone-800"
-                    : "bg-stone-50/50 border-stone-200 text-stone-600 hover:bg-stone-100/50"
+                    ? "bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 border-stone-300 text-stone-800 dark:text-stone-800"
+                    : "bg-stone-50/50 dark:bg-stone-700/50 border-stone-200 dark:border-stone-600 text-stone-600 dark:text-stone-300 hover:bg-stone-100/50 dark:hover:bg-stone-600/50"
                 }`}
               >
                 {size}
@@ -330,20 +330,20 @@ export default function AdminDressFormTab({
         </div>
 
         <div className="space-y-6">
-          <h2 className="text-2xl font-serif text-stone-800">
+          <h2 className="text-2xl font-serif text-stone-800 dark:text-stone-100">
             Dress Attributes{" "}
-            <span className="text-stone-500 text-sm font-normal">
+            <span className="text-stone-500 dark:text-stone-400 text-sm font-normal">
               (Optional)
             </span>
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm text-stone-700">Neckline</label>
+              <label className="text-sm text-stone-700 dark:text-stone-300">Neckline</label>
               <select
                 value={formData.neckline}
                 onChange={(e) => onNecklineChange(e.target.value)}
-                className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 cursor-pointer"
+                className="w-full px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 dark:text-stone-100 cursor-pointer"
               >
                 <option value="">Select neckline...</option>
                 {necklines.map((neckline) => (
@@ -355,11 +355,11 @@ export default function AdminDressFormTab({
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm text-stone-700">Silhouette</label>
+              <label className="text-sm text-stone-700 dark:text-stone-300">Silhouette</label>
               <select
                 value={formData.silhouette}
                 onChange={(e) => onSilhouetteChange(e.target.value)}
-                className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 cursor-pointer"
+                className="w-full px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 dark:text-stone-100 cursor-pointer"
               >
                 <option value="">Select silhouette...</option>
                 {silhouettes.map((silhouette) => (
@@ -371,11 +371,11 @@ export default function AdminDressFormTab({
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm text-stone-700">Fabric</label>
+              <label className="text-sm text-stone-700 dark:text-stone-300">Fabric</label>
               <select
                 value={formData.fabric}
                 onChange={(e) => onFabricChange(e.target.value)}
-                className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 cursor-pointer"
+                className="w-full px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 dark:text-stone-100 cursor-pointer"
               >
                 <option value="">Select fabric...</option>
                 {fabrics.map((fabric) => (
@@ -387,11 +387,11 @@ export default function AdminDressFormTab({
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm text-stone-700">Train Length</label>
+              <label className="text-sm text-stone-700 dark:text-stone-300">Train Length</label>
               <select
                 value={formData.trainLength}
                 onChange={(e) => onTrainLengthChange(e.target.value)}
-                className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 cursor-pointer"
+                className="w-full px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 dark:text-stone-100 cursor-pointer"
               >
                 <option value="">Select train length...</option>
                 {trainLengths.map((train) => (
@@ -403,11 +403,11 @@ export default function AdminDressFormTab({
             </div>
 
             <div className="space-y-2 md:col-span-2">
-              <label className="text-sm text-stone-700">Sleeve Style</label>
+              <label className="text-sm text-stone-700 dark:text-stone-300">Sleeve Style</label>
               <select
                 value={formData.sleeveStyle}
                 onChange={(e) => onSleeveStyleChange(e.target.value)}
-                className="w-full px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 cursor-pointer"
+                className="w-full px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 dark:text-stone-100 cursor-pointer"
               >
                 <option value="">Select sleeve style...</option>
                 {sleeveStyles.map((sleeve) => (
@@ -426,7 +426,7 @@ export default function AdminDressFormTab({
             disabled={isAddToGalleryDisabled || isSubmitting}
             className={`flex-1 py-4 rounded-xl transition-all duration-300 font-medium flex items-center justify-center gap-2 ${
               isAddToGalleryDisabled
-                ? "bg-stone-200 text-stone-400 cursor-not-allowed"
+                ? "bg-stone-200 dark:bg-stone-700 text-stone-400 dark:text-stone-500 cursor-not-allowed"
                 : "bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 text-stone-700 hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:shadow-none"
             }`}
           >
@@ -439,7 +439,7 @@ export default function AdminDressFormTab({
           <button
             type="button"
             onClick={onCancel}
-            className="px-8 py-4 bg-stone-100/50 border border-stone-200 text-stone-700 rounded-xl hover:bg-stone-200/50 transition-colors font-medium"
+            className="px-8 py-4 bg-stone-100/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 text-stone-700 dark:text-stone-200 rounded-xl hover:bg-stone-200/50 dark:hover:bg-stone-600/50 transition-colors font-medium"
           >
             Cancel
           </button>

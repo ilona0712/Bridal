@@ -139,14 +139,14 @@ export default function ClientsChatPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100">
+    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
       <Header subtitle="Client Chats" />
       <div className="container mx-auto px-6 py-8 max-w-4xl">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="font-serif text-3xl text-stone-800">Client Chats</h2>
-              <p className="text-stone-500 mt-1">
+              <h2 className="font-serif text-3xl text-stone-800 dark:text-stone-100">Client Chats</h2>
+              <p className="text-stone-500 dark:text-stone-400 mt-1">
                 {conversations.length} conversation{conversations.length !== 1 ? "s" : ""}
               </p>
             </div>
@@ -162,27 +162,27 @@ export default function ClientsChatPage() {
               placeholder="Search clients..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white/60 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 text-stone-800 placeholder:text-stone-400"
+              className="w-full pl-12 pr-4 py-3 bg-white/60 dark:bg-stone-800/60 border border-stone-200 dark:border-stone-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 text-stone-800 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500"
             />
           </div>
         </div>
 
-        <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 overflow-hidden">
+        <div className="bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 dark:border-stone-700/50 overflow-hidden">
           {loading ? (
-            <div className="p-12 text-center text-stone-400">Loading conversations...</div>
+            <div className="p-12 text-center text-stone-400 dark:text-stone-500">Loading conversations...</div>
           ) : filtered.length === 0 ? (
             <div className="p-12 text-center">
-              <MessageCircle className="w-16 h-16 text-stone-300 mx-auto mb-4" />
-              <p className="text-stone-500">No conversations found</p>
+              <MessageCircle className="w-16 h-16 text-stone-300 dark:text-stone-600 mx-auto mb-4" />
+              <p className="text-stone-500 dark:text-stone-400">No conversations found</p>
             </div>
           ) : (
-            <div className="divide-y divide-stone-200/50">
+            <div className="divide-y divide-stone-200/50 dark:divide-stone-700/50">
               {filtered.map((conv) => (
                 <Link
                   key={conv.id}
                   to="/chat"
                   state={{ conversationId: conv.id, clientName: conv.clientName }}
-                  className="flex items-center gap-4 p-5 hover:bg-stone-50/50 transition-colors group"
+                  className="flex items-center gap-4 p-5 hover:bg-stone-50/50 dark:hover:bg-stone-700/50 transition-colors group"
                 >
                   <div className="w-14 h-14 rounded-full bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 flex items-center justify-center border-2 border-stone-200/30 overflow-hidden">
                     {conv.profileImageUrl ? (
@@ -195,9 +195,9 @@ export default function ClientsChatPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between mb-1">
-                      <h3 className="font-serif text-lg text-stone-800">{conv.clientName}</h3>
+                      <h3 className="font-serif text-lg text-stone-800 dark:text-stone-100">{conv.clientName}</h3>
                       <div className="flex items-center gap-2 ml-2 flex-shrink-0">
-                        <span className="text-xs text-stone-400">{conv.timestamp}</span>
+                        <span className="text-xs text-stone-400 dark:text-stone-500">{conv.timestamp}</span>
                         {conv.unreadCount > 0 && (
                           <span className="min-w-[20px] h-5 px-1.5 bg-pink-200 text-stone-700 text-xs font-medium rounded-full flex items-center justify-center">
                             {conv.unreadCount}
@@ -216,7 +216,7 @@ export default function ClientsChatPage() {
                         Photo
                       </p>
                     ) : (
-                      <p className="text-sm truncate text-stone-500">{conv.lastMessage}</p>
+                      <p className="text-sm truncate text-stone-500 dark:text-stone-400">{conv.lastMessage}</p>
                     )}
                   </div>
                 </Link>

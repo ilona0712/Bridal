@@ -31,11 +31,11 @@ export default function HomeCtaSection() {
           }}
         />
 
-        <h2 className="font-serif text-4xl text-stone-800">
+        <h2 className="font-serif text-4xl text-stone-800 dark:text-stone-100">
           Ready to Find Your Dream Gown?
         </h2>
 
-        <p className="text-lg text-stone-700">
+        <p className="text-lg text-stone-700 dark:text-stone-200">
           Start your journey today with our AI consultant. Your perfect dress is
           just a conversation away.
         </p>
@@ -43,7 +43,7 @@ export default function HomeCtaSection() {
         <div className="flex gap-4 justify-center">
           <Link
             to="/isabella"
-            className="px-8 py-4 bg-white text-stone-700 rounded-xl hover:shadow-lg transition-all"
+            className="px-8 py-4 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-200 rounded-xl hover:shadow-lg transition-all"
           >
             Start Now
           </Link>

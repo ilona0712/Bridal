@@ -411,7 +411,7 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100">
+    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
       <Header />
 
       <div className="max-w-7xl mx-auto px-6 py-12">
@@ -438,11 +438,11 @@ export default function AdminPage() {
         </div>
 
         {loadingInitialData ? (
-          <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 p-12 text-center">
-            <p className="text-stone-600">Loading admin data...</p>
+          <div className="bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 dark:border-stone-700/50 p-12 text-center">
+            <p className="text-stone-600 dark:text-stone-300">Loading admin data...</p>
           </div>
         ) : initialDataError ? (
-          <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 p-12 text-center">
+          <div className="bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 dark:border-stone-700/50 p-12 text-center">
             <p className="text-red-600">Error: {initialDataError}</p>
           </div>
         ) : (

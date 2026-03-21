@@ -28,7 +28,7 @@ export default function HomePage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.8, ease: "easeOut" }}
-      className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100"
+      className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950"
     >
       <CursorTrail />
       <ScrollProgressBar />

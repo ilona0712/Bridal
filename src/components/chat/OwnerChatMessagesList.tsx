@@ -23,7 +23,7 @@ export default function OwnerChatMessagesList({
   }, [messages]);
 
   return (
-    <div className="h-[500px] overflow-y-auto p-6 space-y-4 bg-stone-50/30">
+    <div className="h-[500px] overflow-y-auto p-6 space-y-4 bg-stone-50/30 dark:bg-stone-900/30">
       {messages.map((message) => (
 <OwnerChatMessageBubble
   key={message.id}

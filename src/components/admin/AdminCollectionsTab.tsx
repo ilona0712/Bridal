@@ -45,8 +45,8 @@ export default function AdminCollectionsTab({
 }: AdminCollectionsTabProps) {
   return (
     <div className="space-y-6">
-      <div className="bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg border border-stone-200/50 p-6">
-        <h2 className="text-2xl font-serif text-stone-800 mb-4 flex items-center gap-2">
+      <div className="bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-2xl shadow-lg border border-stone-200/50 dark:border-stone-700/50 p-6">
+        <h2 className="text-2xl font-serif text-stone-800 dark:text-stone-100 mb-4 flex items-center gap-2">
           <FolderPlus className="w-6 h-6" />
           Add New Collection
         </h2>
@@ -58,13 +58,13 @@ export default function AdminCollectionsTab({
               value={newCollectionName}
               onChange={(e) => onNewCollectionNameChange(e.target.value)}
               placeholder="Enter collection name..."
-              className="flex-1 px-4 py-3 bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 placeholder:text-stone-400"
+              className="flex-1 px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500"
             />
 
             <button
               type="button"
               onClick={onToggleAddingCollectionMode}
-              className="px-6 py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl transition-all font-medium"
+              className="px-6 py-3 bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 dark:hover:bg-stone-600 text-stone-700 dark:text-stone-200 rounded-xl transition-all font-medium"
             >
               {addingCollectionMode ? "Cancel" : "Select Dresses"}
             </button>
@@ -75,8 +75,8 @@ export default function AdminCollectionsTab({
           )}
 
           {addingCollectionMode && (
-            <div className="border-t border-stone-200 pt-4 mt-4">
-              <p className="text-sm text-stone-600 mb-3">
+            <div className="border-t border-stone-200 dark:border-stone-700 pt-4 mt-4">
+              <p className="text-sm text-stone-600 dark:text-stone-300 mb-3">
                 Select dresses to add to this collection:
               </p>
 
@@ -115,7 +115,7 @@ export default function AdminCollectionsTab({
               </div>
 
               {selectedDressesForCollection.length > 0 && (
-                <p className="text-xs text-stone-600 mt-3">
+                <p className="text-xs text-stone-600 dark:text-stone-300 mt-3">
                   {selectedDressesForCollection.length} dress(es) selected
                 </p>
               )}
@@ -135,8 +135,8 @@ export default function AdminCollectionsTab({
         </div>
       </div>
 
-      <div className="bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg border border-stone-200/50 p-6">
-        <h2 className="text-2xl font-serif text-stone-800 mb-4">
+      <div className="bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-2xl shadow-lg border border-stone-200/50 dark:border-stone-700/50 p-6">
+        <h2 className="text-2xl font-serif text-stone-800 dark:text-stone-100 mb-4">
           Existing Collections
         </h2>
 
@@ -151,7 +151,7 @@ export default function AdminCollectionsTab({
             return (
               <div
                 key={collection.id}
-                className="bg-stone-50/50 rounded-xl border border-stone-200 overflow-hidden"
+                className="bg-stone-50/50 dark:bg-stone-700/50 rounded-xl border border-stone-200 dark:border-stone-600 overflow-hidden"
               >
                 <div className="flex items-center justify-between p-4">
                   {isEditing && editingCollection ? (
@@ -162,7 +162,7 @@ export default function AdminCollectionsTab({
                         onChange={(e) =>
                           onEditingCollectionNameChange(e.target.value)
                         }
-                        className="w-full px-3 py-2 bg-white border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-200/50 text-stone-800"
+                        className="w-full px-3 py-2 bg-white dark:bg-stone-700 border border-stone-200 dark:border-stone-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-200/50 text-stone-800 dark:text-stone-100"
                       />
                       {collectionNameError && (
                         <p className="mt-2 text-sm text-red-600">
@@ -172,10 +172,10 @@ export default function AdminCollectionsTab({
                     </div>
                   ) : (
                     <div>
-                      <h3 className="font-medium text-stone-800">
+                      <h3 className="font-medium text-stone-800 dark:text-stone-100">
                         {collection.name}
                       </h3>
-                      <p className="text-xs text-stone-500">
+                      <p className="text-xs text-stone-500 dark:text-stone-400">
                         {dressCount} dress{dressCount !== 1 ? "es" : ""}
                       </p>
                     </div>
@@ -187,7 +187,7 @@ export default function AdminCollectionsTab({
                         <button
                           type="button"
                           onClick={onUpdateCollection}
-                          className="px-3 py-2 bg-stone-800 text-white rounded-lg hover:bg-stone-700 transition-colors text-sm flex items-center gap-2"
+                          className="px-3 py-2 bg-stone-800 dark:bg-stone-600 text-white rounded-lg hover:bg-stone-700 dark:hover:bg-stone-500 transition-colors text-sm flex items-center gap-2"
                         >
                           <Save className="w-4 h-4" />
                           Save
@@ -196,7 +196,7 @@ export default function AdminCollectionsTab({
                         <button
                           type="button"
                           onClick={onCancelEditCollection}
-                          className="px-3 py-2 bg-stone-100 text-stone-700 rounded-lg hover:bg-stone-200 transition-colors text-sm"
+                          className="px-3 py-2 bg-stone-100 dark:bg-stone-700 text-stone-700 dark:text-stone-200 rounded-lg hover:bg-stone-200 dark:hover:bg-stone-600 transition-colors text-sm"
                         >
                           <X className="w-4 h-4" />
                         </button>
@@ -206,7 +206,7 @@ export default function AdminCollectionsTab({
                         <button
                           type="button"
                           onClick={() => onStartEditingCollection(collection)}
-                          className="px-3 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg transition-colors text-sm flex items-center gap-2"
+                          className="px-3 py-2 bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 dark:hover:bg-stone-600 text-stone-700 dark:text-stone-200 rounded-lg transition-colors text-sm flex items-center gap-2"
                         >
                           <Edit2 className="w-4 h-4" />
                           Edit
@@ -215,7 +215,7 @@ export default function AdminCollectionsTab({
                         <button
                           type="button"
                           onClick={() => onDeleteCollection(collection)}
-                          className="px-3 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors text-sm flex items-center gap-2"
+                          className="px-3 py-2 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 rounded-lg transition-colors text-sm flex items-center gap-2"
                         >
                           <Trash2 className="w-4 h-4" />
                           Delete
@@ -226,8 +226,8 @@ export default function AdminCollectionsTab({
                 </div>
 
                 {isEditing && (
-                  <div className="border-t border-stone-200 p-4 bg-white/30">
-                    <p className="text-sm text-stone-600 mb-3">
+                  <div className="border-t border-stone-200 dark:border-stone-700 p-4 bg-white/30 dark:bg-stone-700/30">
+                    <p className="text-sm text-stone-600 dark:text-stone-300 mb-3">
                       Select dresses in this collection (highlighted = included):
                     </p>
 
@@ -273,7 +273,7 @@ export default function AdminCollectionsTab({
                     </div>
 
                     {selectedDressesForEditCollection.length > 0 && (
-                      <p className="text-xs text-stone-600 mt-3">
+                      <p className="text-xs text-stone-600 dark:text-stone-300 mt-3">
                         {selectedDressesForEditCollection.length} dress(es)
                         selected
                       </p>

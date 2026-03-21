@@ -20,14 +20,14 @@ export default function AdminTabs({
   onSettingsClick,
 }: AdminTabsProps) {
   return (
-    <div className="flex gap-2 border-b border-stone-200 overflow-x-auto">
+    <div className="flex gap-2 border-b border-stone-200 dark:border-stone-700 overflow-x-auto">
       <button
         type="button"
         onClick={onListClick}
         className={`px-6 py-3 font-medium transition-colors whitespace-nowrap ${
           activeTab === "list"
-            ? "text-stone-800 border-b-2 border-stone-800"
-            : "text-stone-500 hover:text-stone-700"
+            ? "text-stone-800 dark:text-stone-100 border-b-2 border-stone-800 dark:border-stone-100"
+            : "text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200"
         }`}
       >
         All Dresses ({dressesCount})
@@ -38,8 +38,8 @@ export default function AdminTabs({
         onClick={onAddClick}
         className={`px-6 py-3 font-medium transition-colors whitespace-nowrap ${
           activeTab === "add"
-            ? "text-stone-800 border-b-2 border-stone-800"
-            : "text-stone-500 hover:text-stone-700"
+            ? "text-stone-800 dark:text-stone-100 border-b-2 border-stone-800 dark:border-stone-100"
+            : "text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200"
         }`}
       >
         {isEditingDress ? "Edit Dress" : "Add New Dress"}
@@ -50,8 +50,8 @@ export default function AdminTabs({
         onClick={onCollectionsClick}
         className={`px-6 py-3 font-medium transition-colors whitespace-nowrap ${
           activeTab === "collections"
-            ? "text-stone-800 border-b-2 border-stone-800"
-            : "text-stone-500 hover:text-stone-700"
+            ? "text-stone-800 dark:text-stone-100 border-b-2 border-stone-800 dark:border-stone-100"
+            : "text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200"
         }`}
       >
         Manage Collections
@@ -62,8 +62,8 @@ export default function AdminTabs({
         onClick={onSettingsClick}
         className={`px-6 py-3 font-medium transition-colors whitespace-nowrap ${
           activeTab === "settings"
-            ? "text-stone-800 border-b-2 border-stone-800"
-            : "text-stone-500 hover:text-stone-700"
+            ? "text-stone-800 dark:text-stone-100 border-b-2 border-stone-800 dark:border-stone-100"
+            : "text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200"
         }`}
       >
         Site Settings

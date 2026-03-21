@@ -23,13 +23,13 @@ export default function HomeHeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="inline-block px-4 py-2 bg-stone-100/70 rounded-full border border-stone-200/50"
+            className="inline-block px-4 py-2 bg-stone-100/70 dark:bg-stone-800/70 rounded-full border border-stone-200/50 dark:border-stone-700/50"
           >
-            <span className="text-sm text-stone-600">✨ AI-Powered Bridal Consultant</span>
+            <span className="text-sm text-stone-600 dark:text-stone-300">✨ AI-Powered Bridal Consultant</span>
           </motion.div>
 
           {/* Title word by word */}
-          <h1 className="font-serif text-6xl leading-tight text-stone-800">
+          <h1 className="font-serif text-6xl leading-tight text-stone-800 dark:text-stone-100">
             {words.map((word, i) => (
               <motion.span
                 key={i}
@@ -52,7 +52,7 @@ export default function HomeHeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.7, ease: "easeOut" }}
-            className="text-lg text-stone-600"
+            className="text-lg text-stone-600 dark:text-stone-300"
           >
             {loading
               ? "Chat with our intelligent consultant to design and customize your dream wedding dress."
@@ -74,7 +74,7 @@ export default function HomeHeroSection() {
             </Link>
             <Link
               to="#features"
-              className="px-8 py-4 bg-white/80 border border-stone-200 text-stone-700 rounded-xl hover:bg-stone-50/50 transition-all"
+              className="px-8 py-4 bg-white/80 dark:bg-stone-800/80 border border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-200 rounded-xl hover:bg-stone-50/50 dark:hover:bg-stone-700/50 transition-all"
             >
               Learn More
             </Link>
