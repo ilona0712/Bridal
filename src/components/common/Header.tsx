@@ -73,7 +73,7 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
         })
       );
 
-      setUnreadCount(results.reduce((a, b) => a + b, 0));
+      setUnreadCount(results.reduce((a, b) => a + b, 0 as number));
     };
 
     fetchUnreadConvCount();
