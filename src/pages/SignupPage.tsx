@@ -48,8 +48,23 @@ export default function Signup() {
       dateOfBirth,
     });
     if (error) {
+    setLoading(false);
+    if (
+      error.message.toLowerCase().includes("user already registered") ||
+      error.message.toLowerCase().includes("already registered") ||
+      error.message.toLowerCase().includes("already exists")
+    ) {
+    setError("An account with this email already exists. Please sign in instead.")
+    } else {
+      setError(error.message)
+    }
+    return;
+    }
+    // Supabase returns empty identities array when email already exists
+    // (happens when email confirmation is disabled)
+    if (data.user && data.user.identities && data.user.identities.length === 0) {
       setLoading(false);
-      setError(error.message);
+      setError("An account with this email already exists. Please sign in instead.")
       return;
     }
     if (data.user && photoFile) {
