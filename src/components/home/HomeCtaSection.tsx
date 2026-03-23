@@ -12,11 +12,11 @@ export default function HomeCtaSection() {
         initial={{ opacity: 0, y: 40 }}
         animate={inView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 0.7, ease: "easeOut" }}
-        className="relative max-w-4xl mx-auto rounded-3xl p-12 text-center space-y-6 overflow-hidden"
+        className="relative max-w-4xl mx-auto rounded-3xl p-12 text-center space-y-6 overflow-hidden dark:bg-stone-800/80"
       >
-        {/* Animated gradient background */}
+        {/* Animated gradient background (light mode only) */}
         <motion.div
-          className="absolute inset-0 rounded-3xl -z-10"
+          className="absolute inset-0 rounded-3xl -z-10 dark:hidden"
           animate={{
             background: [
               "linear-gradient(135deg, #d6cfc9 0%, #f9e8e8 50%, #d6cfc9 100%)",
@@ -49,7 +49,7 @@ export default function HomeCtaSection() {
           </Link>
           <Link
             to="/login"
-            className="px-8 py-4 bg-stone-800/10 text-stone-800 rounded-xl hover:bg-stone-800/20 transition-all"
+            className="px-8 py-4 bg-stone-800/10 dark:bg-stone-100/10 text-stone-800 dark:text-stone-200 rounded-xl hover:bg-stone-800/20 dark:hover:bg-stone-100/20 transition-all"
           >
             Sign In
           </Link>
