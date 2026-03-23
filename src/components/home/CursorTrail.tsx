@@ -21,10 +21,12 @@ export default function CursorTrail() {
     const [visible, setVisible] = useState(false);
 
     useEffect(() => {
-        // Hide default cursor
-        document.body.style.cursor = "none";
+        // Force cursor: none on everything so the hand pointer never shows
+        const style = document.createElement("style");
+        style.textContent = "* { cursor: none !important; }";
+        document.head.appendChild(style);
         return () => {
-            document.body.style.cursor = "auto";
+            document.head.removeChild(style);
         };
     }, []);
 
@@ -69,15 +71,11 @@ export default function CursorTrail() {
             ctx.restore();
         };
 
-        const onMouseMove = (e: MouseEvent) => {
-            mouse.current = { x: e.clientX, y: e.clientY };
-            setPos({ x: e.clientX, y: e.clientY });
-            setVisible(true);
-
+        const spawnPetals = (x: number, y: number) => {
             for (let i = 0; i < 2; i++) {
                 points.current.push({
-                    x: e.clientX + (Math.random() - 0.5) * 10,
-                    y: e.clientY + (Math.random() - 0.5) * 10,
+                    x: x + (Math.random() - 0.5) * 10,
+                    y: y + (Math.random() - 0.5) * 10,
                     size: Math.random() * 10 + 4,
                     opacity: Math.random() * 0.6 + 0.4,
                     rotation: Math.random() * Math.PI * 2,
@@ -86,18 +84,51 @@ export default function CursorTrail() {
                     vy: Math.random() * -1.5 - 0.5,
                 });
             }
-
             if (points.current.length > 120) {
                 points.current = points.current.slice(-120);
             }
         };
 
+        const onMouseMove = (e: MouseEvent) => {
+            mouse.current = { x: e.clientX, y: e.clientY };
+            setPos({ x: e.clientX, y: e.clientY });
+            setVisible(true);
+            spawnPetals(e.clientX, e.clientY);
+        };
+
         const onMouseLeave = () => setVisible(false);
         const onMouseEnter = () => setVisible(true);
+
+        const onTouchStart = (e: TouchEvent) => {
+            const touch = e.touches[0];
+            mouse.current = { x: touch.clientX, y: touch.clientY };
+            ring.current = { x: touch.clientX, y: touch.clientY };
+            setPos({ x: touch.clientX, y: touch.clientY });
+            setVisible(true);
+            spawnPetals(touch.clientX, touch.clientY);
+        };
+
+        const onTouchMove = (e: TouchEvent) => {
+            const touch = e.touches[0];
+            mouse.current = { x: touch.clientX, y: touch.clientY };
+            setPos({ x: touch.clientX, y: touch.clientY });
+            spawnPetals(touch.clientX, touch.clientY);
+        };
+
+        const onTouchEnd = () => {
+            mouse.current = { x: -100, y: -100 };
+            ring.current = { x: -100, y: -100 };
+            points.current = [];
+            setVisible(false);
+        };
 
         window.addEventListener("mousemove", onMouseMove);
         document.addEventListener("mouseleave", onMouseLeave);
         document.addEventListener("mouseenter", onMouseEnter);
+        window.addEventListener("touchstart", onTouchStart, { passive: true });
+        window.addEventListener("touchmove", onTouchMove, { passive: true });
+        window.addEventListener("touchend", onTouchEnd);
+        window.addEventListener("touchcancel", onTouchEnd);
 
         const animate = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -136,9 +167,13 @@ export default function CursorTrail() {
         return () => {
             cancelAnimationFrame(animationId.current);
             window.removeEventListener("mousemove", onMouseMove);
-            window.removeEventListener("resize", resize);
             document.removeEventListener("mouseleave", onMouseLeave);
             document.removeEventListener("mouseenter", onMouseEnter);
+            window.removeEventListener("resize", resize);
+            window.removeEventListener("touchstart", onTouchStart);
+            window.removeEventListener("touchmove", onTouchMove);
+            window.removeEventListener("touchend", onTouchEnd);
+            window.removeEventListener("touchcancel", onTouchEnd);
         };
     }, []);
 
@@ -148,7 +183,6 @@ export default function CursorTrail() {
                 ref={canvasRef}
                 className="fixed inset-0 pointer-events-none z-[9999]"
             />
-            {/* Dot */}
             {visible && (
                 <div
                     className="fixed pointer-events-none z-[9999] select-none"
@@ -158,31 +192,21 @@ export default function CursorTrail() {
                         filter: "drop-shadow(0 1px 4px rgba(244,194,194,0.6))",
                     }}
                 >
-                    <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 100 100"
-                        xmlns="http://www.w3.org/2000/svg"
-                    >
-                        {/* Stem */}
+                    <svg width="20" height="20" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                         <line x1="50" y1="70" x2="50" y2="100" stroke="#a8836a" strokeWidth="4" strokeLinecap="round" />
-                        {/* Leaf */}
                         <path d="M50 85 Q35 75 38 65 Q45 72 50 85Z" fill="#c4a882" opacity="0.8" />
-                        {/* Outer petals */}
                         <ellipse cx="50" cy="52" rx="10" ry="18" fill="#f0c4c4" opacity="0.7" transform="rotate(0 50 50)" />
                         <ellipse cx="50" cy="52" rx="10" ry="18" fill="#f0c4c4" opacity="0.7" transform="rotate(60 50 50)" />
                         <ellipse cx="50" cy="52" rx="10" ry="18" fill="#f0c4c4" opacity="0.7" transform="rotate(120 50 50)" />
                         <ellipse cx="50" cy="52" rx="10" ry="18" fill="#edb8b8" opacity="0.7" transform="rotate(180 50 50)" />
                         <ellipse cx="50" cy="52" rx="10" ry="18" fill="#edb8b8" opacity="0.7" transform="rotate(240 50 50)" />
                         <ellipse cx="50" cy="52" rx="10" ry="18" fill="#edb8b8" opacity="0.7" transform="rotate(300 50 50)" />
-                        {/* Inner petals */}
                         <ellipse cx="50" cy="46" rx="7" ry="12" fill="#e8a8a8" opacity="0.85" transform="rotate(30 50 50)" />
                         <ellipse cx="50" cy="46" rx="7" ry="12" fill="#e8a8a8" opacity="0.85" transform="rotate(90 50 50)" />
                         <ellipse cx="50" cy="46" rx="7" ry="12" fill="#e8a8a8" opacity="0.85" transform="rotate(150 50 50)" />
                         <ellipse cx="50" cy="46" rx="7" ry="12" fill="#dfa0a0" opacity="0.85" transform="rotate(210 50 50)" />
                         <ellipse cx="50" cy="46" rx="7" ry="12" fill="#dfa0a0" opacity="0.85" transform="rotate(270 50 50)" />
                         <ellipse cx="50" cy="46" rx="7" ry="12" fill="#dfa0a0" opacity="0.85" transform="rotate(330 50 50)" />
-                        {/* Center */}
                         <circle cx="50" cy="50" r="8" fill="#d4888888" />
                         <circle cx="50" cy="50" r="5" fill="#c87878" opacity="0.9" />
                     </svg>
