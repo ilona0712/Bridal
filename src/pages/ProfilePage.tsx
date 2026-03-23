@@ -316,6 +316,21 @@ export default function ProfilePage() {
     navigate("/login");
   };
 
+  const handleRemoveFavorite = async (dressId: string) => {
+    if (session?.user) {
+      const { error } = await supabase
+        .from("favorite_dresses")
+        .delete()
+        .eq("user_id", session.user.id)
+        .eq("dress_id", dressId);
+      if (error) { console.error("Failed to remove favorite:", error); return; }
+    } else {
+      const updated = favoriteDressIds.filter((id) => id !== dressId);
+      localStorage.setItem("favoriteDressIds", JSON.stringify(updated));
+    }
+    setFavoriteDressIds((prev) => prev.filter((id) => id !== dressId));
+  };
+
   const handleSizeChange = (newSize: string) => {
     setDressSize(newSize);
     setHasChanges(true);
@@ -397,7 +412,7 @@ export default function ProfilePage() {
                 )}
 
                 {!isAdmin && (
-                  <ProfileFavoritesSection favoriteDresses={favoriteDresses} />
+                  <ProfileFavoritesSection favoriteDresses={favoriteDresses} onRemoveFavorite={handleRemoveFavorite} />
                 )}
                 {saveError && (
                   <p className="text-sm text-red-500">{saveError}</p>
