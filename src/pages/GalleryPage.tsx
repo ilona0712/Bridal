@@ -219,6 +219,7 @@ export default function GalleryPage() {
               rentDress.sizes?.length > 0
                 ? `${rentDress.sizes[0]}-${rentDress.sizes[rentDress.sizes.length - 1]}`
                 : undefined,
+            image: rentDress.image,
           }}
           onClose={() => setRentDress(null)}
         />

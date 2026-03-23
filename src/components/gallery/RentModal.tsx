@@ -7,6 +7,7 @@ interface Dress {
   id: string;
   name: string;
   sizes?: string;
+  image?: string;
 }
 
 interface RentModalProps {
@@ -113,6 +114,17 @@ export default function RentModal({ dress, onClose }: RentModalProps) {
       setError("Failed to start conversation. Please try again.");
       setLoading(false);
       return;
+    }
+
+    // Send dress image first if available
+    if (dress.image) {
+      await supabase.from("messages").insert({
+        conversation_id: convId,
+        content: dress.image,
+        sender_type: "customer",
+        attachment_url: dress.image,
+        attachment_type: "image",
+      });
     }
 
     const { error: msgError } = await supabase.from("messages").insert({
