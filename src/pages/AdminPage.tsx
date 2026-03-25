@@ -113,7 +113,7 @@ export default function AdminPage() {
                   image: result.imageUrls[0] || formData.image,
                   images: [...result.imageUrls],
                   price: Number(updatedDress.base_price ?? formData.price ?? 0),
-                  silhouette: updatedDress.silhouette ?? formData.silhouette,
+                  silhouette: formData.silhouette,
                   isVisible: updatedDress.status === "published",
                 }
               : dress,
@@ -151,7 +151,7 @@ export default function AdminPage() {
         images: [...result.imageUrls],
         sizes: [...formData.sizes],
         neckline: formData.neckline,
-        silhouette: insertedDress.silhouette ?? formData.silhouette,
+        silhouette: formData.silhouette,
         fabric: formData.fabric,
         trainLength: formData.trainLength,
         sleeveStyle: formData.sleeveStyle,
