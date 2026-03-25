@@ -8,6 +8,7 @@ type OwnerChatMessagesListProps = {
   role: string | null;
   myAvatarUrl?: string | null;
   otherAvatarUrl?: string | null;
+  onViewProfile?: () => void;
 };
 
 export default function OwnerChatMessagesList({
@@ -15,6 +16,7 @@ export default function OwnerChatMessagesList({
   role,
   myAvatarUrl,
   otherAvatarUrl,
+  onViewProfile,
 }: OwnerChatMessagesListProps) {
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
@@ -31,6 +33,7 @@ export default function OwnerChatMessagesList({
   role={role}
   myAvatarUrl={myAvatarUrl}
   otherAvatarUrl={otherAvatarUrl}
+  onViewProfile={onViewProfile}
 />
 ))}
       <div ref={bottomRef} />

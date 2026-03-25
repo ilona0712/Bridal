@@ -1,15 +1,17 @@
-import { ArrowLeft, User } from "lucide-react";
+import { ArrowLeft, User, ChevronRight } from "lucide-react";
 
 type OwnerChatHeaderProps = {
   clientName?: string;
   profileImageUrl?: string | null;
   onBack?: () => void;
+  onViewProfile?: () => void;
 };
 
 export default function OwnerChatHeader({
   clientName,
   profileImageUrl,
   onBack,
+  onViewProfile,
 }: OwnerChatHeaderProps) {
   return (
     <div className="bg-gradient-to-r from-amber-100/60 via-amber-50/40 to-amber-100/60 dark:from-stone-800 dark:via-stone-700 dark:to-stone-800 px-6 py-5 border-b border-amber-200/50 dark:border-stone-700/50">
@@ -26,28 +28,38 @@ export default function OwnerChatHeader({
           </button>
         )}
 
-        {/* Avatar */}
-        <div className="w-14 h-14 bg-white/80 dark:bg-stone-700/80 rounded-full flex items-center justify-center border-2 border-amber-200/30 dark:border-stone-600/30 overflow-hidden">
-          {profileImageUrl ? (
-            <img src={profileImageUrl} alt={clientName ?? "Client"} className="w-full h-full object-cover" />
-          ) : (
-            <User className="w-7 h-7 text-stone-600 dark:text-stone-300" />
-          )}
-        </div>
-
-        {/* Name + status */}
-        <div>
-          <h2 className="font-serif text-2xl text-stone-800 dark:text-stone-100">
-            {clientName || "Customer"}
-          </h2>
-
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-400 rounded-full" />
-            <span className="text-sm text-stone-600 dark:text-stone-300">
-              Customer • Online
-            </span>
+        {/* Avatar + name — clickable if onViewProfile is provided */}
+        <button
+          type="button"
+          onClick={onViewProfile}
+          disabled={!onViewProfile}
+          className="flex items-center gap-3 flex-1 min-w-0 text-left disabled:cursor-default group"
+        >
+          <div className="w-14 h-14 bg-white/80 dark:bg-stone-700/80 rounded-full flex items-center justify-center border-2 border-amber-200/30 dark:border-stone-600/30 overflow-hidden flex-shrink-0">
+            {profileImageUrl ? (
+              <img src={profileImageUrl} alt={clientName ?? "Client"} className="w-full h-full object-cover" />
+            ) : (
+              <User className="w-7 h-7 text-stone-600 dark:text-stone-300" />
+            )}
           </div>
-        </div>
+
+          <div className="min-w-0">
+            <h2 className="font-serif text-2xl text-stone-800 dark:text-stone-100">
+              {clientName || "Customer"}
+            </h2>
+
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-400 rounded-full" />
+              <span className="text-sm text-stone-600 dark:text-stone-300">
+                {onViewProfile ? "Tap to view profile" : "Online"}
+              </span>
+            </div>
+          </div>
+
+          {onViewProfile && (
+            <ChevronRight className="w-4 h-4 text-stone-400 dark:text-stone-500 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+          )}
+        </button>
 
       </div>
     </div>
