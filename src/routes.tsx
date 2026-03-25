@@ -101,7 +101,7 @@ export const router = createBrowserRouter([
   { path: "/reset-password",  element: <ResetPasswordPage /> },
 
   // Customer only
-  { path: "/isabella", element: <CustomerRoute><IsabellaPage /></CustomerRoute> },
+  { path: "/isabella", element: <CustomerRoute allowAdmin><IsabellaPage /></CustomerRoute> },
   { path: "/chat",     element: <CustomerRoute allowAdmin><ChatWithOwnerPage /></CustomerRoute> },
   { path: "/profile",  element: <CustomerRoute allowAdmin><ProfilePage /></CustomerRoute> },
 

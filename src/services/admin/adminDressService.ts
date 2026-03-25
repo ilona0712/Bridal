@@ -13,7 +13,6 @@ import {
 type PersistedDressRow = {
   id: string | number;
   name: string | null;
-  silhouette: string | null;
   base_price: number | string | null;
   status: string | null;
 };
@@ -159,12 +158,11 @@ export async function createDress(
     .insert({
       name: formData.name.trim(),
       description: null,
-      silhouette: formData.silhouette || null,
       base_price: formData.price,
       is_customizable: false,
       status: "published",
     })
-    .select("id, name, silhouette, base_price, status")
+    .select("id, name, base_price, status")
     .single()
     .returns<PersistedDressRow>();
 
@@ -210,12 +208,11 @@ export async function updateDress(
     .update({
       name: formData.name.trim(),
       description: null,
-      silhouette: formData.silhouette || null,
       base_price: formData.price,
       status: "published",
     })
     .eq("id", dressId)
-    .select("id, name, silhouette, base_price, status")
+    .select("id, name, base_price, status")
     .single()
     .returns<PersistedDressRow>();
 

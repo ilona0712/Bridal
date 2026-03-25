@@ -23,7 +23,7 @@ export function useGalleryData() {
       const { data, error } = await supabase
         .from("dresses")
         .select(`
-          id, name, silhouette, base_price, status,
+          id, name, base_price, status,
           dress_images ( image_url, is_primary ),
           dress_collections ( collections ( name ) ),
           dress_attribute_values (

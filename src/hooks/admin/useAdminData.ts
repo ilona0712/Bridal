@@ -35,7 +35,6 @@ export function useAdminData() {
             `
             id,
             name,
-            silhouette,
             base_price,
             status,
             dress_images (

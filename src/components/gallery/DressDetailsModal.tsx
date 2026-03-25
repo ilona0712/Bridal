@@ -7,11 +7,17 @@ import type { Dress } from "../../types/dress";
 type DressDetailsModalProps = {
   dress: Dress;
   onClose: () => void;
+  isAdmin?: boolean;
+  isFavorite?: boolean;
+  onToggleFavorite?: (dressId: string) => void;
 };
 
 export default function DressDetailsModal({
   dress,
   onClose,
+  isAdmin = false,
+  isFavorite = false,
+  onToggleFavorite,
 }: DressDetailsModalProps) {
   const images = dress.images && dress.images.length > 0 ? dress.images : [dress.image];
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -156,12 +162,15 @@ export default function DressDetailsModal({
                   Customize with Isabella
                 </Link>
 
-                <button
-                  type="button"
-                  className="w-full py-3 bg-stone-100/70 dark:bg-stone-700/70 text-stone-700 dark:text-stone-200 rounded-xl hover:bg-stone-100 dark:hover:bg-stone-700 transition-all text-sm"
-                >
-                  Add to Favorites
-                </button>
+                {!isAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => onToggleFavorite?.(String(dress.id))}
+                    className="w-full py-3 bg-stone-100/70 dark:bg-stone-700/70 text-stone-700 dark:text-stone-200 rounded-xl hover:bg-stone-100 dark:hover:bg-stone-700 transition-all text-sm"
+                  >
+                    {isFavorite ? "Remove from Favorites" : "Add to Favorites"}
+                  </button>
+                )}
               </div>
             </div>
           </div>

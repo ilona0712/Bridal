@@ -1,7 +1,6 @@
 export type BaseDressRow = {
   id: string | number;
   name: string | null;
-  silhouette: string | null;
   base_price: number | string | null;
   status: string | null;
   dress_images?: Array<{

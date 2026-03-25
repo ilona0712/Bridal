@@ -37,6 +37,10 @@ export function mapDressRowToUiDress(dress: BaseDressRow): Dress {
     attributeEntries.find((value) => value?.attributes?.key === "neckline")
       ?.label ?? "";
 
+  const silhouette =
+    attributeEntries.find((value) => value?.attributes?.key === "silhouette")
+      ?.label ?? "";
+
   const fabric =
     attributeEntries.find((value) => value?.attributes?.key === "fabric")
       ?.label ?? "";
@@ -58,7 +62,7 @@ export function mapDressRowToUiDress(dress: BaseDressRow): Dress {
     images: allImages.length > 0 ? allImages : ["/placeholder.png"],
     sizes: sizeLabels,
     neckline,
-    silhouette: dress.silhouette ?? "",
+    silhouette,
     fabric,
     trainLength,
     sleeveStyle,

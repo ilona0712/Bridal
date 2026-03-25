@@ -49,6 +49,7 @@ export default function GalleryPage() {
   const [selectedTrainLength, setSelectedTrainLength] = useState("All");
   const [selectedSleeveStyle, setSelectedSleeveStyle] = useState("All");
   const [showFilters,         setShowFilters]         = useState(false);
+  const [showFavoritesOnly,   setShowFavoritesOnly]   = useState(false);
 
   const [selectedDress, setSelectedDress] = useState<Dress | null>(null);
   const [rentDress, setRentDress] = useState<Dress | null>(null);
@@ -77,6 +78,8 @@ export default function GalleryPage() {
 
   // ── Filter logic ─────────────────────────────────────────
   const filteredDresses = visibleBaseDresses.filter((dress) => {
+    if (showFavoritesOnly && !favoriteDressIds.includes(dress.id))
+      return false;
     if (selectedCollections.length > 0 &&
       !dress.collections.some((c) => selectedCollections.includes(c)))
       return false;
@@ -103,6 +106,7 @@ export default function GalleryPage() {
     setSelectedFabric("All");
     setSelectedTrainLength("All");
     setSelectedSleeveStyle("All");
+    setShowFavoritesOnly(false);
   };
 
   const handleClickOutside = () =>
@@ -147,6 +151,8 @@ export default function GalleryPage() {
             selectedFabric={selectedFabric}
             selectedTrainLength={selectedTrainLength}
             selectedSleeveStyle={selectedSleeveStyle}
+            showFavoritesOnly={showFavoritesOnly}
+            showFavoritesFilter={!isAdmin}
             collections={allCollections}
             sizes={sizes}
             necklines={allNecklines}
@@ -161,6 +167,7 @@ export default function GalleryPage() {
             onFabricChange={setSelectedFabric}
             onTrainLengthChange={setSelectedTrainLength}
             onSleeveStyleChange={setSelectedSleeveStyle}
+            onToggleFavoritesOnly={() => setShowFavoritesOnly((prev) => !prev)}
             onClearFilters={clearFilters}
           />
 
@@ -174,14 +181,31 @@ export default function GalleryPage() {
                 <p className="text-red-600 mb-4">Error: {error}</p>
               </div>
             ) : filteredDresses.length === 0 ? (
-              <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-12 text-center border border-stone-200/50">
-                <p className="text-stone-600 mb-4">No gowns match your filters</p>
-                <button
-                  onClick={clearFilters}
-                  className="px-6 py-2 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 text-stone-700 rounded-xl hover:shadow-lg transition-all"
-                >
-                  Clear Filters
-                </button>
+              <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-12 text-center border border-stone-200/50 dark:bg-stone-800/60 dark:border-stone-700/50">
+                {showFavoritesOnly ? (
+                  <>
+                    <p className="text-stone-600 dark:text-stone-300 mb-2 text-lg">You have no favorites yet</p>
+                    <p className="text-stone-400 dark:text-stone-500 text-sm mb-4">
+                      Browse the gallery and tap the heart on any gown you love.
+                    </p>
+                    <button
+                      onClick={() => setShowFavoritesOnly(false)}
+                      className="px-6 py-2 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 text-stone-700 rounded-xl hover:shadow-lg transition-all"
+                    >
+                      Browse All Gowns
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-stone-600 dark:text-stone-300 mb-4">No gowns match your filters</p>
+                    <button
+                      onClick={clearFilters}
+                      className="px-6 py-2 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 text-stone-700 rounded-xl hover:shadow-lg transition-all"
+                    >
+                      Clear Filters
+                    </button>
+                  </>
+                )}
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -207,6 +231,9 @@ export default function GalleryPage() {
         <DressDetailsModal
           dress={selectedDress}
           onClose={() => setSelectedDress(null)}
+          isAdmin={isAdmin}
+          isFavorite={favoriteDressIds.includes(String(selectedDress.id))}
+          onToggleFavorite={toggleFavorite}
         />
       )}
 

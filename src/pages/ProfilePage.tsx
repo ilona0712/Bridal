@@ -119,7 +119,6 @@ export default function ProfilePage() {
             `
             id,
             name,
-            silhouette,
             base_price,
             status,
             dress_images (
@@ -181,7 +180,6 @@ export default function ProfilePage() {
           `
           id,
           name,
-          silhouette,
           base_price,
           status,
           dress_images (

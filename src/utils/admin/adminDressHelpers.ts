@@ -31,6 +31,7 @@ export async function syncDressAttributes(
   const selectedAttributeLabels: string[] = [
     ...formData.sizes.map(String),
     ...(formData.neckline ? [formData.neckline] : []),
+    ...(formData.silhouette ? [formData.silhouette] : []),
     ...(formData.fabric ? [formData.fabric] : []),
     ...(formData.trainLength ? [formData.trainLength] : []),
     ...(formData.sleeveStyle ? [formData.sleeveStyle] : []),
@@ -80,6 +81,7 @@ export async function syncDressAttributes(
 
       if (attributeKey === "size") return selectedSizeLabels.has(label);
       if (attributeKey === "neckline") return formData.neckline === label;
+      if (attributeKey === "silhouette") return formData.silhouette === label;
       if (attributeKey === "fabric") return formData.fabric === label;
       if (attributeKey === "train_length") return formData.trainLength === label;
       if (attributeKey === "sleeve_style") return formData.sleeveStyle === label;

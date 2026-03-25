@@ -7,6 +7,8 @@ type GalleryFiltersProps = {
   selectedFabric: string;
   selectedTrainLength: string;
   selectedSleeveStyle: string;
+  showFavoritesOnly: boolean;
+  showFavoritesFilter: boolean;
   collections: string[];
   sizes: number[];
   necklines: string[];
@@ -21,10 +23,11 @@ type GalleryFiltersProps = {
   onFabricChange: (value: string) => void;
   onTrainLengthChange: (value: string) => void;
   onSleeveStyleChange: (value: string) => void;
+  onToggleFavoritesOnly: () => void;
   onClearFilters: () => void;
 };
 
-import { X } from "lucide-react";
+import { X, Heart } from "lucide-react";
 
 export default function GalleryFilters({
   showFilters,
@@ -35,6 +38,8 @@ export default function GalleryFilters({
   selectedFabric,
   selectedTrainLength,
   selectedSleeveStyle,
+  showFavoritesOnly,
+  showFavoritesFilter,
   collections,
   sizes,
   necklines,
@@ -49,6 +54,7 @@ export default function GalleryFilters({
   onFabricChange,
   onTrainLengthChange,
   onSleeveStyleChange,
+  onToggleFavoritesOnly,
   onClearFilters,
 }: GalleryFiltersProps) {
   return (
@@ -67,6 +73,24 @@ export default function GalleryFilters({
           </div>
 
           <div className="space-y-6 pb-4">
+            {showFavoritesFilter && (
+              <div>
+                <button
+                  onClick={onToggleFavoritesOnly}
+                  className={`w-full flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all text-sm font-medium ${
+                    showFavoritesOnly
+                      ? "bg-pink-100 dark:bg-pink-900/30 border-pink-300 dark:border-pink-700 text-pink-700 dark:text-pink-300"
+                      : "bg-stone-50/50 dark:bg-stone-700/50 border-stone-200 dark:border-stone-600 text-stone-600 dark:text-stone-300 hover:border-pink-200 dark:hover:border-pink-700"
+                  }`}
+                >
+                  <Heart
+                    className={`w-4 h-4 ${showFavoritesOnly ? "fill-pink-500 text-pink-500" : ""}`}
+                  />
+                  My Favorites
+                </button>
+              </div>
+            )}
+
             <div>
   <label className="text-sm font-medium text-stone-700 dark:text-stone-300 mb-3 block">
     Collection
