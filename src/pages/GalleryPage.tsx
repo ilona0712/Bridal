@@ -17,7 +17,7 @@ import { useGalleryFavorites } from "../hooks/gallery/useGalleryFavorites";
 export default function GalleryPage() {
   const [searchParams] = useSearchParams();
 
-  const role    = useRole();
+  const role = useRole();
   const session = useSession();
   const isAdmin = role === "admin";
 
@@ -34,7 +34,10 @@ export default function GalleryPage() {
     error,
   } = useGalleryData();
 
-  const { favoriteDressIds, toggleFavorite } = useGalleryFavorites(isAdmin, session);
+  const { favoriteDressIds, toggleFavorite } = useGalleryFavorites(
+    isAdmin,
+    session,
+  );
 
   const visibleBaseDresses = isAdmin
     ? allDresses
@@ -42,19 +45,29 @@ export default function GalleryPage() {
 
   // ── Selected filters ─────────────────────────────────────
   const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
-  const [selectedSize,        setSelectedSize]        = useState<number | null>(null);
-  const [selectedNeckline,    setSelectedNeckline]    = useState("All");
-  const [selectedSilhouette,  setSelectedSilhouette]  = useState("All");
-  const [selectedFabric,      setSelectedFabric]      = useState("All");
+  const [selectedSize, setSelectedSize] = useState<number | null>(null);
+  const [selectedNeckline, setSelectedNeckline] = useState("All");
+  const [selectedSilhouette, setSelectedSilhouette] = useState("All");
+  const [selectedFabric, setSelectedFabric] = useState("All");
   const [selectedTrainLength, setSelectedTrainLength] = useState("All");
   const [selectedSleeveStyle, setSelectedSleeveStyle] = useState("All");
-  const [showFilters,         setShowFilters]         = useState(false);
-  const [showFavoritesOnly,   setShowFavoritesOnly]   = useState(false);
-
+  const [showFilters, setShowFilters] = useState(false);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [minPrice, setMinPrice] = useState<number | null>(null);
+  const [maxPrice, setMaxPrice] = useState<number | null>(null);
   const [selectedDress, setSelectedDress] = useState<Dress | null>(null);
   const [rentDress, setRentDress] = useState<Dress | null>(null);
+  const [draftMinPrice, setDraftMinPrice] = useState<number | null>(null);
+  const [draftMaxPrice, setDraftMaxPrice] = useState<number | null>(null);
+  const applyPriceFilter = () => {
+    setMinPrice(draftMinPrice);
+    setMaxPrice(draftMaxPrice);
+  };
   const [contextMenu, setContextMenu] = useState<{
-    visible: boolean; x: number; y: number; dress: Dress | null;
+    visible: boolean;
+    x: number;
+    y: number;
+    dress: Dress | null;
   }>({ visible: false, x: 0, y: 0, dress: null });
 
   // ── Sync collection filter with URL params ───────────────
@@ -68,33 +81,64 @@ export default function GalleryPage() {
   }, [searchParams]);
 
   const toggleCollection = (collection: string) => {
-    if (collection === "All") { setSelectedCollections([]); return; }
+    if (collection === "All") {
+      setSelectedCollections([]);
+      return;
+    }
     setSelectedCollections((prev) =>
       prev.includes(collection)
         ? prev.filter((c) => c !== collection)
-        : [...prev, collection]
+        : [...prev, collection],
     );
   };
 
   // ── Filter logic ─────────────────────────────────────────
   const filteredDresses = visibleBaseDresses.filter((dress) => {
-    if (showFavoritesOnly && !favoriteDressIds.includes(dress.id))
-      return false;
-    if (selectedCollections.length > 0 &&
-      !dress.collections.some((c) => selectedCollections.includes(c)))
+    if (showFavoritesOnly && !favoriteDressIds.includes(dress.id)) return false;
+    if (
+      selectedCollections.length > 0 &&
+      !dress.collections.some((c) => selectedCollections.includes(c))
+    )
       return false;
     if (selectedSize !== null && !dress.sizes.includes(selectedSize))
       return false;
-    if (selectedNeckline !== "All" && dress.neckline && dress.neckline !== selectedNeckline)
+    if (
+      selectedNeckline !== "All" &&
+      dress.neckline &&
+      dress.neckline !== selectedNeckline
+    )
       return false;
-    if (selectedSilhouette !== "All" && dress.silhouette && dress.silhouette !== selectedSilhouette)
+    if (
+      selectedSilhouette !== "All" &&
+      dress.silhouette &&
+      dress.silhouette !== selectedSilhouette
+    )
       return false;
-    if (selectedFabric !== "All" && dress.fabric && dress.fabric !== selectedFabric)
+    if (
+      selectedFabric !== "All" &&
+      dress.fabric &&
+      dress.fabric !== selectedFabric
+    )
       return false;
-    if (selectedTrainLength !== "All" && dress.trainLength && dress.trainLength !== selectedTrainLength)
+    if (
+      selectedTrainLength !== "All" &&
+      dress.trainLength &&
+      dress.trainLength !== selectedTrainLength
+    )
       return false;
-    if (selectedSleeveStyle !== "All" && dress.sleeveStyle && dress.sleeveStyle !== selectedSleeveStyle)
+    if (
+      selectedSleeveStyle !== "All" &&
+      dress.sleeveStyle &&
+      dress.sleeveStyle !== selectedSleeveStyle
+    )
       return false;
+    if (minPrice !== null && dress.price < minPrice) {
+      return false;
+    }
+
+    if (maxPrice !== null && dress.price > maxPrice) {
+      return false;
+    }
     return true;
   });
 
@@ -107,6 +151,10 @@ export default function GalleryPage() {
     setSelectedTrainLength("All");
     setSelectedSleeveStyle("All");
     setShowFavoritesOnly(false);
+    setMinPrice(null);
+    setMaxPrice(null);
+    setDraftMinPrice(null);
+    setDraftMaxPrice(null);
   };
 
   const handleClickOutside = () =>
@@ -127,9 +175,13 @@ export default function GalleryPage() {
       <div className="container mx-auto px-6 py-8 max-w-7xl">
         <div className="flex flex-col sm:flex-row justify-between items-center sm:items-center gap-4 mb-8">
           <div className="text-center sm:text-left">
-            <h1 className="font-serif text-4xl text-stone-800 dark:text-stone-100 mb-2">Our Collection</h1>
+            <h1 className="font-serif text-4xl text-stone-800 dark:text-stone-100 mb-2">
+              Our Collection
+            </h1>
             <p className="text-stone-600 dark:text-stone-300">
-              {loading ? "Loading gowns..." : `${filteredDresses.length} gowns available`}
+              {loading
+                ? "Loading gowns..."
+                : `${filteredDresses.length} gowns available`}
             </p>
           </div>
           <button
@@ -169,6 +221,11 @@ export default function GalleryPage() {
             onSleeveStyleChange={setSelectedSleeveStyle}
             onToggleFavoritesOnly={() => setShowFavoritesOnly((prev) => !prev)}
             onClearFilters={clearFilters}
+            minPrice={draftMinPrice}
+            maxPrice={draftMaxPrice}
+            onMinPriceChange={setDraftMinPrice}
+            onMaxPriceChange={setDraftMaxPrice}
+            onApplyPriceFilter={applyPriceFilter}
           />
 
           <div className="lg:col-span-3">
@@ -184,7 +241,9 @@ export default function GalleryPage() {
               <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-12 text-center border border-stone-200/50 dark:bg-stone-800/60 dark:border-stone-700/50">
                 {showFavoritesOnly ? (
                   <>
-                    <p className="text-stone-600 dark:text-stone-300 mb-2 text-lg">You have no favorites yet</p>
+                    <p className="text-stone-600 dark:text-stone-300 mb-2 text-lg">
+                      You have no favorites yet
+                    </p>
                     <p className="text-stone-400 dark:text-stone-500 text-sm mb-4">
                       Browse the gallery and tap the heart on any gown you love.
                     </p>
@@ -197,7 +256,9 @@ export default function GalleryPage() {
                   </>
                 ) : (
                   <>
-                    <p className="text-stone-600 dark:text-stone-300 mb-4">No gowns match your filters</p>
+                    <p className="text-stone-600 dark:text-stone-300 mb-4">
+                      No gowns match your filters
+                    </p>
                     <button
                       onClick={clearFilters}
                       className="px-6 py-2 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 text-stone-700 rounded-xl hover:shadow-lg transition-all"
@@ -262,7 +323,9 @@ export default function GalleryPage() {
       <DressContextMenu
         contextMenu={contextMenu}
         onViewDetails={setSelectedDress}
-        onClose={() => setContextMenu({ visible: false, x: 0, y: 0, dress: null })}
+        onClose={() =>
+          setContextMenu({ visible: false, x: 0, y: 0, dress: null })
+        }
       />
     </div>
   );

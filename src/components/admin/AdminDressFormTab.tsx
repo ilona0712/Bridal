@@ -1,9 +1,4 @@
-import type {
-  ChangeEvent,
-  DragEvent,
-  FormEvent,
-  RefObject,
-} from "react";
+import type { ChangeEvent, DragEvent, FormEvent, RefObject } from "react";
 import { useRef, useState } from "react";
 import { Check, Loader2, Plus, Upload, X } from "lucide-react";
 import type { DressFormData } from "../../types/admin";
@@ -154,7 +149,6 @@ export default function AdminDressFormTab({
 }: AdminDressFormTabProps) {
   const isAddToGalleryDisabled =
     !formData.name.trim() ||
-    formData.collections.length === 0 ||
     (formData.images.length === 0 && !formData.image.trim());
   return (
     <div className="bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 dark:border-stone-700/50 p-8 md:p-12">
@@ -167,7 +161,10 @@ export default function AdminDressFormTab({
 
           <div className="space-y-2">
             <label className="text-sm text-stone-700 dark:text-stone-300">
-              Dress Name <span className="text-pink-400/60">*</span>
+              Collections{" "}
+              <span className="text-stone-500 dark:text-stone-400">
+                (Optional)
+              </span>
             </label>
             <input
               type="text"
@@ -185,7 +182,7 @@ export default function AdminDressFormTab({
             </label>
 
             <p className="text-xs text-stone-500 dark:text-stone-400 mb-3">
-              Select all collections this dress belongs to
+              Select collections if this dress belongs to any
             </p>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -217,7 +214,10 @@ export default function AdminDressFormTab({
 
           <div className="space-y-2">
             <label className="text-sm text-stone-700 dark:text-stone-300">
-              Price <span className="text-stone-500 dark:text-stone-400">(Optional)</span>
+              Price{" "}
+              <span className="text-stone-500 dark:text-stone-400">
+                (Optional)
+              </span>
             </label>
             <input
               type="number"
@@ -339,7 +339,9 @@ export default function AdminDressFormTab({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm text-stone-700 dark:text-stone-300">Neckline</label>
+              <label className="text-sm text-stone-700 dark:text-stone-300">
+                Neckline
+              </label>
               <select
                 value={formData.neckline}
                 onChange={(e) => onNecklineChange(e.target.value)}
@@ -355,7 +357,9 @@ export default function AdminDressFormTab({
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm text-stone-700 dark:text-stone-300">Silhouette</label>
+              <label className="text-sm text-stone-700 dark:text-stone-300">
+                Silhouette
+              </label>
               <select
                 value={formData.silhouette}
                 onChange={(e) => onSilhouetteChange(e.target.value)}
@@ -371,7 +375,9 @@ export default function AdminDressFormTab({
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm text-stone-700 dark:text-stone-300">Fabric</label>
+              <label className="text-sm text-stone-700 dark:text-stone-300">
+                Fabric
+              </label>
               <select
                 value={formData.fabric}
                 onChange={(e) => onFabricChange(e.target.value)}
@@ -387,7 +393,9 @@ export default function AdminDressFormTab({
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm text-stone-700 dark:text-stone-300">Train Length</label>
+              <label className="text-sm text-stone-700 dark:text-stone-300">
+                Train Length
+              </label>
               <select
                 value={formData.trainLength}
                 onChange={(e) => onTrainLengthChange(e.target.value)}
@@ -403,7 +411,9 @@ export default function AdminDressFormTab({
             </div>
 
             <div className="space-y-2 md:col-span-2">
-              <label className="text-sm text-stone-700 dark:text-stone-300">Sleeve Style</label>
+              <label className="text-sm text-stone-700 dark:text-stone-300">
+                Sleeve Style
+              </label>
               <select
                 value={formData.sleeveStyle}
                 onChange={(e) => onSleeveStyleChange(e.target.value)}
@@ -432,8 +442,12 @@ export default function AdminDressFormTab({
           >
             {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
             {isSubmitting
-              ? isEditingDress ? "Updating..." : "Adding..."
-              : isEditingDress ? "Update Dress" : "Add Dress to Gallery"}
+              ? isEditingDress
+                ? "Updating..."
+                : "Adding..."
+              : isEditingDress
+                ? "Update Dress"
+                : "Add Dress to Gallery"}
           </button>
 
           <button

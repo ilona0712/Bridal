@@ -57,7 +57,7 @@ export default function AdminCollectionsTab({
               type="text"
               value={newCollectionName}
               onChange={(e) => onNewCollectionNameChange(e.target.value)}
-              placeholder="Enter collection name..."
+              placeholder="Enter collection name (required)..."
               className="flex-1 px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 focus:border-pink-300/50 text-stone-800 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500"
             />
 
@@ -70,9 +70,14 @@ export default function AdminCollectionsTab({
             </button>
           </div>
 
-          {collectionNameError && !editingCollection && (
-            <p className="text-sm text-red-600">{collectionNameError}</p>
-          )}
+          {!editingCollection &&
+            (collectionNameError ? (
+              <p className="text-sm text-red-600">{collectionNameError}</p>
+            ) : (
+              <p className="text-xs text-stone-500 dark:text-stone-400">
+                Collection name is required
+              </p>
+            ))}
 
           {addingCollectionMode && (
             <div className="border-t border-stone-200 dark:border-stone-700 pt-4 mt-4">
@@ -228,7 +233,8 @@ export default function AdminCollectionsTab({
                 {isEditing && (
                   <div className="border-t border-stone-200 dark:border-stone-700 p-4 bg-white/30 dark:bg-stone-700/30">
                     <p className="text-sm text-stone-600 dark:text-stone-300 mb-3">
-                      Select dresses in this collection (highlighted = included):
+                      Select dresses in this collection (highlighted =
+                      included):
                     </p>
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-96 overflow-y-auto">
