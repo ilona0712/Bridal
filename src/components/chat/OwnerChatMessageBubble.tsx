@@ -1,6 +1,7 @@
-import { Mic, User } from "lucide-react";
+import { Mic, User, X } from "lucide-react";
 import type { ChatMessage } from "../../types/chat";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { formatChatTime } from "../../utils/common/formatChatTime";
 
 
@@ -26,6 +27,7 @@ export default function OwnerChatMessageBubble({
   const hasImage = message.attachment_type === "image" && message.attachment_url;
 
   const [duration, setDuration] = useState<string | null>(null);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   useEffect(() => {
     if (!hasAudio || !message.content) return;
@@ -91,12 +93,34 @@ export default function OwnerChatMessageBubble({
               )}
             </div>
           ) : hasImage ? (
-            <img
-              src={message.attachment_url!}
-              alt="attachment"
-              className="w-full max-w-[160px] sm:max-w-[220px] rounded-xl object-cover cursor-pointer"
-              onClick={() => window.open(message.attachment_url!, "_blank")}
-            />
+            <>
+              <img
+                src={message.attachment_url!}
+                alt="attachment"
+                className="w-full max-w-[160px] sm:max-w-[220px] rounded-xl object-cover cursor-pointer"
+                onClick={() => setLightboxOpen(true)}
+              />
+              {lightboxOpen && createPortal(
+                <div
+                  className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-sm"
+                  onClick={() => setLightboxOpen(false)}
+                >
+                  <button
+                    className="absolute top-4 right-4 text-white bg-black/40 rounded-full p-1.5 hover:bg-black/60 transition-colors"
+                    onClick={() => setLightboxOpen(false)}
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                  <img
+                    src={message.attachment_url!}
+                    alt="attachment"
+                    className="max-w-full max-h-full w-full sm:w-auto sm:max-w-[90vw] sm:max-h-[90vh] object-contain sm:rounded-2xl"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>,
+                document.body
+              )}
+            </>
           ) : (
             <p className="text-xs sm:text-sm leading-relaxed break-words whitespace-pre-wrap">
               {message.content}
