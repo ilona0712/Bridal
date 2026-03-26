@@ -4,6 +4,7 @@ import Header from "../components/common/Header";
 import OwnerChatHeader from "../components/chat/OwnerChatHeader";
 import OwnerChatMessagesList from "../components/chat/OwnerChatMessagesList";
 import OwnerChatInput from "../components/chat/OwnerChatInput";
+import CustomerProfilePanel from "../components/chat/CustomerProfilePanel";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 import { useSession, useRole } from "../routes";
@@ -15,9 +16,10 @@ export default function ChatWithOwnerPage() {
   const session = useSession();
   const role = useRole();
 
-  // admin passes conversationId + clientName via location.state
+  // admin passes conversationId + clientName + customerId via location.state
   const stateConversationId = location.state?.conversationId as string | undefined;
   const stateClientName = location.state?.clientName as string | undefined;
+  const stateCustomerId = location.state?.customerId as string | undefined;
 
   const [conversationId, setConversationId] = useState<string | null>(stateConversationId ?? null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -28,6 +30,7 @@ export default function ChatWithOwnerPage() {
   const [loading, setLoading] = useState(true);
   const [myAvatarUrl, setMyAvatarUrl] = useState<string | null>(null);
   const [otherAvatarUrl, setOtherAvatarUrl] = useState<string | null>(null);
+  const [showProfile, setShowProfile] = useState(false);
   console.log("conversationId:", conversationId, "role:", role);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -321,6 +324,7 @@ const mediaRecorder = new MediaRecorder(stream, { mimeType });
             clientName={role === "admin" ? stateClientName : "Bride Me Up"}
             profileImageUrl={otherAvatarUrl}
             onBack={() => navigate(role === "admin" ? "/clients-chats" : "/")}
+            onViewProfile={role === "admin" && stateCustomerId ? () => setShowProfile(true) : undefined}
           />
 
           <OwnerChatMessagesList
@@ -329,6 +333,7 @@ const mediaRecorder = new MediaRecorder(stream, { mimeType });
   role={role}
   myAvatarUrl={myAvatarUrl}
   otherAvatarUrl={otherAvatarUrl}
+  onViewProfile={role === "admin" && stateCustomerId ? () => setShowProfile(true) : undefined}
 />
           <div className="relative" ref={emojiButtonAreaRef}>
             {showEmojiPicker && (
@@ -351,6 +356,13 @@ const mediaRecorder = new MediaRecorder(stream, { mimeType });
           </div>
         </div>
       </div>
+
+      {showProfile && stateCustomerId && (
+        <CustomerProfilePanel
+          customerId={stateCustomerId}
+          onClose={() => setShowProfile(false)}
+        />
+      )}
     </div>
   );
 }

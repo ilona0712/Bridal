@@ -16,8 +16,12 @@ export default function ProfilePageHeader({
             <Sparkles className="w-5 h-5 text-stone-600" />
           </div>
           <div>
-            <h1 className="font-serif text-xl text-stone-800 dark:text-stone-100">Bride Me Up</h1>
-            <p className="text-xs text-stone-500 dark:text-stone-400">Your Dream Gown Awaits</p>
+            <h1 className="font-serif text-xl text-stone-800 dark:text-stone-100">
+              Bride Me Up
+            </h1>
+            <p className="text-xs text-stone-500 dark:text-stone-400">
+              Your Dream Gown Awaits
+            </p>
           </div>
         </Link>
 

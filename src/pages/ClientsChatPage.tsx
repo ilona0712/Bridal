@@ -6,12 +6,14 @@ import { supabase } from "../../lib/supabase";
 import { useSession } from "../routes";
 import type { ConversationSummary } from "../types/chat";
 import { formatChatTime } from "../utils/common/formatChatTime";
+import CustomerProfilePanel from "../components/chat/CustomerProfilePanel";
 
 export default function ClientsChatPage() {
   const session = useSession();
   const [searchQuery, setSearchQuery] = useState("");
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [profilePanelId, setProfilePanelId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!session?.user) return;
@@ -181,10 +183,14 @@ export default function ClientsChatPage() {
                 <Link
                   key={conv.id}
                   to="/chat"
-                  state={{ conversationId: conv.id, clientName: conv.clientName }}
+                  state={{ conversationId: conv.id, clientName: conv.clientName, customerId: conv.customer_id }}
                   className="flex items-center gap-4 p-5 hover:bg-stone-50/50 dark:hover:bg-stone-700/50 transition-colors group"
                 >
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 flex items-center justify-center border-2 border-stone-200/30 overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); setProfilePanelId(conv.customer_id); }}
+                    className="w-14 h-14 rounded-full bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 flex items-center justify-center border-2 border-stone-200/30 overflow-hidden flex-shrink-0 hover:ring-2 hover:ring-pink-300/50 transition-all"
+                  >
                     {conv.profileImageUrl ? (
                       <img src={conv.profileImageUrl} alt={conv.clientName} className="w-full h-full object-cover" />
                     ) : (
@@ -192,7 +198,7 @@ export default function ClientsChatPage() {
                         {conv.clientName.charAt(0)}
                       </span>
                     )}
-                  </div>
+                  </button>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between mb-1">
                       <h3 className="font-serif text-lg text-stone-800 dark:text-stone-100">{conv.clientName}</h3>
@@ -225,6 +231,13 @@ export default function ClientsChatPage() {
           )}
         </div>
       </div>
+
+      {profilePanelId && (
+        <CustomerProfilePanel
+          customerId={profilePanelId}
+          onClose={() => setProfilePanelId(null)}
+        />
+      )}
     </div>
   );
 }
