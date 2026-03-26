@@ -13,6 +13,7 @@ import DressContextMenu from "../components/gallery/DressContextMenu";
 import RentModal from "../components/gallery/RentModal";
 import { useGalleryData } from "../hooks/gallery/useGalleryData";
 import { useGalleryFavorites } from "../hooks/gallery/useGalleryFavorites";
+import { useSiteSettings } from "../hooks/useSiteSettings";
 
 export default function GalleryPage() {
   const [searchParams] = useSearchParams();
@@ -35,6 +36,10 @@ export default function GalleryPage() {
   } = useGalleryData();
 
   const { favoriteDressIds, toggleFavorite } = useGalleryFavorites(isAdmin, session);
+  const { settings: siteSettings } = useSiteSettings();
+  const priceFilterMin  = Number(siteSettings.price_filter_min)  || 0;
+  const priceFilterMax  = Number(siteSettings.price_filter_max)  || 2000;
+  const priceFilterStep = Number(siteSettings.price_filter_step) || 100;
 
   const visibleBaseDresses = isAdmin
     ? allDresses
@@ -50,6 +55,8 @@ export default function GalleryPage() {
   const [selectedSleeveStyle, setSelectedSleeveStyle] = useState("All");
   const [showFilters,         setShowFilters]         = useState(false);
   const [showFavoritesOnly,   setShowFavoritesOnly]   = useState(false);
+  const [minPrice, setMinPrice] = useState<number | null>(null);
+  const [maxPrice, setMaxPrice] = useState<number | null>(null);
 
   const [selectedDress, setSelectedDress] = useState<Dress | null>(null);
   const [rentDress, setRentDress] = useState<Dress | null>(null);
@@ -95,6 +102,8 @@ export default function GalleryPage() {
       return false;
     if (selectedSleeveStyle !== "All" && dress.sleeveStyle && dress.sleeveStyle !== selectedSleeveStyle)
       return false;
+    if (minPrice !== null && dress.price < minPrice) return false;
+    if (maxPrice !== null && dress.price > maxPrice) return false;
     return true;
   });
 
@@ -107,6 +116,8 @@ export default function GalleryPage() {
     setSelectedTrainLength("All");
     setSelectedSleeveStyle("All");
     setShowFavoritesOnly(false);
+    setMinPrice(null);
+    setMaxPrice(null);
   };
 
   const handleClickOutside = () =>
@@ -169,6 +180,13 @@ export default function GalleryPage() {
             onSleeveStyleChange={setSelectedSleeveStyle}
             onToggleFavoritesOnly={() => setShowFavoritesOnly((prev) => !prev)}
             onClearFilters={clearFilters}
+            minPrice={minPrice}
+            maxPrice={maxPrice}
+            onMinPriceChange={setMinPrice}
+            onMaxPriceChange={setMaxPrice}
+            priceFilterMin={priceFilterMin}
+            priceFilterMax={priceFilterMax}
+            priceFilterStep={priceFilterStep}
           />
 
           <div className="lg:col-span-3">

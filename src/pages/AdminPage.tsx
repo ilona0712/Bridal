@@ -90,11 +90,6 @@ export default function AdminPage() {
       return;
     }
 
-    if (formData.collections.length === 0) {
-      alert("Please select at least one collection!");
-      return;
-    }
-
     setIsSubmitting(true);
 
     if (editingDress) {

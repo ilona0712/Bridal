@@ -2,23 +2,29 @@ import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 
 export interface SiteSettings {
-  logo_text:      string
-  logo_tagline:   string
-  logo_image_url: string
-  hero_image_url: string
-  hero_title:     string
-  hero_subtitle:  string
-  hero_cta_text:  string
+  logo_text:         string
+  logo_tagline:      string
+  logo_image_url:    string
+  hero_image_url:    string
+  hero_title:        string
+  hero_subtitle:     string
+  hero_cta_text:     string
+  price_filter_min:  string
+  price_filter_max:  string
+  price_filter_step: string
 }
 
 export const DEFAULTS: SiteSettings = {
-  logo_text:      "Bride Me Up",
-  logo_tagline:   "Your Dream Gown Awaits",
-  logo_image_url: "",
-  hero_image_url: "https://images.unsplash.com/photo-1761671613669-3b17b4a71bb9?auto=format&fit=crop&w=1080&q=80",
-  hero_title:     "Find Your Perfect Dress",
-  hero_subtitle:  "Chat with our intelligent consultant to design and customize your dream wedding dress. Every detail, every wish, brought to life.",
-  hero_cta_text:  "Start Consultation",
+  logo_text:         "Bride Me Up",
+  logo_tagline:      "Your Dream Gown Awaits",
+  logo_image_url:    "",
+  hero_image_url:    "https://images.unsplash.com/photo-1761671613669-3b17b4a71bb9?auto=format&fit=crop&w=1080&q=80",
+  hero_title:        "Find Your Perfect Dress",
+  hero_subtitle:     "Chat with our intelligent consultant to design and customize your dream wedding dress. Every detail, every wish, brought to life.",
+  hero_cta_text:     "Start Consultation",
+  price_filter_min:  "0",
+  price_filter_max:  "2000",
+  price_filter_step: "100",
 }
 
 let cache: SiteSettings | null = null
