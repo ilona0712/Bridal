@@ -30,6 +30,13 @@ export default function OwnerChatMessageBubble({
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
   useEffect(() => {
+    if (!lightboxOpen) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") setLightboxOpen(false); };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [lightboxOpen]);
+
+  useEffect(() => {
     if (!hasAudio || !message.content) return;
     const audio = new Audio(message.content);
     audio.addEventListener("loadedmetadata", () => {
