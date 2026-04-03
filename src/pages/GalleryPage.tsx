@@ -35,18 +35,15 @@ export default function GalleryPage() {
     error,
   } = useGalleryData();
 
-<<<<<<< HEAD
   const { favoriteDressIds, toggleFavorite } = useGalleryFavorites(
     isAdmin,
     session,
   );
-=======
-  const { favoriteDressIds, toggleFavorite } = useGalleryFavorites(isAdmin, session);
+
   const { settings: siteSettings } = useSiteSettings();
-  const priceFilterMin  = Number(siteSettings.price_filter_min)  || 0;
-  const priceFilterMax  = Number(siteSettings.price_filter_max)  || 2000;
+  const priceFilterMin = Number(siteSettings.price_filter_min) || 0;
+  const priceFilterMax = Number(siteSettings.price_filter_max) || 2000;
   const priceFilterStep = Number(siteSettings.price_filter_step) || 100;
->>>>>>> 201b11635ff423fbbf33d23d387f88621b53906a
 
   const visibleBaseDresses = isAdmin
     ? allDresses
@@ -60,18 +57,10 @@ export default function GalleryPage() {
   const [selectedFabric, setSelectedFabric] = useState("All");
   const [selectedTrainLength, setSelectedTrainLength] = useState("All");
   const [selectedSleeveStyle, setSelectedSleeveStyle] = useState("All");
-<<<<<<< HEAD
   const [showFilters, setShowFilters] = useState(false);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [minPrice, setMinPrice] = useState<number | null>(null);
   const [maxPrice, setMaxPrice] = useState<number | null>(null);
-=======
-  const [showFilters,         setShowFilters]         = useState(false);
-  const [showFavoritesOnly,   setShowFavoritesOnly]   = useState(false);
-  const [minPrice, setMinPrice] = useState<number | null>(null);
-  const [maxPrice, setMaxPrice] = useState<number | null>(null);
-
->>>>>>> 201b11635ff423fbbf33d23d387f88621b53906a
   const [selectedDress, setSelectedDress] = useState<Dress | null>(null);
   const [rentDress, setRentDress] = useState<Dress | null>(null);
   const [draftMinPrice, setDraftMinPrice] = useState<number | null>(null);
@@ -149,18 +138,8 @@ export default function GalleryPage() {
       dress.sleeveStyle !== selectedSleeveStyle
     )
       return false;
-<<<<<<< HEAD
-    if (minPrice !== null && dress.price < minPrice) {
-      return false;
-    }
-
-    if (maxPrice !== null && dress.price > maxPrice) {
-      return false;
-    }
-=======
     if (minPrice !== null && dress.price < minPrice) return false;
     if (maxPrice !== null && dress.price > maxPrice) return false;
->>>>>>> 201b11635ff423fbbf33d23d387f88621b53906a
     return true;
   });
 
@@ -175,11 +154,8 @@ export default function GalleryPage() {
     setShowFavoritesOnly(false);
     setMinPrice(null);
     setMaxPrice(null);
-<<<<<<< HEAD
     setDraftMinPrice(null);
     setDraftMaxPrice(null);
-=======
->>>>>>> 201b11635ff423fbbf33d23d387f88621b53906a
   };
 
   const handleClickOutside = () =>
@@ -246,21 +222,14 @@ export default function GalleryPage() {
             onSleeveStyleChange={setSelectedSleeveStyle}
             onToggleFavoritesOnly={() => setShowFavoritesOnly((prev) => !prev)}
             onClearFilters={clearFilters}
-<<<<<<< HEAD
             minPrice={draftMinPrice}
             maxPrice={draftMaxPrice}
             onMinPriceChange={setDraftMinPrice}
             onMaxPriceChange={setDraftMaxPrice}
             onApplyPriceFilter={applyPriceFilter}
-=======
-            minPrice={minPrice}
-            maxPrice={maxPrice}
-            onMinPriceChange={setMinPrice}
-            onMaxPriceChange={setMaxPrice}
             priceFilterMin={priceFilterMin}
             priceFilterMax={priceFilterMax}
             priceFilterStep={priceFilterStep}
->>>>>>> 201b11635ff423fbbf33d23d387f88621b53906a
           />
 
           <div className="lg:col-span-3">
