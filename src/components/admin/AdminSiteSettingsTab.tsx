@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Save, RefreshCw, Eye, Image, Type, AlignLeft } from "lucide-react"
+import { Save, RefreshCw, Eye, Image, Type, AlignLeft, SlidersHorizontal } from "lucide-react"
 import { supabase } from "../../../lib/supabase"
 import { useSiteSettings, DEFAULTS } from "../../hooks/useSiteSettings"
 import type { SiteSettings } from "../../hooks/useSiteSettings"
@@ -198,6 +198,49 @@ export default function AdminSiteSettingsTab() {
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Price Filter */}
+        <div className="mt-8 space-y-4">
+          <div className="flex items-center gap-2">
+            <SlidersHorizontal className="w-5 h-5 text-stone-400" />
+            <h3 className="font-medium text-stone-700 dark:text-stone-300">Gallery Price Filter</h3>
+          </div>
+          <p className="text-xs text-stone-400 dark:text-stone-500 -mt-2">
+            Sets the bounds and step of the price range slider in the gallery.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm text-stone-600 dark:text-stone-300">Min Price ($)</label>
+              <input
+                type="number"
+                value={current.price_filter_min}
+                onChange={(e) => handleChange("price_filter_min", e.target.value)}
+                placeholder="0"
+                className="w-full px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 text-stone-800 dark:text-stone-100"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm text-stone-600 dark:text-stone-300">Max Price ($)</label>
+              <input
+                type="number"
+                value={current.price_filter_max}
+                onChange={(e) => handleChange("price_filter_max", e.target.value)}
+                placeholder="2000"
+                className="w-full px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 text-stone-800 dark:text-stone-100"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm text-stone-600 dark:text-stone-300">Step ($)</label>
+              <input
+                type="number"
+                value={current.price_filter_step}
+                onChange={(e) => handleChange("price_filter_step", e.target.value)}
+                placeholder="100"
+                className="w-full px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 text-stone-800 dark:text-stone-100"
+              />
             </div>
           </div>
         </div>

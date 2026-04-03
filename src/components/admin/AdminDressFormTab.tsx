@@ -178,8 +178,11 @@ export default function AdminDressFormTab({
 
           <div className="space-y-2">
             <label className="text-sm text-stone-700 dark:text-stone-300">
-              Collections <span className="text-pink-400/60">*</span>
+              Collections {" "}
             </label>
+            <span className="text-stone-500 dark:text-stone-400 text-sm font-normal">
+              (Optional)
+            </span>
 
             <p className="text-xs text-stone-500 dark:text-stone-400 mb-3">
               Select collections if this dress belongs to any
