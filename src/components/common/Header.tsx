@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { Sparkles, MessageCircle, User, LogOut, Menu, X, Moon, Sun } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
-import { useSession } from "../../routes"
+import { useSession, useRole } from "../../routes"
 import { signOut } from "../../auth"
 import { supabase } from "../../../lib/supabase"
 import { useSiteSettings } from "../../hooks/useSiteSettings"
@@ -14,6 +14,7 @@ interface HeaderProps {
 
 export default function Header({ subtitle, fixed = false }: HeaderProps) {
   const session = useSession()
+  const role = useRole()
   const navigate = useNavigate()
   const { settings } = useSiteSettings()
   const { theme, toggleTheme } = useTheme()
@@ -21,7 +22,7 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
 
-  const isAdmin = session?.user?.user_metadata?.role === "admin"
+  const isAdmin = role === "admin"
   const displayName =
     session?.user?.user_metadata?.full_name ||
     session?.user?.user_metadata?.first_name ||

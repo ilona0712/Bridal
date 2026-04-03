@@ -22,7 +22,6 @@ export async function signUp({
         last_name:     lastName,
         dress_size:    dressSize,
         date_of_birth: dateOfBirth || null,
-        role:          "customer",
       },
     },
   })

@@ -18,31 +18,55 @@ import ResetPasswordPage  from "./pages/ResetPasswordPage"
 
 // ── Session context ──────────────────────────────────────────
 export const SessionContext = createContext<Session | null>(null)
+export const RoleContext    = createContext<string | null>(null)
 export const useSession = () => useContext(SessionContext)
 
 // ── Role helpers ─────────────────────────────────────────────
 export function useRole() {
-  const session = useSession()
-  return session?.user?.user_metadata?.role ?? null
+  return useContext(RoleContext)
 }
 
 // ── Root — manages session at top level ─────────────────────
 export function Root({ children }: { children: React.ReactNode }) {
   const [session,  setSession]  = useState<Session | null | undefined>(undefined)
+  const [role,     setRole]     = useState<string | null>(null)
   const [checking, setChecking] = useState(true)
 
+  async function fetchRole(userId: string | undefined | null) {
+    if (!userId) { setRole(null); return }
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", userId)
+      .maybeSingle()
+    if (error) {
+      console.error("Failed to load role from profiles:", error)
+      setRole("customer")
+      return
+    }
+    setRole(data?.role ?? "customer")
+  }
+
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session)
+    let alive = true
+
+    const applySession = async (nextSession: Session | null) => {
+      if (!alive) return
+      setSession(nextSession)
+      setChecking(true)
+      await fetchRole(nextSession?.user?.id)
       setChecking(false)
+    }
+
+    supabase.auth.getSession().then(({ data }) => {
+      applySession(data.session)
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setSession(session)
-      setChecking(false)
       if (event === "SIGNED_IN" && session?.user) {
         ensureProfile(session.user).catch(console.error)
       }
+      await applySession(session)
     })
 
     // If user didn't check Remember Me → sign out when browser closes
@@ -52,7 +76,7 @@ export function Root({ children }: { children: React.ReactNode }) {
   })
 }
 
-    return () => subscription.unsubscribe()
+    return () => { alive = false; subscription.unsubscribe() }
   }, [])
 
   if (checking) return (
@@ -63,7 +87,9 @@ export function Root({ children }: { children: React.ReactNode }) {
 
   return (
     <SessionContext.Provider value={session ?? null}>
-      {children}
+      <RoleContext.Provider value={role}>
+        {children}
+      </RoleContext.Provider>
     </SessionContext.Provider>
   )
 }

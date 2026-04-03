@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { signOut } from "../auth";
-import { useSession } from "../routes";
+import { useSession, useRole } from "../routes";
 import { supabase } from "../../lib/supabase";
 import type { Dress } from "../types/dress";
 import { mapDressRowToUiDress } from "../utils/common/mapDressRowToUiDress";
@@ -17,7 +17,8 @@ import ProfileSaveActions from "../components/profile/ProfileSaveActions";
 export default function ProfilePage() {
   const navigate = useNavigate();
   const session = useSession();
-  const isAdmin = session?.user?.user_metadata?.role === "admin";
+  const role = useRole();
+  const isAdmin = role === "admin";
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [firstName, setFirstName] = useState("");
@@ -255,7 +256,7 @@ export default function ProfilePage() {
         full_name: `${firstName} ${lastName}`.trim(),
         dress_size: dressSize || null,
         date_of_birth: dateOfBirth || null,
-        role: session.user.user_metadata?.role || "customer",
+        role: role || "customer",
         phone: phone || "",
         country: country || "",
         profile_image_url: publicUrl,
@@ -287,7 +288,7 @@ export default function ProfilePage() {
         full_name: fullName,
         dress_size: dressSize || null,
         date_of_birth: dateOfBirth || null,
-        role: session.user.user_metadata?.role || "customer",
+        role: role || "customer",
         phone: phone || "",
         country: country || "",
         profile_image_url: profileImage,
