@@ -49,18 +49,32 @@ export function Root({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let alive = true
+    const failSafe = setTimeout(() => {
+      if (alive) setChecking(false)
+    }, 2000)
 
     const applySession = async (nextSession: Session | null) => {
       if (!alive) return
       setSession(nextSession)
       setChecking(true)
-      await fetchRole(nextSession?.user?.id)
-      setChecking(false)
+      try {
+        await fetchRole(nextSession?.user?.id)
+      } catch (error) {
+        console.error("Role lookup failed:", error)
+        setRole("customer")
+      } finally {
+        if (alive) setChecking(false)
+      }
     }
 
-    supabase.auth.getSession().then(({ data }) => {
-      applySession(data.session)
-    })
+    supabase.auth.getSession()
+      .then(({ data }) => applySession(data.session))
+      .catch((error) => {
+        console.error("getSession failed:", error)
+        setSession(null)
+        setRole(null)
+        setChecking(false)
+      })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === "SIGNED_IN" && session?.user) {
@@ -76,7 +90,7 @@ export function Root({ children }: { children: React.ReactNode }) {
   })
 }
 
-    return () => { alive = false; subscription.unsubscribe() }
+    return () => { alive = false; clearTimeout(failSafe); subscription.unsubscribe() }
   }, [])
 
   if (checking) return (
