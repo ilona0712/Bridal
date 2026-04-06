@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from "react-router-dom"
+import { createBrowserRouter, Navigate, Outlet, useLocation } from "react-router-dom"
 import { supabase } from "../lib/supabase"
 import { ensureProfile } from "./auth"
 import { useEffect, useState, createContext, useContext } from "react"
@@ -24,6 +24,16 @@ export const useSession = () => useContext(SessionContext)
 export const useRole = () => useContext(RoleContext)
 export const useRoleLoading = () => useContext(RoleLoadingContext)
 
+function AppLayout() {
+  const location = useLocation()
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [location.pathname])
+
+  return <Outlet />
+}
+
 export function Root({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null | undefined>(undefined)
   const [role, setRole] = useState<string | null>(null)
@@ -33,6 +43,7 @@ export function Root({ children }: { children: React.ReactNode }) {
   async function fetchRole(userId: string | undefined | null) {
     if (!userId) {
       setRole(null)
+      setRoleLoading(false)
       return
     }
 
@@ -63,6 +74,12 @@ export function Root({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let alive = true
 
+    const handleBeforeUnload = () => {
+      if (sessionStorage.getItem("rememberMe") === "false") {
+        supabase.auth.signOut()
+      }
+    }
+
     const applySession = (nextSession: Session | null) => {
       if (!alive) return
       setSession(nextSession)
@@ -89,9 +106,12 @@ export function Root({ children }: { children: React.ReactNode }) {
       applySession(nextSession)
     })
 
+    window.addEventListener("beforeunload", handleBeforeUnload)
+
     return () => {
       alive = false
       subscription.unsubscribe()
+      window.removeEventListener("beforeunload", handleBeforeUnload)
     }
   }, [])
 
@@ -126,6 +146,7 @@ function CustomerRoute({
 
   if (!session) return <Navigate to="/login" replace />
   if (role === "admin" && !allowAdmin) return <Navigate to="/admin" replace />
+
   return <>{children}</>
 }
 
@@ -143,23 +164,29 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
     )
   }
   if (role !== "admin") return <Navigate to="/" replace />
+
   return <>{children}</>
 }
 
 export const router = createBrowserRouter([
-  { path: "/login", element: <LoginPage /> },
-  { path: "/signup", element: <SignupPage /> },
-  { path: "/check-email", element: <CheckEmailPage /> },
-  { path: "/", element: <HomePage /> },
-  { path: "/home", element: <HomePage /> },
-  { path: "/gallery", element: <GalleryPage /> },
-  { path: "/forgot-password", element: <ForgotPasswordPage /> },
-  { path: "/reset-password", element: <ResetPasswordPage /> },
+  {
+    element: <AppLayout />,
+    children: [
+      { path: "/login", element: <LoginPage /> },
+      { path: "/signup", element: <SignupPage /> },
+      { path: "/check-email", element: <CheckEmailPage /> },
+      { path: "/", element: <HomePage /> },
+      { path: "/home", element: <HomePage /> },
+      { path: "/gallery", element: <GalleryPage /> },
+      { path: "/forgot-password", element: <ForgotPasswordPage /> },
+      { path: "/reset-password", element: <ResetPasswordPage /> },
 
-  { path: "/isabella", element: <CustomerRoute allowAdmin><IsabellaPage /></CustomerRoute> },
-  { path: "/chat", element: <CustomerRoute allowAdmin><ChatWithOwnerPage /></CustomerRoute> },
-  { path: "/profile", element: <CustomerRoute allowAdmin><ProfilePage /></CustomerRoute> },
+      { path: "/isabella", element: <CustomerRoute allowAdmin><IsabellaPage /></CustomerRoute> },
+      { path: "/chat", element: <CustomerRoute allowAdmin><ChatWithOwnerPage /></CustomerRoute> },
+      { path: "/profile", element: <CustomerRoute allowAdmin><ProfilePage /></CustomerRoute> },
 
-  { path: "/admin", element: <AdminRoute><AdminPage /></AdminRoute> },
-  { path: "/clients-chats", element: <AdminRoute><ClientsChatPage /></AdminRoute> },
+      { path: "/admin", element: <AdminRoute><AdminPage /></AdminRoute> },
+      { path: "/clients-chats", element: <AdminRoute><ClientsChatPage /></AdminRoute> },
+    ],
+  },
 ])
