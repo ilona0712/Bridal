@@ -49,7 +49,7 @@ export async function ensureProfile(user: any) {
     full_name:     meta.full_name     || "",
     phone:         "",
     country:       "",
-    role:          meta.role          || "customer",
+    role:          "customer",
     dress_size:    meta.dress_size    || null,
     date_of_birth: meta.date_of_birth || null,
   }, { onConflict: "id", ignoreDuplicates: true })

@@ -17,10 +17,6 @@ export default function LoginPage() {
 
   const navigate = useNavigate();
 
-  const passwordRegex =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_.\-#^()\[\]{}|~`<>,:;'"\/\\])[A-Za-z\d@$!%*?&_.\-#^()\[\]{}|~`<>,:;'"\/\\]{8,}$/;
-  const isPasswordValid = passwordRegex.test(password);
-
   async function handleLogin() {
     setError("");
     setLoading(true);
@@ -78,7 +74,8 @@ export default function LoginPage() {
               password={password}
               showPassword={showPassword}
               passwordTouched={passwordTouched}
-              isPasswordValid={isPasswordValid}
+              isPasswordValid={true}
+              validateStrength={false}
               onPasswordChange={setPassword}
               onToggleShowPassword={() => setShowPassword(!showPassword)}
               onBlur={() => setPasswordTouched(true)}
@@ -114,7 +111,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={handleLogin}
-              disabled={!email || !password || !isPasswordValid || loading}
+              disabled={!email || !password || loading}
               className="w-full py-3 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300
                 text-stone-700 rounded-xl hover:shadow-lg transition-all duration-300
                 disabled:opacity-50 disabled:cursor-not-allowed"

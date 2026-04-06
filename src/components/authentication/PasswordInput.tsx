@@ -6,6 +6,12 @@ type PasswordInputProps = {
   showPassword: boolean;
   passwordTouched: boolean;
   isPasswordValid: boolean;
+  /**
+   * Show the strength/complexity validation UI. For login we don't want to block
+   * submission based on a regex; Supabase will verify the credentials itself.
+   * Defaults to true for sign-up/reset flows.
+   */
+  validateStrength?: boolean;
   onPasswordChange: (value: string) => void;
   onToggleShowPassword: () => void;
   onBlur: () => void;
@@ -20,6 +26,7 @@ export default function PasswordInput({
   showPassword,
   passwordTouched,
   isPasswordValid,
+  validateStrength = true,
   onPasswordChange,
   onToggleShowPassword,
   onBlur,
@@ -40,7 +47,7 @@ export default function PasswordInput({
           type={showPassword ? "text" : "password"}
           placeholder={placeholder}
           value={password}
-          minLength={8}
+          minLength={validateStrength ? 8 : 1}
           autoComplete={autoComplete}
           onChange={(e) => onPasswordChange(e.target.value)}
           onBlur={onBlur}
@@ -49,7 +56,7 @@ export default function PasswordInput({
           text-stone-800 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500"
         />
 
-        {password && isPasswordValid && (
+        {validateStrength && password && isPasswordValid && (
           <Check className="absolute right-12 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 z-10" />
         )}
 
@@ -66,7 +73,7 @@ export default function PasswordInput({
         </button>
       </div>
 
-      {passwordTouched && password.length > 0 && !isPasswordValid && (
+      {validateStrength && passwordTouched && password.length > 0 && !isPasswordValid && (
         <p className="text-xs text-red-500">
           Must be at least 8 characters and include: uppercase, lowercase,
           number, and a special character.
