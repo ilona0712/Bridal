@@ -52,7 +52,9 @@ export default function ProfilePage() {
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("full_name, dress_size, date_of_birth, profile_image_url, phone, country")
+        .select(
+          "full_name, dress_size, date_of_birth, profile_image_url, phone, country",
+        )
         .eq("id", session.user.id)
         .maybeSingle();
 
@@ -91,7 +93,6 @@ export default function ProfilePage() {
 
     loadProfile();
   }, [session]);
-
 
   useEffect(() => {
     const loadFavoriteDresses = async () => {
@@ -256,7 +257,6 @@ export default function ProfilePage() {
         full_name: `${firstName} ${lastName}`.trim(),
         dress_size: dressSize || null,
         date_of_birth: dateOfBirth || null,
-        role: role || "customer",
         phone: phone || "",
         country: country || "",
         profile_image_url: publicUrl,
@@ -288,7 +288,6 @@ export default function ProfilePage() {
         full_name: fullName,
         dress_size: dressSize || null,
         date_of_birth: dateOfBirth || null,
-        role: role || "customer",
         phone: phone || "",
         country: country || "",
         profile_image_url: profileImage,
@@ -322,7 +321,10 @@ export default function ProfilePage() {
         .delete()
         .eq("user_id", session.user.id)
         .eq("dress_id", dressId);
-      if (error) { console.error("Failed to remove favorite:", error); return; }
+      if (error) {
+        console.error("Failed to remove favorite:", error);
+        return;
+      }
     } else {
       const updated = favoriteDressIds.filter((id) => id !== dressId);
       localStorage.setItem("favoriteDressIds", JSON.stringify(updated));
@@ -411,7 +413,10 @@ export default function ProfilePage() {
                 )}
 
                 {!isAdmin && (
-                  <ProfileFavoritesSection favoriteDresses={favoriteDresses} onRemoveFavorite={handleRemoveFavorite} />
+                  <ProfileFavoritesSection
+                    favoriteDresses={favoriteDresses}
+                    onRemoveFavorite={handleRemoveFavorite}
+                  />
                 )}
                 {saveError && (
                   <p className="text-sm text-red-500">{saveError}</p>

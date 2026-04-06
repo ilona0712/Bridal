@@ -43,16 +43,20 @@ export async function ensureProfile(user: any) {
   if (existing) return
 
   const meta = user.user_metadata || {}
+  const inferredRole = meta.role === "admin" ? "admin" : "customer"
 
-  const { error } = await supabase.from("profiles").upsert({
-    id:            user.id,
-    full_name:     meta.full_name     || "",
-    phone:         "",
-    country:       "",
-    role:          "customer",
-    dress_size:    meta.dress_size    || null,
-    date_of_birth: meta.date_of_birth || null,
-  }, { onConflict: "id", ignoreDuplicates: true })
+  const { error } = await supabase.from("profiles").upsert(
+    {
+      id: user.id,
+      full_name: meta.full_name || "",
+      phone: "",
+      country: "",
+      role: inferredRole,
+      dress_size: meta.dress_size || null,
+      date_of_birth: meta.date_of_birth || null,
+    },
+    { onConflict: "id", ignoreDuplicates: true }
+  )
 
   if (error) console.error("ensureProfile failed:", error.message)
 }
