@@ -104,7 +104,7 @@ export default function AdminSiteSettingsTab() {
               <label className="text-sm text-stone-600 dark:text-stone-300">Logo Tagline</label>
               <input type="text" value={current.logo_tagline}
                 onChange={(e) => handleChange("logo_tagline", e.target.value)}
-                placeholder="Your Dream Gown Awaits"
+                placeholder="Your Dream Dress Awaits"
                 className="w-full px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 text-stone-800 dark:text-stone-100" />
               <p className="text-xs text-stone-400 dark:text-stone-500">Small text under the logo name</p>
             </div>

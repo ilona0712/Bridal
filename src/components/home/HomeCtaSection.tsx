@@ -32,7 +32,7 @@ export default function HomeCtaSection() {
         />
 
         <h2 className="font-serif text-4xl text-stone-800 dark:text-stone-100">
-          Ready to Find Your Dream Gown?
+          Ready to Find Your Dream Dress?
         </h2>
 
         <p className="text-lg text-stone-700 dark:text-stone-200">

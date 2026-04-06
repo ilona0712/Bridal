@@ -20,7 +20,7 @@ export default function ProfilePageHeader({
               Bride Me Up
             </h1>
             <p className="text-xs text-stone-500 dark:text-stone-400">
-              Your Dream Gown Awaits
+              Your Dream Dress Awaits
             </p>
           </div>
         </Link>

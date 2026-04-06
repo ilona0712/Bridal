@@ -41,7 +41,7 @@ export default function IsabellaPage() {
     {
       text: `Wonderful! Now let's talk about the silhouette. This dress currently has a ${
         dressFromGallery?.silhouette || "beautiful"
-      } silhouette. Would you like to keep it, or explore something different like ball gown, A-line, mermaid, or sheath?`,
+      } silhouette. Would you like to keep it, or explore something different like ball dress, A-line, mermaid, or sheath?`,
       response:
         "Perfect! That silhouette will be absolutely perfect for you! ✨",
     },
@@ -84,7 +84,7 @@ export default function IsabellaPage() {
       response: "Wonderful choice! That will look stunning on you. 💕",
     },
     {
-      text: "Perfect! Now I'd love to know about the silhouette. How do you imagine the overall shape of your dress? Are you drawn to the drama of a ball gown, the flattering lines of an A-line, the glamour of a fitted mermaid style, or perhaps something more streamlined?",
+      text: "Perfect! Now I'd love to know about the silhouette. How do you imagine the overall shape of your dress? Are you drawn to the drama of a ball dress, the flattering lines of an A-line, the glamour of a fitted mermaid style, or perhaps something more streamlined?",
       response:
         "That silhouette will be absolutely perfect for you! I love this vision coming together. ✨",
     },

@@ -181,8 +181,8 @@ export default function GalleryPage() {
             </h1>
             <p className="text-stone-600 dark:text-stone-300">
               {loading
-                ? "Loading gowns..."
-                : `${filteredDresses.length} gowns available`}
+                ? "Loading dresses..."
+                : `${filteredDresses.length} dresses available`}
             </p>
           </div>
           <button
@@ -249,19 +249,19 @@ export default function GalleryPage() {
                       You have no favorites yet
                     </p>
                     <p className="text-stone-400 dark:text-stone-500 text-sm mb-4">
-                      Browse the gallery and tap the heart on any gown you love.
+                      Browse the gallery and tap the heart on any dress you love.
                     </p>
                     <button
                       onClick={() => setShowFavoritesOnly(false)}
                       className="px-6 py-2 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 text-stone-700 rounded-xl hover:shadow-lg transition-all"
                     >
-                      Browse All Gowns
+                      Browse All Dresses
                     </button>
                   </>
                 ) : (
                   <>
                     <p className="text-stone-600 dark:text-stone-300 mb-4">
-                      No gowns match your filters
+                      No dresses match your filters
                     </p>
                     <button
                       onClick={clearFilters}

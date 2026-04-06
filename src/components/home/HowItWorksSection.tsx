@@ -19,7 +19,7 @@ export default function HowItWorksSection() {
     },
     {
       icon: <Star className="w-8 h-8 text-stone-600" />,
-      title: "Get Your Gown",
+      title: "Get Your Dress",
       description: `Once you've found "the one", we'll connect you with expert seamstresses who bring your custom design to life.`,
     },
   ];
@@ -32,7 +32,7 @@ export default function HowItWorksSection() {
           className={`text-center mb-16 space-y-3 opacity-0 ${titleInView ? "animate-fade-slide-up" : ""}`}
         >
           <h2 className="font-serif text-4xl text-stone-800 dark:text-stone-100">How It Works</h2>
-          <p className="text-stone-600 dark:text-stone-300">Three simple steps to your perfect gown</p>
+          <p className="text-stone-600 dark:text-stone-300">Three simple steps to your perfect dress</p>
         </div>
 
         <div ref={cardsRef} className="grid grid-cols-1 md:grid-cols-3 gap-8">

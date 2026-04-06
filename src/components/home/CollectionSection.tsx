@@ -85,7 +85,7 @@ export default function CollectionSection() {
             Our Collections
           </h2>
           <p className="text-stone-600 dark:text-stone-300">
-            Explore stunning gowns designed by brides like you
+            Explore stunning dresses designed by brides like you
           </p>
         </div>
 
