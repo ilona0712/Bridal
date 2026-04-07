@@ -51,7 +51,8 @@ export default function GalleryPage() {
 
   // ── Selected filters ─────────────────────────────────────
   const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
-  const [selectedSize, setSelectedSize] = useState<number | null>(null);
+  const [minSize, setMinSize] = useState<number | null>(null);
+  const [maxSize, setMaxSize] = useState<number | null>(null);
   const [selectedNeckline, setSelectedNeckline] = useState("All");
   const [selectedSilhouette, setSelectedSilhouette] = useState("All");
   const [selectedFabric, setSelectedFabric] = useState("All");
@@ -99,6 +100,15 @@ export default function GalleryPage() {
   };
 
   // ── Filter logic ─────────────────────────────────────────
+  const effectiveMinSize =
+    minSize !== null && maxSize !== null && minSize > maxSize
+      ? maxSize
+      : minSize;
+
+  const effectiveMaxSize =
+    minSize !== null && maxSize !== null && minSize > maxSize
+      ? minSize
+      : maxSize;
   const filteredDresses = visibleBaseDresses.filter((dress) => {
     if (showFavoritesOnly && !favoriteDressIds.includes(dress.id)) return false;
     if (
@@ -106,8 +116,25 @@ export default function GalleryPage() {
       !dress.collections.some((c) => selectedCollections.includes(c))
     )
       return false;
-    if (selectedSize !== null && !dress.sizes.includes(selectedSize))
-      return false;
+
+    if (effectiveMinSize !== null || effectiveMaxSize !== null) {
+      const hasSizeInRange = dress.sizes.some((size) => {
+        if (effectiveMinSize !== null && size < effectiveMinSize) return false;
+        if (effectiveMaxSize !== null && size > effectiveMaxSize) return false;
+        return true;
+      });
+
+      if (!hasSizeInRange) return false;
+    }
+    if (minSize !== null || maxSize !== null) {
+      const hasSizeInRange = dress.sizes.some((size) => {
+        if (minSize !== null && size < minSize) return false;
+        if (maxSize !== null && size > maxSize) return false;
+        return true;
+      });
+
+      if (!hasSizeInRange) return false;
+    }
     if (
       selectedNeckline !== "All" &&
       dress.neckline &&
@@ -145,7 +172,8 @@ export default function GalleryPage() {
 
   const clearFilters = () => {
     setSelectedCollections([]);
-    setSelectedSize(null);
+    setMinSize(null);
+    setMaxSize(null);
     setSelectedNeckline("All");
     setSelectedSilhouette("All");
     setSelectedFabric("All");
@@ -198,7 +226,8 @@ export default function GalleryPage() {
           <GalleryFilters
             showFilters={showFilters}
             selectedCollections={selectedCollections}
-            selectedSize={selectedSize}
+            minSize={minSize}
+            maxSize={maxSize}
             selectedNeckline={selectedNeckline}
             selectedSilhouette={selectedSilhouette}
             selectedFabric={selectedFabric}
@@ -214,7 +243,8 @@ export default function GalleryPage() {
             trainLengths={allTrainLengths}
             sleeveStyles={allSleeveStyles}
             onCollectionToggle={toggleCollection}
-            onSizeChange={setSelectedSize}
+            onMinSizeChange={setMinSize}
+            onMaxSizeChange={setMaxSize}
             onNecklineChange={setSelectedNeckline}
             onSilhouetteChange={setSelectedSilhouette}
             onFabricChange={setSelectedFabric}
@@ -249,7 +279,8 @@ export default function GalleryPage() {
                       You have no favorites yet
                     </p>
                     <p className="text-stone-400 dark:text-stone-500 text-sm mb-4">
-                      Browse the gallery and tap the heart on any dress you love.
+                      Browse the gallery and tap the heart on any dress you
+                      love.
                     </p>
                     <button
                       onClick={() => setShowFavoritesOnly(false)}

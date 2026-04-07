@@ -1,7 +1,8 @@
 type GalleryFiltersProps = {
   showFilters: boolean;
   selectedCollections: string[];
-  selectedSize: number | null;
+  minSize: number | null;
+  maxSize: number | null;
   selectedNeckline: string;
   selectedSilhouette: string;
   selectedFabric: string;
@@ -17,7 +18,8 @@ type GalleryFiltersProps = {
   trainLengths: string[];
   sleeveStyles: string[];
   onCollectionToggle: (value: string) => void;
-  onSizeChange: (value: number | null) => void;
+  onMinSizeChange: (value: number | null) => void;
+  onMaxSizeChange: (value: number | null) => void;
   onNecklineChange: (value: string) => void;
   onSilhouetteChange: (value: string) => void;
   onFabricChange: (value: string) => void;
@@ -40,7 +42,8 @@ import { X, Heart } from "lucide-react";
 export default function GalleryFilters({
   showFilters,
   selectedCollections,
-  selectedSize,
+  minSize,
+  maxSize,
   selectedNeckline,
   selectedSilhouette,
   selectedFabric,
@@ -56,7 +59,8 @@ export default function GalleryFilters({
   trainLengths,
   sleeveStyles,
   onCollectionToggle,
-  onSizeChange,
+  onMinSizeChange,
+  onMaxSizeChange,
   onNecklineChange,
   onSilhouetteChange,
   onFabricChange,
@@ -147,22 +151,44 @@ export default function GalleryFilters({
             </div>
             <div>
               <label className="text-sm font-medium text-stone-700 dark:text-stone-300 mb-3 block">
-                Dress Size
+                Dress Size Range
               </label>
-              <select
-                value={selectedSize ?? ""}
-                onChange={(e) =>
-                  onSizeChange(e.target.value ? Number(e.target.value) : null)
-                }
-                className="w-full px-3 py-2 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-lg text-sm text-stone-800 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-pink-200/50"
-              >
-                <option value="">All Sizes</option>
-                {sizes.map((size) => (
-                  <option key={size} value={size}>
-                    Size {size}
-                  </option>
-                ))}
-              </select>
+
+              <div className="grid grid-cols-2 gap-3">
+                <select
+                  value={minSize ?? ""}
+                  onChange={(e) =>
+                    onMinSizeChange(
+                      e.target.value ? Number(e.target.value) : null,
+                    )
+                  }
+                  className="w-full px-3 py-2 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-lg text-sm text-stone-800 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-pink-200/50"
+                >
+                  <option value="">Min Size</option>
+                  {sizes.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={maxSize ?? ""}
+                  onChange={(e) =>
+                    onMaxSizeChange(
+                      e.target.value ? Number(e.target.value) : null,
+                    )
+                  }
+                  className="w-full px-3 py-2 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-lg text-sm text-stone-800 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-pink-200/50"
+                >
+                  <option value="">Max Size</option>
+                  {sizes.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div>
