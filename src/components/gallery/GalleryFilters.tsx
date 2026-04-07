@@ -97,44 +97,6 @@ export default function GalleryFilters({
           </div>
 
           <div className="space-y-6 pb-4">
-            <div>
-              <label className="text-sm font-medium text-stone-700 dark:text-stone-300 mb-3 block">
-                Price Range
-              </label>
-
-              <div className="grid grid-cols-2 gap-3">
-                <input
-                  type="number"
-                  placeholder="Min"
-                  value={minPrice ?? ""}
-                  onChange={(e) =>
-                    onMinPriceChange(
-                      e.target.value === "" ? null : Number(e.target.value),
-                    )
-                  }
-                  className="w-full px-3 py-2 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-lg text-sm text-stone-800 dark:text-stone-100"
-                />
-
-                <input
-                  type="number"
-                  placeholder="Max"
-                  value={maxPrice ?? ""}
-                  onChange={(e) =>
-                    onMaxPriceChange(
-                      e.target.value === "" ? null : Number(e.target.value),
-                    )
-                  }
-                  className="w-full px-3 py-2 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-lg text-sm text-stone-800 dark:text-stone-100"
-                />
-              </div>
-              <button
-                type="button"
-                onClick={onApplyPriceFilter}
-                className="w-full mt-3 px-4 py-2 rounded-lg bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 text-stone-700 text-sm font-medium hover:shadow-md transition-all"
-              >
-                Search
-              </button>
-            </div>
             {showFavoritesFilter && (
               <div>
                 <button

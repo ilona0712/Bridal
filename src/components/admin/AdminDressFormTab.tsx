@@ -161,10 +161,8 @@ export default function AdminDressFormTab({
 
           <div className="space-y-2">
             <label className="text-sm text-stone-700 dark:text-stone-300">
-              Collections{" "}
-              <span className="text-stone-500 dark:text-stone-400">
-                (Optional)
-              </span>
+              Dress Name{" "}
+              <span className="text-pink-500">*</span>
             </label>
             <input
               type="text"
