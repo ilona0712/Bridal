@@ -19,7 +19,9 @@ export default function AdminDressListTab({
   if (dresses.length === 0) {
     return (
       <div className="bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 dark:border-stone-700/50 p-12 text-center">
-        <p className="text-stone-600 dark:text-stone-300 mb-4">No dresses yet. Add your first dress!</p>
+        <p className="text-stone-600 dark:text-stone-300 mb-4">
+          No dresses yet. Add your first dress!
+        </p>
 
         <button
           type="button"
@@ -79,51 +81,78 @@ export default function AdminDressListTab({
               </div>
 
               <div>
-                <span className="text-stone-500 dark:text-stone-400 text-sm">Price:</span>
+                <span className="text-stone-500 dark:text-stone-400 text-sm">
+                  Price:
+                </span>
                 <span className="ml-2 text-stone-800 dark:text-stone-100 font-medium">
-                  ${dress.price.toLocaleString()}
+                  $
+                  {dress.price !== null && dress.price !== undefined
+                    ? dress.price.toLocaleString()
+                    : "Custom"}
                 </span>
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                 {dress.neckline && (
                   <div>
-                    <span className="text-stone-500 dark:text-stone-400">Neckline:</span>
-                    <span className="ml-2 text-stone-800 dark:text-stone-200">{dress.neckline}</span>
+                    <span className="text-stone-500 dark:text-stone-400">
+                      Neckline:
+                    </span>
+                    <span className="ml-2 text-stone-800 dark:text-stone-200">
+                      {dress.neckline}
+                    </span>
                   </div>
                 )}
 
                 {dress.silhouette && (
                   <div>
-                    <span className="text-stone-500 dark:text-stone-400">Silhouette:</span>
-                    <span className="ml-2 text-stone-800 dark:text-stone-200">{dress.silhouette}</span>
+                    <span className="text-stone-500 dark:text-stone-400">
+                      Silhouette:
+                    </span>
+                    <span className="ml-2 text-stone-800 dark:text-stone-200">
+                      {dress.silhouette}
+                    </span>
                   </div>
                 )}
 
                 {dress.fabric && (
                   <div>
-                    <span className="text-stone-500 dark:text-stone-400">Fabric:</span>
-                    <span className="ml-2 text-stone-800 dark:text-stone-200">{dress.fabric}</span>
+                    <span className="text-stone-500 dark:text-stone-400">
+                      Fabric:
+                    </span>
+                    <span className="ml-2 text-stone-800 dark:text-stone-200">
+                      {dress.fabric}
+                    </span>
                   </div>
                 )}
 
                 {dress.trainLength && (
                   <div>
-                    <span className="text-stone-500 dark:text-stone-400">Train:</span>
-                    <span className="ml-2 text-stone-800 dark:text-stone-200">{dress.trainLength}</span>
+                    <span className="text-stone-500 dark:text-stone-400">
+                      Train:
+                    </span>
+                    <span className="ml-2 text-stone-800 dark:text-stone-200">
+                      {dress.trainLength}
+                    </span>
                   </div>
                 )}
 
                 {dress.sleeveStyle && (
                   <div>
-                    <span className="text-stone-500 dark:text-stone-400">Sleeves:</span>
-                    <span className="ml-2 text-stone-800 dark:text-stone-200">{dress.sleeveStyle}</span>
+                    <span className="text-stone-500 dark:text-stone-400">
+                      Sleeves:
+                    </span>
+                    <span className="ml-2 text-stone-800 dark:text-stone-200">
+                      {dress.sleeveStyle}
+                    </span>
                   </div>
                 )}
 
                 {dress.sizes.length > 0 && (
                   <div>
-                    <span className="text-stone-500 dark:text-stone-400">Sizes:</span>
+                    <span className="text-stone-500 dark:text-stone-400">
+                      Sizes:
+                    </span>
                     <span className="ml-2 text-stone-800 dark:text-stone-200">
                       {dress.sizes[0]}-{dress.sizes[dress.sizes.length - 1]}
                     </span>

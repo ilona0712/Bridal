@@ -38,9 +38,14 @@ export default function DressContextMenu({
             />
           </div>
           <div>
-            <h3 className="font-serif text-sm text-stone-800 dark:text-stone-100">{dress.name}</h3>
+            <h3 className="font-serif text-sm text-stone-800 dark:text-stone-100">
+              {dress.name}
+            </h3>
             <p className="text-xs text-stone-500 dark:text-stone-400">
-              ${dress.price.toLocaleString()}
+              $
+              {dress.price !== null && dress.price !== undefined
+                ? dress.price.toLocaleString()
+                : "Custom"}
             </p>
           </div>
         </div>
@@ -48,31 +53,57 @@ export default function DressContextMenu({
 
       <div className="px-4 py-3 space-y-2">
         <div className="flex justify-between items-center">
-          <span className="text-xs text-stone-500 dark:text-stone-400">Collection</span>
-          <span className="text-xs text-stone-800 dark:text-stone-200">{dress.collections.join(" • ")}</span>
+          <span className="text-xs text-stone-500 dark:text-stone-400">
+            Collection
+          </span>
+          <span className="text-xs text-stone-800 dark:text-stone-200">
+            {dress.collections.join(" • ")}
+          </span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-xs text-stone-500 dark:text-stone-400">Neckline</span>
-          <span className="text-xs text-stone-800 dark:text-stone-200">{dress.neckline}</span>
+          <span className="text-xs text-stone-500 dark:text-stone-400">
+            Neckline
+          </span>
+          <span className="text-xs text-stone-800 dark:text-stone-200">
+            {dress.neckline}
+          </span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-xs text-stone-500 dark:text-stone-400">Silhouette</span>
-          <span className="text-xs text-stone-800 dark:text-stone-200">{dress.silhouette}</span>
+          <span className="text-xs text-stone-500 dark:text-stone-400">
+            Silhouette
+          </span>
+          <span className="text-xs text-stone-800 dark:text-stone-200">
+            {dress.silhouette}
+          </span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-xs text-stone-500 dark:text-stone-400">Fabric</span>
-          <span className="text-xs text-stone-800 dark:text-stone-200">{dress.fabric}</span>
+          <span className="text-xs text-stone-500 dark:text-stone-400">
+            Fabric
+          </span>
+          <span className="text-xs text-stone-800 dark:text-stone-200">
+            {dress.fabric}
+          </span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-xs text-stone-500 dark:text-stone-400">Train Length</span>
-          <span className="text-xs text-stone-800 dark:text-stone-200">{dress.trainLength}</span>
+          <span className="text-xs text-stone-500 dark:text-stone-400">
+            Train Length
+          </span>
+          <span className="text-xs text-stone-800 dark:text-stone-200">
+            {dress.trainLength}
+          </span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-xs text-stone-500 dark:text-stone-400">Sleeve Style</span>
-          <span className="text-xs text-stone-800 dark:text-stone-200">{dress.sleeveStyle}</span>
+          <span className="text-xs text-stone-500 dark:text-stone-400">
+            Sleeve Style
+          </span>
+          <span className="text-xs text-stone-800 dark:text-stone-200">
+            {dress.sleeveStyle}
+          </span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-xs text-stone-500 dark:text-stone-400">Available Sizes</span>
+          <span className="text-xs text-stone-500 dark:text-stone-400">
+            Available Sizes
+          </span>
           <span className="text-xs text-stone-800 dark:text-stone-200">
             {dress.sizes[0]}-{dress.sizes[dress.sizes.length - 1]}
           </span>

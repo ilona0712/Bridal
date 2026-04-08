@@ -165,8 +165,13 @@ export default function GalleryPage() {
       dress.sleeveStyle !== selectedSleeveStyle
     )
       return false;
-    if (minPrice !== null && dress.price < minPrice) return false;
-    if (maxPrice !== null && dress.price > maxPrice) return false;
+    const hasUsablePrice =
+      dress.price !== null && dress.price !== undefined && dress.price > 0;
+
+    if (hasUsablePrice && dress.price !== undefined && dress.price !== null) {
+      if (minPrice !== null && dress.price < minPrice) return false;
+      if (maxPrice !== null && dress.price > maxPrice) return false;
+    }
     return true;
   });
 
@@ -252,11 +257,11 @@ export default function GalleryPage() {
             onSleeveStyleChange={setSelectedSleeveStyle}
             onToggleFavoritesOnly={() => setShowFavoritesOnly((prev) => !prev)}
             onClearFilters={clearFilters}
-            minPrice={draftMinPrice}
-            maxPrice={draftMaxPrice}
-            onMinPriceChange={setDraftMinPrice}
-            onMaxPriceChange={setDraftMaxPrice}
-            onApplyPriceFilter={applyPriceFilter}
+            minPrice={minPrice}
+            maxPrice={maxPrice}
+            onMinPriceChange={setMinPrice}
+            onMaxPriceChange={setMaxPrice}
+            onApplyPriceFilter={() => {}}
             priceFilterMin={priceFilterMin}
             priceFilterMax={priceFilterMax}
             priceFilterStep={priceFilterStep}

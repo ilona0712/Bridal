@@ -74,8 +74,11 @@ export default function DressCard({
             className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm transition-colors hover:bg-white dark:hover:bg-stone-700"
           >
             <Heart
-              className={`h-5 w-5 ${isFavorite ? "fill-pink-400 text-pink-400" : "text-stone-600 dark:text-stone-300"
-                }`}
+              className={`h-5 w-5 ${
+                isFavorite
+                  ? "fill-pink-400 text-pink-400"
+                  : "text-stone-600 dark:text-stone-300"
+              }`}
             />
           </button>
         )}
@@ -83,7 +86,9 @@ export default function DressCard({
 
       <div className="space-y-3 p-5">
         <div>
-          <h3 className="font-serif text-lg text-stone-800 dark:text-stone-100">{dress.name}</h3>
+          <h3 className="font-serif text-lg text-stone-800 dark:text-stone-100">
+            {dress.name}
+          </h3>
           <p className="text-sm text-stone-500 dark:text-stone-400">
             {[dress.silhouette, dress.neckline].filter(Boolean).join(" • ")}
           </p>
@@ -95,10 +100,12 @@ export default function DressCard({
               Sizes: {dress.sizes[0]}-{dress.sizes[dress.sizes.length - 1]}
             </span>
           )}
-          {dress.price > 0 && (
-            <span className="text-sm font-medium text-stone-800 dark:text-stone-100">
+          {dress.price !== null && dress.price !== undefined ? (
+            <p className="text-2xl font-serif">
               ${dress.price.toLocaleString()}
-            </span>
+            </p>
+          ) : (
+            <p className="text-2xl font-serif">Custom</p>
           )}
         </div>
 

@@ -28,7 +28,10 @@ const DRESS_SELECT = `
   )
 `;
 
-export default function CustomerProfilePanel({ customerId, onClose }: CustomerProfilePanelProps) {
+export default function CustomerProfilePanel({
+  customerId,
+  onClose,
+}: CustomerProfilePanelProps) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [favorites, setFavorites] = useState<Dress[]>([]);
@@ -40,7 +43,9 @@ export default function CustomerProfilePanel({ customerId, onClose }: CustomerPr
       const [{ data: profileData }, { data: emailData }] = await Promise.all([
         supabase
           .from("profiles")
-          .select("full_name, phone, country, profile_image_url, dress_size, date_of_birth")
+          .select(
+            "full_name, phone, country, profile_image_url, dress_size, date_of_birth",
+          )
           .eq("id", customerId)
           .single(),
         supabase.rpc("get_user_email", { user_id: customerId }),
@@ -55,7 +60,9 @@ export default function CustomerProfilePanel({ customerId, onClose }: CustomerPr
         .select("dress_id")
         .eq("user_id", customerId);
 
-      const dressIds = (favRows ?? []).map((r: { dress_id: string }) => r.dress_id);
+      const dressIds = (favRows ?? []).map(
+        (r: { dress_id: string }) => r.dress_id,
+      );
 
       if (dressIds.length > 0) {
         const { data: dressData, error } = await supabase
@@ -89,7 +96,9 @@ export default function CustomerProfilePanel({ customerId, onClose }: CustomerPr
       <div className="fixed inset-0 sm:inset-auto sm:right-0 sm:top-0 sm:h-full sm:w-80 z-50 bg-white dark:bg-stone-900 shadow-2xl sm:border-l border-stone-200 dark:border-stone-700 overflow-y-auto flex flex-col">
         {/* Header */}
         <div className="sticky top-0 bg-gradient-to-r from-stone-200 via-pink-100/30 to-stone-200 dark:from-stone-800 dark:via-stone-700 dark:to-stone-800 px-5 py-4 border-b border-stone-200/50 dark:border-stone-700/50 flex items-center justify-between z-10">
-          <h2 className="font-serif text-lg text-stone-800 dark:text-stone-100">Customer Profile</h2>
+          <h2 className="font-serif text-lg text-stone-800 dark:text-stone-100">
+            Customer Profile
+          </h2>
           <button
             type="button"
             onClick={onClose}
@@ -123,7 +132,9 @@ export default function CustomerProfilePanel({ customerId, onClose }: CustomerPr
                   {profile?.full_name ?? "Unknown"}
                 </h3>
                 {email && (
-                  <p className="text-sm text-stone-500 dark:text-stone-400 mt-0.5">{email}</p>
+                  <p className="text-sm text-stone-500 dark:text-stone-400 mt-0.5">
+                    {email}
+                  </p>
                 )}
               </div>
             </div>
@@ -131,25 +142,45 @@ export default function CustomerProfilePanel({ customerId, onClose }: CustomerPr
             {/* Details */}
             <div className="rounded-2xl border border-stone-100 dark:border-stone-800 divide-y divide-stone-100 dark:divide-stone-800">
               <div className="flex justify-between items-center px-4 py-3">
-                <span className="text-xs font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">Email</span>
-                <span className="text-sm text-stone-700 dark:text-stone-300">{email ?? "—"}</span>
+                <span className="text-xs font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">
+                  Email
+                </span>
+                <span className="text-sm text-stone-700 dark:text-stone-300">
+                  {email ?? "—"}
+                </span>
               </div>
               <div className="flex justify-between items-center px-4 py-3">
-                <span className="text-xs font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">Phone</span>
-                <span className="text-sm text-stone-700 dark:text-stone-300">{profile?.phone ?? "—"}</span>
+                <span className="text-xs font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">
+                  Phone
+                </span>
+                <span className="text-sm text-stone-700 dark:text-stone-300">
+                  {profile?.phone ?? "—"}
+                </span>
               </div>
               <div className="flex justify-between items-center px-4 py-3">
-                <span className="text-xs font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">Size</span>
-                <span className="text-sm text-stone-700 dark:text-stone-300">{profile?.dress_size ?? "—"}</span>
+                <span className="text-xs font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">
+                  Size
+                </span>
+                <span className="text-sm text-stone-700 dark:text-stone-300">
+                  {profile?.dress_size ?? "—"}
+                </span>
               </div>
               <div className="flex justify-between items-center px-4 py-3">
-                <span className="text-xs font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">Country</span>
-                <span className="text-sm text-stone-700 dark:text-stone-300">{profile?.country ?? "—"}</span>
+                <span className="text-xs font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">
+                  Country
+                </span>
+                <span className="text-sm text-stone-700 dark:text-stone-300">
+                  {profile?.country ?? "—"}
+                </span>
               </div>
               {profile?.date_of_birth && (
                 <div className="flex justify-between items-center px-4 py-3">
-                  <span className="text-xs font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">Date of Birth</span>
-                  <span className="text-sm text-stone-700 dark:text-stone-300">{profile.date_of_birth}</span>
+                  <span className="text-xs font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">
+                    Date of Birth
+                  </span>
+                  <span className="text-sm text-stone-700 dark:text-stone-300">
+                    {profile.date_of_birth}
+                  </span>
                 </div>
               )}
             </div>
@@ -161,13 +192,17 @@ export default function CustomerProfilePanel({ customerId, onClose }: CustomerPr
                 <h4 className="font-serif text-base text-stone-800 dark:text-stone-100">
                   Favorite Dresses
                   {favorites.length > 0 && (
-                    <span className="ml-2 text-sm text-stone-400 font-sans">({favorites.length})</span>
+                    <span className="ml-2 text-sm text-stone-400 font-sans">
+                      ({favorites.length})
+                    </span>
                   )}
                 </h4>
               </div>
 
               {favorites.length === 0 ? (
-                <p className="text-sm text-stone-400 dark:text-stone-500 px-1">No favorites yet.</p>
+                <p className="text-sm text-stone-400 dark:text-stone-500 px-1">
+                  No favorites yet.
+                </p>
               ) : (
                 <div className="space-y-3">
                   {favorites.map((dress) => {
@@ -176,7 +211,9 @@ export default function CustomerProfilePanel({ customerId, onClose }: CustomerPr
                       <div
                         key={dress.id}
                         className="rounded-2xl overflow-hidden border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 cursor-pointer"
-                        onClick={() => setExpandedId(isExpanded ? null : dress.id)}
+                        onClick={() =>
+                          setExpandedId(isExpanded ? null : dress.id)
+                        }
                       >
                         <div className="flex gap-2 p-2 sm:gap-3 sm:p-3">
                           <img
@@ -193,15 +230,13 @@ export default function CustomerProfilePanel({ customerId, onClose }: CustomerPr
                                 {dress.collections[0]}
                               </span>
                             )}
-                            {dress.price > 0 && (
-                              <p className="text-sm font-medium text-stone-700 dark:text-stone-200">
+                            {dress.price !== null &&
+                            dress.price !== undefined ? (
+                              <p className="text-2xl font-serif">
                                 ${dress.price.toLocaleString()}
                               </p>
-                            )}
-                            {dress.sizes.length > 0 && (
-                              <p className="text-xs text-stone-500 dark:text-stone-400">
-                                Sizes: {dress.sizes[0]}–{dress.sizes[dress.sizes.length - 1]}
-                              </p>
+                            ) : (
+                              <p className="text-2xl font-serif">Custom</p>
                             )}
                           </div>
                         </div>
@@ -210,32 +245,52 @@ export default function CustomerProfilePanel({ customerId, onClose }: CustomerPr
                           <div className="border-t border-stone-200 dark:border-stone-700 px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2">
                             {dress.neckline && (
                               <div>
-                                <p className="text-[10px] uppercase tracking-widest text-stone-400 dark:text-stone-500">Neckline</p>
-                                <p className="text-sm text-stone-700 dark:text-stone-300">{dress.neckline}</p>
+                                <p className="text-[10px] uppercase tracking-widest text-stone-400 dark:text-stone-500">
+                                  Neckline
+                                </p>
+                                <p className="text-sm text-stone-700 dark:text-stone-300">
+                                  {dress.neckline}
+                                </p>
                               </div>
                             )}
                             {dress.silhouette && (
                               <div>
-                                <p className="text-[10px] uppercase tracking-widest text-stone-400 dark:text-stone-500">Silhouette</p>
-                                <p className="text-sm text-stone-700 dark:text-stone-300">{dress.silhouette}</p>
+                                <p className="text-[10px] uppercase tracking-widest text-stone-400 dark:text-stone-500">
+                                  Silhouette
+                                </p>
+                                <p className="text-sm text-stone-700 dark:text-stone-300">
+                                  {dress.silhouette}
+                                </p>
                               </div>
                             )}
                             {dress.fabric && (
                               <div>
-                                <p className="text-[10px] uppercase tracking-widest text-stone-400 dark:text-stone-500">Fabric</p>
-                                <p className="text-sm text-stone-700 dark:text-stone-300">{dress.fabric}</p>
+                                <p className="text-[10px] uppercase tracking-widest text-stone-400 dark:text-stone-500">
+                                  Fabric
+                                </p>
+                                <p className="text-sm text-stone-700 dark:text-stone-300">
+                                  {dress.fabric}
+                                </p>
                               </div>
                             )}
                             {dress.trainLength && (
                               <div>
-                                <p className="text-[10px] uppercase tracking-widest text-stone-400 dark:text-stone-500">Train</p>
-                                <p className="text-sm text-stone-700 dark:text-stone-300">{dress.trainLength}</p>
+                                <p className="text-[10px] uppercase tracking-widest text-stone-400 dark:text-stone-500">
+                                  Train
+                                </p>
+                                <p className="text-sm text-stone-700 dark:text-stone-300">
+                                  {dress.trainLength}
+                                </p>
                               </div>
                             )}
                             {dress.sleeveStyle && (
                               <div>
-                                <p className="text-[10px] uppercase tracking-widest text-stone-400 dark:text-stone-500">Sleeves</p>
-                                <p className="text-sm text-stone-700 dark:text-stone-300">{dress.sleeveStyle}</p>
+                                <p className="text-[10px] uppercase tracking-widest text-stone-400 dark:text-stone-500">
+                                  Sleeves
+                                </p>
+                                <p className="text-sm text-stone-700 dark:text-stone-300">
+                                  {dress.sleeveStyle}
+                                </p>
                               </div>
                             )}
                           </div>

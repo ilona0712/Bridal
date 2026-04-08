@@ -19,7 +19,8 @@ export default function DressDetailsModal({
   isFavorite = false,
   onToggleFavorite,
 }: DressDetailsModalProps) {
-  const images = dress.images && dress.images.length > 0 ? dress.images : [dress.image];
+  const images =
+    dress.images && dress.images.length > 0 ? dress.images : [dress.image];
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const goToPrev = (e: React.MouseEvent) => {
@@ -36,7 +37,9 @@ export default function DressDetailsModal({
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white/95 dark:bg-stone-900/95 backdrop-blur-sm rounded-3xl shadow-2xl border border-stone-200/50 dark:border-stone-700/50 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-gradient-to-r from-stone-200 via-pink-100/30 to-stone-200 dark:from-stone-800 dark:via-stone-700 dark:to-stone-800 px-6 py-5 border-b border-stone-200/50 dark:border-stone-700/50 flex items-center justify-between z-10">
-          <h2 className="font-serif text-2xl text-stone-800 dark:text-stone-100">{dress.name}</h2>
+          <h2 className="font-serif text-2xl text-stone-800 dark:text-stone-100">
+            {dress.name}
+          </h2>
           <button
             type="button"
             onClick={onClose}
@@ -98,51 +101,77 @@ export default function DressDetailsModal({
                     {dress.sizes[dress.sizes.length - 1]}
                   </p>
                 )}
-                {dress.price > 0 && (
-                  <p className="text-2xl font-serif text-stone-800 dark:text-stone-100 mt-2">
+                {dress.price !== null && dress.price !== undefined ? (
+                  <p className="text-2xl font-serif">
                     ${dress.price.toLocaleString()}
                   </p>
+                ) : (
+                  <p className="text-2xl font-serif">Custom</p>
                 )}
               </div>
 
-              {(dress.neckline || dress.silhouette || dress.fabric || dress.trainLength || dress.sleeveStyle) && (
-              <div className="space-y-4">
-                <h3 className="font-serif text-lg text-stone-800 dark:text-stone-100">
-                  Dress Details
-                </h3>
-                <div className="grid grid-cols-2 gap-4">
-                  {dress.neckline && (
-                    <div className="space-y-1">
-                      <p className="text-xs text-stone-500 dark:text-stone-400">Neckline</p>
-                      <p className="text-sm text-stone-800 dark:text-stone-200">{dress.neckline}</p>
-                    </div>
-                  )}
-                  {dress.silhouette && (
-                    <div className="space-y-1">
-                      <p className="text-xs text-stone-500 dark:text-stone-400">Silhouette</p>
-                      <p className="text-sm text-stone-800 dark:text-stone-200">{dress.silhouette}</p>
-                    </div>
-                  )}
-                  {dress.fabric && (
-                    <div className="space-y-1">
-                      <p className="text-xs text-stone-500 dark:text-stone-400">Fabric</p>
-                      <p className="text-sm text-stone-800 dark:text-stone-200">{dress.fabric}</p>
-                    </div>
-                  )}
-                  {dress.trainLength && (
-                    <div className="space-y-1">
-                      <p className="text-xs text-stone-500 dark:text-stone-400">Train Length</p>
-                      <p className="text-sm text-stone-800 dark:text-stone-200">{dress.trainLength}</p>
-                    </div>
-                  )}
-                  {dress.sleeveStyle && (
-                    <div className="space-y-1">
-                      <p className="text-xs text-stone-500 dark:text-stone-400">Sleeve Style</p>
-                      <p className="text-sm text-stone-800 dark:text-stone-200">{dress.sleeveStyle}</p>
-                    </div>
-                  )}
+              {(dress.neckline ||
+                dress.silhouette ||
+                dress.fabric ||
+                dress.trainLength ||
+                dress.sleeveStyle) && (
+                <div className="space-y-4">
+                  <h3 className="font-serif text-lg text-stone-800 dark:text-stone-100">
+                    Dress Details
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {dress.neckline && (
+                      <div className="space-y-1">
+                        <p className="text-xs text-stone-500 dark:text-stone-400">
+                          Neckline
+                        </p>
+                        <p className="text-sm text-stone-800 dark:text-stone-200">
+                          {dress.neckline}
+                        </p>
+                      </div>
+                    )}
+                    {dress.silhouette && (
+                      <div className="space-y-1">
+                        <p className="text-xs text-stone-500 dark:text-stone-400">
+                          Silhouette
+                        </p>
+                        <p className="text-sm text-stone-800 dark:text-stone-200">
+                          {dress.silhouette}
+                        </p>
+                      </div>
+                    )}
+                    {dress.fabric && (
+                      <div className="space-y-1">
+                        <p className="text-xs text-stone-500 dark:text-stone-400">
+                          Fabric
+                        </p>
+                        <p className="text-sm text-stone-800 dark:text-stone-200">
+                          {dress.fabric}
+                        </p>
+                      </div>
+                    )}
+                    {dress.trainLength && (
+                      <div className="space-y-1">
+                        <p className="text-xs text-stone-500 dark:text-stone-400">
+                          Train Length
+                        </p>
+                        <p className="text-sm text-stone-800 dark:text-stone-200">
+                          {dress.trainLength}
+                        </p>
+                      </div>
+                    )}
+                    {dress.sleeveStyle && (
+                      <div className="space-y-1">
+                        <p className="text-xs text-stone-500 dark:text-stone-400">
+                          Sleeve Style
+                        </p>
+                        <p className="text-sm text-stone-800 dark:text-stone-200">
+                          {dress.sleeveStyle}
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
               )}
 
               <div className="pt-6 space-y-3">
