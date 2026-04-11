@@ -89,7 +89,10 @@ export default function CursorTrail() {
             }
         };
 
+        const lastTouchEnd = { t: 0 };
+
         const onMouseMove = (e: MouseEvent) => {
+            if (Date.now() - lastTouchEnd.t < 600) return;
             mouse.current = { x: e.clientX, y: e.clientY };
             setPos({ x: e.clientX, y: e.clientY });
             setVisible(true);
@@ -116,6 +119,7 @@ export default function CursorTrail() {
         };
 
         const onTouchEnd = () => {
+            lastTouchEnd.t = Date.now();
             mouse.current = { x: -100, y: -100 };
             ring.current = { x: -100, y: -100 };
             points.current = [];
