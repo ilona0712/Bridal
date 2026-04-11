@@ -1,9 +1,93 @@
-import { useState } from "react"
-import { Save, RefreshCw, Eye, Image, Type, AlignLeft, SlidersHorizontal } from "lucide-react"
+import { useRef, useState } from "react"
+import { Save, RefreshCw, Eye, Image, Type, AlignLeft, SlidersHorizontal, Upload, X } from "lucide-react"
 import { supabase } from "../../../lib/supabase"
 import { useSiteSettings, DEFAULTS } from "../../hooks/useSiteSettings"
 import type { SiteSettings } from "../../hooks/useSiteSettings"
 
+// ── Reusable image upload field ──────────────────────────────────────────────
+function ImageUploadField({
+  value,
+  onChange,
+  storagePath,
+  previewClass,
+  hint,
+}: {
+  value: string
+  onChange: (url: string) => void
+  storagePath: string
+  previewClass: string
+  hint: string
+}) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setError(null)
+    setUploading(true)
+
+    const ext = file.name.split(".").pop()
+    const fileName = `${storagePath}-${Date.now()}.${ext}`
+
+    const { data, error: uploadError } = await supabase.storage
+      .from("dresses")
+      .upload(`site/${fileName}`, file, { upsert: true, contentType: file.type })
+
+    if (uploadError) {
+      setError(uploadError.message)
+      setUploading(false)
+      return
+    }
+
+    const { data: urlData } = supabase.storage
+      .from("dresses")
+      .getPublicUrl(data.path)
+
+    onChange(urlData.publicUrl)
+    setUploading(false)
+    if (inputRef.current) inputRef.current.value = ""
+  }
+
+  return (
+    <div className="space-y-3">
+      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+
+      {value ? (
+        <div className="relative inline-block">
+          <img src={value} alt="preview" className={previewClass} />
+          <button
+            type="button"
+            onClick={() => onChange("")}
+            className="absolute -top-2 -right-2 w-6 h-6 bg-stone-800 rounded-full flex items-center justify-center hover:bg-stone-700 transition"
+          >
+            <X className="w-3 h-3 text-white" />
+          </button>
+        </div>
+      ) : (
+        <div className="w-full h-32 border-2 border-dashed border-stone-300 dark:border-stone-600 rounded-xl flex items-center justify-center text-stone-400 dark:text-stone-500 text-sm">
+          No image uploaded
+        </div>
+      )}
+
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        disabled={uploading}
+        className="flex items-center gap-2 px-4 py-2 border border-stone-200 dark:border-stone-600 rounded-xl text-sm text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700 transition disabled:opacity-50"
+      >
+        <Upload className="w-4 h-4" />
+        {uploading ? "Uploading…" : "Upload Image"}
+      </button>
+
+      {error && <p className="text-xs text-red-500">{error}</p>}
+      {hint && <p className="text-xs text-stone-400 dark:text-stone-500">{hint}</p>}
+    </div>
+  )
+}
+
+// ── Main tab ─────────────────────────────────────────────────────────────────
 export default function AdminSiteSettingsTab() {
   const { settings, loading, invalidateCache } = useSiteSettings()
   const [form,    setForm]    = useState<SiteSettings | null>(null)
@@ -49,7 +133,7 @@ export default function AdminSiteSettingsTab() {
 
   if (loading) return (
     <div className="bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-3xl p-12 text-center border border-stone-200/50 dark:border-stone-700/50">
-      <p className="text-stone-500 dark:text-stone-400">Loading settings...</p>
+      <p className="text-stone-500 dark:text-stone-400">Loading settings…</p>
     </div>
   )
 
@@ -79,7 +163,7 @@ export default function AdminSiteSettingsTab() {
             <button onClick={handleSave} disabled={saving || !form}
               className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 text-stone-700 rounded-xl hover:shadow-lg transition-all text-sm disabled:opacity-50">
               <Save className="w-4 h-4" />
-              {saving ? "Saving..." : saved ? "✓ Saved!" : "Save Changes"}
+              {saving ? "Saving…" : saved ? "✓ Saved!" : "Save Changes"}
             </button>
           </div>
         </div>
@@ -109,32 +193,15 @@ export default function AdminSiteSettingsTab() {
               <p className="text-xs text-stone-400 dark:text-stone-500">Small text under the logo name</p>
             </div>
             <div className="space-y-2">
-  <label className="text-sm text-stone-600 dark:text-stone-300">Logo Image URL</label>
-  <input
-    type="text"
-    value={current.logo_image_url}
-    onChange={(e) => handleChange("logo_image_url", e.target.value)}
-    placeholder="https://your-logo-image.com/logo.png"
-    className="w-full px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 text-stone-800 dark:text-stone-100"
-  />
-  <p className="text-xs text-stone-400 dark:text-stone-500">
-    Paste a URL for your logo image. Leave empty to use the default icon.
-  </p>
-  {/* Preview */}
-  {current.logo_image_url && (
-    <div className="flex items-center gap-3 mt-2">
-      <div className="w-10 h-10 rounded-full overflow-hidden border border-stone-200 dark:border-stone-600 bg-stone-50 dark:bg-stone-700">
-        <img
-          src={current.logo_image_url}
-          alt="Logo preview"
-          className="w-full h-full object-cover"
-          onError={(e) => { (e.target as HTMLImageElement).style.display = "none" }}
-        />
-      </div>
-      <span className="text-xs text-stone-500 dark:text-stone-400">Logo preview</span>
-    </div>
-  )}
-</div>
+              <label className="text-sm text-stone-600 dark:text-stone-300">Logo Image</label>
+              <ImageUploadField
+                value={current.logo_image_url}
+                onChange={(url) => handleChange("logo_image_url", url)}
+                storagePath="logo"
+                previewClass="w-16 h-16 rounded-full object-cover border border-stone-200 dark:border-stone-600"
+                hint="Displayed as a circular avatar in the navigation bar"
+              />
+            </div>
           </div>
 
           {/* Hero Content */}
@@ -176,30 +243,13 @@ export default function AdminSiteSettingsTab() {
             <Image className="w-5 h-5 text-stone-400" />
             <h3 className="font-medium text-stone-700 dark:text-stone-300">Hero Image</h3>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-            <div className="space-y-2">
-              <label className="text-sm text-stone-600 dark:text-stone-300">Image URL</label>
-              <input type="text" value={current.hero_image_url}
-                onChange={(e) => handleChange("hero_image_url", e.target.value)}
-                placeholder="https://images.unsplash.com/..."
-                className="w-full px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 text-stone-800 dark:text-stone-100" />
-              <p className="text-xs text-stone-400 dark:text-stone-500">Paste any image URL — Unsplash, your own hosted image, etc.</p>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm text-stone-600 dark:text-stone-300">Preview</label>
-              <div className="aspect-[4/3] rounded-xl overflow-hidden border border-stone-200 dark:border-stone-600 bg-stone-50 dark:bg-stone-700">
-                {current.hero_image_url ? (
-                  <img src={current.hero_image_url} alt="Hero preview"
-                    className="w-full h-full object-cover"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none" }} />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-stone-400 dark:text-stone-500 text-sm">
-                    No image URL provided
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+          <ImageUploadField
+            value={current.hero_image_url}
+            onChange={(url) => handleChange("hero_image_url", url)}
+            storagePath="hero"
+            previewClass="w-full aspect-[4/3] rounded-xl object-cover border border-stone-200 dark:border-stone-600"
+            hint="Large background image shown on the homepage hero section"
+          />
         </div>
 
         {/* Price Filter */}
@@ -214,33 +264,24 @@ export default function AdminSiteSettingsTab() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-2">
               <label className="text-sm text-stone-600 dark:text-stone-300">Min Price ($)</label>
-              <input
-                type="number"
-                value={current.price_filter_min}
+              <input type="number" value={current.price_filter_min}
                 onChange={(e) => handleChange("price_filter_min", e.target.value)}
                 placeholder="0"
-                className="w-full px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 text-stone-800 dark:text-stone-100"
-              />
+                className="w-full px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 text-stone-800 dark:text-stone-100" />
             </div>
             <div className="space-y-2">
               <label className="text-sm text-stone-600 dark:text-stone-300">Max Price ($)</label>
-              <input
-                type="number"
-                value={current.price_filter_max}
+              <input type="number" value={current.price_filter_max}
                 onChange={(e) => handleChange("price_filter_max", e.target.value)}
                 placeholder="2000"
-                className="w-full px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 text-stone-800 dark:text-stone-100"
-              />
+                className="w-full px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 text-stone-800 dark:text-stone-100" />
             </div>
             <div className="space-y-2">
               <label className="text-sm text-stone-600 dark:text-stone-300">Step ($)</label>
-              <input
-                type="number"
-                value={current.price_filter_step}
+              <input type="number" value={current.price_filter_step}
                 onChange={(e) => handleChange("price_filter_step", e.target.value)}
                 placeholder="100"
-                className="w-full px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 text-stone-800 dark:text-stone-100"
-              />
+                className="w-full px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 text-stone-800 dark:text-stone-100" />
             </div>
           </div>
         </div>
@@ -255,12 +296,12 @@ export default function AdminSiteSettingsTab() {
           <div className="border border-stone-200 dark:border-stone-700 rounded-2xl overflow-hidden">
             <div className="bg-white/80 dark:bg-stone-800/80 border-b border-stone-200/50 dark:border-stone-700/50 px-6 py-3 flex items-center gap-3">
               <div className="w-8 h-8 bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 rounded-full overflow-hidden flex items-center justify-center">
-  {current.logo_image_url ? (
-    <img src={current.logo_image_url} alt="Logo" className="w-full h-full object-cover" />
-  ) : (
-    <span className="text-xs">✦</span>
-  )}
-</div>
+                {current.logo_image_url ? (
+                  <img src={current.logo_image_url} alt="Logo" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-xs">✦</span>
+                )}
+              </div>
               <div>
                 <div className="font-serif text-sm text-stone-800 dark:text-stone-100">{current.logo_text}</div>
                 <div className="text-xs text-stone-500 dark:text-stone-400">{current.logo_tagline}</div>

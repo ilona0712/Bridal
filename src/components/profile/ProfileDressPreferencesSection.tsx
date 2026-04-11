@@ -37,9 +37,6 @@ export default function ProfileDressPreferencesSection({
         ) : (
           <div className="px-4 py-3 bg-gradient-to-r from-pink-50/50 via-stone-50/50 to-pink-50/50 dark:from-pink-900/20 dark:via-stone-800/50 dark:to-pink-900/20 border border-pink-200/50 dark:border-stone-600/50 rounded-xl">
             <p className="text-stone-800 dark:text-stone-100">Size {dressSize}</p>
-            <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">
-              This size will be used to filter dresses in the gallery
-            </p>
           </div>
         )}
       </div>
