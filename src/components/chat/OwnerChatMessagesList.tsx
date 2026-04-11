@@ -12,6 +12,45 @@ type OwnerChatMessagesListProps = {
   headerOverlay?: React.ReactNode;
 };
 
+type DisplayItem =
+  | { kind: "single"; message: ChatMessage }
+  | { kind: "album"; messages: ChatMessage[] };
+
+function groupMessages(messages: ChatMessage[]): DisplayItem[] {
+  const items: DisplayItem[] = [];
+  let i = 0;
+  while (i < messages.length) {
+    const msg = messages[i];
+    const isImg = msg.attachment_type === "image" && !!msg.attachment_url;
+
+    if (!isImg) {
+      items.push({ kind: "single", message: msg });
+      i++;
+      continue;
+    }
+
+    // collect consecutive images from same sender within 60 seconds
+    const group: ChatMessage[] = [msg];
+    let j = i + 1;
+    while (j < messages.length) {
+      const next = messages[j];
+      if (next.attachment_type !== "image" || !next.attachment_url) break;
+      if (next.sender_type !== msg.sender_type) break;
+      const dt = Math.abs(
+        new Date(next.created_at).getTime() -
+          new Date(group[group.length - 1].created_at).getTime(),
+      );
+      if (dt > 60000) break;
+      group.push(next);
+      j++;
+    }
+
+    items.push(group.length >= 2 ? { kind: "album", messages: group } : { kind: "single", message: msg });
+    i = j;
+  }
+  return items;
+}
+
 export default function OwnerChatMessagesList({
   messages,
   role,
@@ -26,20 +65,34 @@ export default function OwnerChatMessagesList({
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const displayItems = groupMessages(messages);
+
   return (
     <div className="relative flex-1 min-h-0">
-      {/* scrollable messages — pt-16 keeps first message below the overlay */}
+      {/* scrollable messages */}
       <div className="absolute inset-0 overflow-y-auto pt-16 p-6 space-y-4 bg-stone-50/30 dark:bg-stone-900/30">
-        {messages.map((message) => (
-          <OwnerChatMessageBubble
-            key={message.id}
-            message={message}
-            role={role}
-            myAvatarUrl={myAvatarUrl}
-            otherAvatarUrl={otherAvatarUrl}
-            onViewProfile={onViewProfile}
-          />
-        ))}
+        {displayItems.map((item) =>
+          item.kind === "album" ? (
+            <OwnerChatMessageBubble
+              key={item.messages[0].id}
+              message={item.messages[item.messages.length - 1]}
+              albumUrls={item.messages.map((m) => m.attachment_url!)}
+              role={role}
+              myAvatarUrl={myAvatarUrl}
+              otherAvatarUrl={otherAvatarUrl}
+              onViewProfile={onViewProfile}
+            />
+          ) : (
+            <OwnerChatMessageBubble
+              key={item.message.id}
+              message={item.message}
+              role={role}
+              myAvatarUrl={myAvatarUrl}
+              otherAvatarUrl={otherAvatarUrl}
+              onViewProfile={onViewProfile}
+            />
+          ),
+        )}
         <div ref={bottomRef} />
       </div>
 
@@ -54,11 +107,9 @@ export default function OwnerChatMessagesList({
         }}
       />
 
-      {/* name/avatar — above the blur */}
+      {/* name/avatar overlay — above the blur */}
       {headerOverlay && (
-        <div className="absolute top-0 left-0 right-0 z-20">
-          {headerOverlay}
-        </div>
+        <div className="absolute top-0 left-0 right-0 z-20">{headerOverlay}</div>
       )}
     </div>
   );

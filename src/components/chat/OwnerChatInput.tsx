@@ -28,32 +28,32 @@ export default function OwnerChatInput({
   recordingStream,
 }: OwnerChatInputProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [previewFile, setPreviewFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewFiles, setPreviewFiles] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [showCamera, setShowCamera] = useState(false);
   const [showAttachMenu, setShowAttachMenu] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setPreviewFile(file);
-    setPreviewUrl(URL.createObjectURL(file));
-  };
-
-  const handleSendImage = () => {
-    if (!previewFile) return;
-    onSendImage(previewFile);
-    setPreviewFile(null);
-    setPreviewUrl(null);
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
+    setPreviewFiles((prev) => [...prev, ...files]);
+    setPreviewUrls((prev) => [...prev, ...files.map((f) => URL.createObjectURL(f))]);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleCancelPreview = () => {
-    setPreviewFile(null);
-    setPreviewUrl(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+  const handleSendImages = () => {
+    previewFiles.forEach((f) => onSendImage(f));
+    previewUrls.forEach((url) => URL.revokeObjectURL(url));
+    setPreviewFiles([]);
+    setPreviewUrls([]);
+  };
+
+  const handleRemovePreview = (index: number) => {
+    URL.revokeObjectURL(previewUrls[index]);
+    setPreviewFiles((prev) => prev.filter((_, i) => i !== index));
+    setPreviewUrls((prev) => prev.filter((_, i) => i !== index));
   };
 
   const openCamera = async () => {
@@ -88,8 +88,9 @@ export default function OwnerChatInput({
     canvas.toBlob((blob) => {
       if (!blob) return;
       const file = new File([blob], `photo-${Date.now()}.jpg`, { type: "image/jpeg" });
-      setPreviewFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
+      const url = URL.createObjectURL(file);
+      setPreviewFiles((prev) => [...prev, file]);
+      setPreviewUrls((prev) => [...prev, url]);
       closeCamera();
     }, "image/jpeg");
   };
@@ -101,26 +102,14 @@ export default function OwnerChatInput({
       {showCamera && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center">
           <div className="bg-white rounded-2xl overflow-hidden shadow-2xl p-4 space-y-3 w-full max-w-md mx-4">
-            <video
-              ref={videoRef}
-              className="w-full rounded-xl"
-              autoPlay
-              playsInline
-              muted
-            />
+            <video ref={videoRef} className="w-full rounded-xl" autoPlay playsInline muted />
             <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={capturePhoto}
-                className="flex-1 py-3 bg-stone-800 text-white rounded-xl text-sm font-medium hover:bg-stone-700 transition-all"
-              >
+              <button type="button" onClick={capturePhoto}
+                className="flex-1 py-3 bg-stone-800 text-white rounded-xl text-sm font-medium hover:bg-stone-700 transition-all">
                 📸 Capture
               </button>
-              <button
-                type="button"
-                onClick={closeCamera}
-                className="flex-1 py-3 bg-stone-100 text-stone-700 rounded-xl text-sm font-medium hover:bg-stone-200 transition-all"
-              >
+              <button type="button" onClick={closeCamera}
+                className="flex-1 py-3 bg-stone-100 text-stone-700 rounded-xl text-sm font-medium hover:bg-stone-200 transition-all">
                 Cancel
               </button>
             </div>
@@ -128,21 +117,19 @@ export default function OwnerChatInput({
         </div>
       )}
 
-      {/* Image preview */}
-      {previewUrl && (
-        <div className="mb-3 relative w-24 sm:w-32">
-          <img
-            src={previewUrl}
-            alt="preview"
-            className="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-xl border border-stone-200"
-          />
-          <button
-            type="button"
-            onClick={handleCancelPreview}
-            className="absolute -top-2 -right-2 w-6 h-6 bg-stone-800 rounded-full flex items-center justify-center"
-          >
-            <X className="w-3 h-3 text-white" />
-          </button>
+      {/* Image previews */}
+      {previewUrls.length > 0 && (
+        <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
+          {previewUrls.map((url, i) => (
+            <div key={i} className="relative flex-shrink-0">
+              <img src={url} alt={`preview ${i + 1}`}
+                className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-xl border border-stone-200 dark:border-stone-600" />
+              <button type="button" onClick={() => handleRemovePreview(i)}
+                className="absolute -top-2 -right-2 w-5 h-5 bg-stone-800 rounded-full flex items-center justify-center">
+                <X className="w-3 h-3 text-white" />
+              </button>
+            </div>
+          ))}
         </div>
       )}
 
@@ -150,44 +137,29 @@ export default function OwnerChatInput({
 
         {/* Mobile: single + button with popup */}
         <div className="relative sm:hidden flex-shrink-0">
-          <button
-            type="button"
-            onClick={() => setShowAttachMenu((v) => !v)}
+          <button type="button" onClick={() => setShowAttachMenu((v) => !v)}
             className="w-10 h-10 bg-white/90 dark:bg-stone-700/90 border border-stone-200 dark:border-stone-600 rounded-full flex items-center justify-center hover:shadow-lg transition-all"
-            aria-label="More options"
-          >
+            aria-label="More options">
             <Plus className="w-4 h-4 text-stone-700 dark:text-stone-300" />
           </button>
 
           {showAttachMenu && (
             <>
-              <div
-                className="fixed inset-0 z-10"
-                onClick={() => setShowAttachMenu(false)}
-              />
+              <div className="fixed inset-0 z-10" onClick={() => setShowAttachMenu(false)} />
               <div className="absolute bottom-full left-0 mb-2 z-20 flex gap-2 bg-white/95 dark:bg-stone-800/95 border border-stone-200 dark:border-stone-700 rounded-2xl p-2 shadow-xl">
-                <button
-                  type="button"
-                  onClick={() => { onToggleEmoji(); setShowAttachMenu(false); }}
+                <button type="button" onClick={() => { onToggleEmoji(); setShowAttachMenu(false); }}
                   className="w-10 h-10 bg-stone-50 dark:bg-stone-700 border border-stone-200 dark:border-stone-600 rounded-full flex items-center justify-center hover:bg-stone-100 dark:hover:bg-stone-600 transition-all"
-                  aria-label="Open emoji picker"
-                >
+                  aria-label="Open emoji picker">
                   <Smile className="w-4 h-4 text-stone-700 dark:text-stone-300" />
                 </button>
-                <button
-                  type="button"
-                  onClick={() => { fileInputRef.current?.click(); setShowAttachMenu(false); }}
+                <button type="button" onClick={() => { fileInputRef.current?.click(); setShowAttachMenu(false); }}
                   className="w-10 h-10 bg-stone-50 dark:bg-stone-700 border border-stone-200 dark:border-stone-600 rounded-full flex items-center justify-center hover:bg-stone-100 dark:hover:bg-stone-600 transition-all"
-                  aria-label="Attach image"
-                >
+                  aria-label="Attach images">
                   <Paperclip className="w-4 h-4 text-stone-700 dark:text-stone-300" />
                 </button>
-                <button
-                  type="button"
-                  onClick={() => { openCamera(); setShowAttachMenu(false); }}
+                <button type="button" onClick={() => { openCamera(); setShowAttachMenu(false); }}
                   className="w-10 h-10 bg-stone-50 dark:bg-stone-700 border border-stone-200 dark:border-stone-600 rounded-full flex items-center justify-center hover:bg-stone-100 dark:hover:bg-stone-600 transition-all"
-                  aria-label="Take photo"
-                >
+                  aria-label="Take photo">
                   <Camera className="w-4 h-4 text-stone-700 dark:text-stone-300" />
                 </button>
               </div>
@@ -196,87 +168,56 @@ export default function OwnerChatInput({
         </div>
 
         {/* Desktop: individual buttons */}
-        <button
-          type="button"
-          onClick={onToggleEmoji}
+        <button type="button" onClick={onToggleEmoji}
           className="hidden sm:flex w-12 h-12 bg-white/90 dark:bg-stone-700/90 border border-stone-200 dark:border-stone-600 rounded-full items-center justify-center hover:shadow-lg transition-all flex-shrink-0"
-          aria-label="Open emoji picker"
-        >
+          aria-label="Open emoji picker">
           <Smile className="w-5 h-5 text-stone-700 dark:text-stone-300" />
         </button>
 
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleFileChange}
-        />
+        <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileChange} />
 
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
+        <button type="button" onClick={() => fileInputRef.current?.click()}
           className="hidden sm:flex w-12 h-12 bg-white/90 dark:bg-stone-700/90 border border-stone-200 dark:border-stone-600 rounded-full items-center justify-center hover:shadow-lg transition-all flex-shrink-0"
-          aria-label="Attach image"
-        >
+          aria-label="Attach images">
           <Paperclip className="w-5 h-5 text-stone-700 dark:text-stone-300" />
         </button>
 
-        <button
-          type="button"
-          onClick={openCamera}
+        <button type="button" onClick={openCamera}
           className="hidden sm:flex w-12 h-12 bg-white/90 dark:bg-stone-700/90 border border-stone-200 dark:border-stone-600 rounded-full items-center justify-center hover:shadow-lg transition-all flex-shrink-0"
-          aria-label="Take photo"
-        >
+          aria-label="Take photo">
           <Camera className="w-5 h-5 text-stone-700 dark:text-stone-300" />
         </button>
 
         {!isRecording ? (
-          <textarea
-            value={inputValue}
-            onChange={(e) => onInputChange(e.target.value)}
-            onKeyDown={onKeyDown}
-            placeholder="Type your message..."
-            rows={1}
-            className="flex-1 min-w-0 bg-white/90 dark:bg-stone-700/90 border border-stone-200 dark:border-stone-600 rounded-2xl px-3 sm:px-5 py-3 sm:py-4 text-sm text-stone-800 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-amber-200/50 focus:border-amber-300/50 resize-none"
-          />
+          <textarea value={inputValue} onChange={(e) => onInputChange(e.target.value)}
+            onKeyDown={onKeyDown} placeholder="Type your message..." rows={1}
+            className="flex-1 min-w-0 bg-white/90 dark:bg-stone-700/90 border border-stone-200 dark:border-stone-600 rounded-2xl px-3 sm:px-5 py-3 sm:py-4 text-sm text-stone-800 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-amber-200/50 focus:border-amber-300/50 resize-none" />
         ) : (
           <div className="flex-1 min-w-0 h-[48px] sm:h-[56px] bg-white/90 dark:bg-stone-700/90 border border-stone-200 dark:border-stone-600 rounded-2xl px-4 flex items-center gap-3">
-            <VoiceRecorderWaveform
-              stream={recordingStream}
-              isRecording={isRecording}
-            />
+            <VoiceRecorderWaveform stream={recordingStream} isRecording={isRecording} />
             <span className="text-sm text-stone-500 dark:text-stone-400">Recording...</span>
           </div>
         )}
 
         {!isRecording ? (
-          <button
-            type="button"
-            onClick={onStartRecording}
+          <button type="button" onClick={onStartRecording}
             className="w-10 h-10 sm:w-12 sm:h-12 bg-white/90 dark:bg-stone-700/90 border border-stone-200 dark:border-stone-600 rounded-full flex items-center justify-center hover:shadow-lg transition-all flex-shrink-0"
-            aria-label="Start recording"
-          >
+            aria-label="Start recording">
             <Mic className="w-4 h-4 sm:w-5 sm:h-5 text-stone-700 dark:text-stone-300" />
           </button>
         ) : (
-          <button
-            type="button"
-            onClick={onStopRecording}
+          <button type="button" onClick={onStopRecording}
             className="w-10 h-10 sm:w-12 sm:h-12 bg-red-50 border border-red-200 rounded-full flex items-center justify-center hover:shadow-lg transition-all flex-shrink-0"
-            aria-label="Stop recording"
-          >
+            aria-label="Stop recording">
             <Square className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
           </button>
         )}
 
         {!isRecording && (
-          <button
-            type="button"
-            onClick={previewFile ? handleSendImage : onSendMessage}
+          <button type="button"
+            onClick={previewFiles.length > 0 ? handleSendImages : onSendMessage}
             className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-amber-100/60 via-amber-50/40 to-amber-100/60 border border-amber-200/50 rounded-full flex items-center justify-center hover:shadow-lg transition-all flex-shrink-0"
-            aria-label="Send"
-          >
+            aria-label="Send">
             <Send className="w-4 h-4 sm:w-5 sm:h-5 text-stone-700 dark:text-stone-300" />
           </button>
         )}
@@ -287,9 +228,7 @@ export default function OwnerChatInput({
       </p>
 
       {isRecording && (
-        <p className="text-xs text-red-500 mt-2 text-center">
-          Recording voice message...
-        </p>
+        <p className="text-xs text-red-500 mt-2 text-center">Recording voice message...</p>
       )}
     </div>
   );
