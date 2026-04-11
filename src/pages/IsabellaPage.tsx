@@ -393,41 +393,27 @@ export default function IsabellaPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
+    <div className="h-screen flex flex-col bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
       <Header subtitle="Your Personal Bridal Consultant" />
 
-      <div className="container mx-auto px-6 py-8 max-w-7xl">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {dressFromGallery && (
-            <div className="hidden lg:block lg:col-span-1">
-              <DressSidebar />
-            </div>
-          )}
-
-          <div className={dressFromGallery ? "lg:col-span-2" : "lg:col-span-3"}>
-            <div className="bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-3xl shadow-2xl border border-stone-200/50 dark:border-stone-700/50 overflow-hidden flex flex-col">
-              {/* Chat Header */}
-              <div className="bg-gradient-to-r from-stone-200 via-pink-100/30 to-stone-200 dark:from-stone-700 dark:via-pink-900/20 dark:to-stone-700 px-6 py-5 border-b border-stone-200/50 dark:border-stone-700/50">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 bg-white/80 rounded-full flex items-center justify-center shadow-sm">
-                    <Sparkles className="w-7 h-7 text-stone-600" />
-                  </div>
-                  <div>
-                    <h2 className="font-serif text-2xl text-stone-800 dark:text-stone-100">
-                      MAI
-                    </h2>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-pink-400 rounded-full animate-pulse" />
-                      <span className="text-sm text-stone-600 dark:text-stone-300">
-                        Your bridal consultant
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
               {/* Messages */}
-              <div className="flex-1 h-[500px] overflow-y-auto p-6 space-y-5 bg-stone-50/30 dark:bg-stone-900/30">
+              <div className="relative flex-1 min-h-0">
+              {/* blur-fade overlay */}
+              <div
+                className="absolute top-0 left-0 right-0 h-20 pointer-events-none z-10"
+                style={{
+                  backdropFilter: "blur(10px)",
+                  WebkitBackdropFilter: "blur(10px)",
+                  maskImage: "linear-gradient(to bottom, black 40%, transparent 100%)",
+                  WebkitMaskImage: "linear-gradient(to bottom, black 40%, transparent 100%)",
+                }}
+              />
+              {/* MAI name — above the blur */}
+              <div className="absolute top-0 left-0 right-0 z-20 flex items-center gap-2 px-6 py-3">
+                <Sparkles className="w-4 h-4 text-stone-500 dark:text-stone-400" />
+                <span className="font-serif text-stone-700 dark:text-stone-200">MAI</span>
+              </div>
+              <div className="absolute inset-0 overflow-y-auto pt-16 p-6 space-y-5 bg-stone-50/30 dark:bg-stone-900/30">
                 {messages.map((message, index) => (
                   <div
                     key={index}
@@ -514,6 +500,7 @@ export default function IsabellaPage() {
                 ))}
                 <div ref={messagesEndRef} />
               </div>
+              </div>{/* end relative messages wrapper */}
 
               {/* Completion Panel */}
               {isComplete && (
@@ -570,10 +557,6 @@ export default function IsabellaPage() {
                   </p>
                 </div>
               )}
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

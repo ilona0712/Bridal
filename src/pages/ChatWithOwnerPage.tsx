@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import EmojiPicker from "emoji-picker-react";
+import { ArrowLeft, User } from "lucide-react";
 import Header from "../components/common/Header";
-import OwnerChatHeader from "../components/chat/OwnerChatHeader";
 import OwnerChatMessagesList from "../components/chat/OwnerChatMessagesList";
 import OwnerChatInput from "../components/chat/OwnerChatInput";
 import CustomerProfilePanel from "../components/chat/CustomerProfilePanel";
@@ -316,45 +316,61 @@ const mediaRecorder = new MediaRecorder(stream, { mimeType });
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
+    <div className="h-screen flex flex-col bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
       <Header subtitle={role === "admin" ? "Client Conversation" : "Chat with Us"} />
-      <div className="container mx-auto px-6 py-8 max-w-5xl">
-        <div className="bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-3xl shadow-2xl border border-stone-200/50 dark:border-stone-700/50 overflow-hidden">
-          <OwnerChatHeader
-            clientName={role === "admin" ? stateClientName : "Bride Me Up"}
-            profileImageUrl={otherAvatarUrl}
-            onBack={() => navigate(role === "admin" ? "/clients-chats" : "/")}
-            onViewProfile={role === "admin" && stateCustomerId ? () => setShowProfile(true) : undefined}
-          />
-
-          <OwnerChatMessagesList
-  messages={messages}
-  currentUserId={session?.user?.id ?? ""}
-  role={role}
-  myAvatarUrl={myAvatarUrl}
-  otherAvatarUrl={otherAvatarUrl}
-  onViewProfile={role === "admin" && stateCustomerId ? () => setShowProfile(true) : undefined}
-/>
-          <div className="relative" ref={emojiButtonAreaRef}>
-            {showEmojiPicker && (
-              <div ref={emojiPickerRef} className="absolute bottom-20 left-4 z-20 shadow-xl">
-                <EmojiPicker onEmojiClick={handleEmojiClick} />
+      <OwnerChatMessagesList
+        messages={messages}
+        currentUserId={session?.user?.id ?? ""}
+        role={role}
+        myAvatarUrl={myAvatarUrl}
+        otherAvatarUrl={otherAvatarUrl}
+        onViewProfile={role === "admin" && stateCustomerId ? () => setShowProfile(true) : undefined}
+        headerOverlay={
+          <div className="flex items-center gap-3 px-4 py-3">
+            <button
+              onClick={() => navigate(role === "admin" ? "/clients-chats" : "/")}
+              className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-white/20 dark:hover:bg-stone-800/30 transition"
+            >
+              <ArrowLeft className="h-4 w-4 text-stone-600 dark:text-stone-300" />
+            </button>
+            <button
+              type="button"
+              onClick={role === "admin" && stateCustomerId ? () => setShowProfile(true) : undefined}
+              disabled={!(role === "admin" && stateCustomerId)}
+              className="flex items-center gap-2 disabled:cursor-default group"
+            >
+              <div className="w-8 h-8 rounded-full overflow-hidden bg-stone-200/80 dark:bg-stone-700/80 flex-shrink-0 flex items-center justify-center">
+                {otherAvatarUrl ? (
+                  <img src={otherAvatarUrl} alt={role === "admin" ? stateClientName : "Bride Me Up"} className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-4 h-4 text-stone-500 dark:text-stone-400" />
+                )}
               </div>
-            )}
-            <OwnerChatInput
-              inputValue={inputValue}
-              onInputChange={setInputValue}
-              onSendMessage={handleSendMessage}
-              onKeyDown={handleKeyDown}
-              onToggleEmoji={() => setShowEmojiPicker((prev) => !prev)}
-              onStartRecording={handleStartRecording}
-              onStopRecording={handleStopRecording}
-              onSendImage={handleSendImage}
-              isRecording={isRecording}
-              recordingStream={recordingStream}
-            />
+              <span className="font-serif text-stone-800 dark:text-stone-100 text-base">
+                {role === "admin" ? stateClientName : "Bride Me Up"}
+              </span>
+            </button>
           </div>
-        </div>
+        }
+      />
+      <div className="relative" ref={emojiButtonAreaRef}>
+        {showEmojiPicker && (
+          <div ref={emojiPickerRef} className="absolute bottom-20 left-4 z-20 shadow-xl">
+            <EmojiPicker onEmojiClick={handleEmojiClick} />
+          </div>
+        )}
+        <OwnerChatInput
+          inputValue={inputValue}
+          onInputChange={setInputValue}
+          onSendMessage={handleSendMessage}
+          onKeyDown={handleKeyDown}
+          onToggleEmoji={() => setShowEmojiPicker((prev) => !prev)}
+          onStartRecording={handleStartRecording}
+          onStopRecording={handleStopRecording}
+          onSendImage={handleSendImage}
+          isRecording={isRecording}
+          recordingStream={recordingStream}
+        />
       </div>
 
       {showProfile && stateCustomerId && (
