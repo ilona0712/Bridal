@@ -102,11 +102,11 @@ export default function DressDetailsModal({
                   </p>
                 )}
                 {dress.price !== null && dress.price !== undefined ? (
-                  <p className="text-2xl font-serif">
+                  <p className="text-2xl font-serif text-stone-800 dark:text-stone-100">
                     ${dress.price.toLocaleString()}
                   </p>
                 ) : (
-                  <p className="text-2xl font-serif">Custom</p>
+                  <p className="text-2xl font-serif text-stone-800 dark:text-stone-100">Custom</p>
                 )}
               </div>
 
