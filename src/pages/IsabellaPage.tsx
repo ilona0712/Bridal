@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Sparkles, Check, ChevronRight } from "lucide-react";
 import Header from "../components/common/Header";
-import { ImageWithFallback } from "../assets/ImageWithFallback";
 import { supabase } from "../../lib/supabase";
 import { useSession } from "../routes";
 
@@ -324,72 +323,6 @@ export default function IsabellaPage() {
     } finally {
       setIsSending(false);
     }
-  };
-
-  const DressSidebar = () => {
-    if (!dressFromGallery) return null;
-    return (
-      <div className="lg:sticky lg:top-24 space-y-4">
-        <div className="bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 dark:border-stone-700/50 overflow-hidden">
-          <div className="bg-gradient-to-r from-stone-200 via-pink-100/30 to-stone-200 dark:from-stone-700 dark:via-pink-900/20 dark:to-stone-700 px-5 py-4 border-b border-stone-200/50 dark:border-stone-700/50">
-            <h3 className="font-serif text-lg text-stone-800 dark:text-stone-100">
-              Base Dress
-            </h3>
-            <p className="text-xs text-stone-500 dark:text-stone-400">
-              {dressFromGallery.collection}
-            </p>
-          </div>
-          <div className="p-5 space-y-4">
-            <div className="relative aspect-[3/4] rounded-2xl overflow-hidden">
-              <ImageWithFallback
-                src={dressFromGallery.image}
-                alt={dressFromGallery.name}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute top-3 left-3 px-3 py-1 bg-stone-800/70 backdrop-blur-sm rounded-full">
-                <span className="text-xs text-white">
-                  {dressFromGallery.collection}
-                </span>
-              </div>
-            </div>
-            <div className="space-y-2">
-              {[
-                ["Neckline", dressFromGallery.neckline],
-                ["Silhouette", dressFromGallery.silhouette],
-                ["Fabric", dressFromGallery.fabric],
-                ["Train", dressFromGallery.trainLength],
-                ["Sleeves", dressFromGallery.sleeveStyle],
-                [
-                  "Sizes",
-                  `${dressFromGallery.sizes[0]}–${dressFromGallery.sizes[dressFromGallery.sizes.length - 1]}`,
-                ],
-              ].map(([label, value]) => (
-                <p
-                  key={label}
-                  className="text-sm text-stone-700 dark:text-stone-200"
-                >
-                  <span className="text-stone-500 dark:text-stone-400">
-                    {label}:
-                  </span>{" "}
-                  {value}
-                </p>
-              ))}
-            </div>
-            <div className="flex items-center justify-between pt-2 border-t border-stone-200/50 dark:border-stone-700/50">
-              <p className="font-medium text-stone-800 dark:text-stone-100">
-                ${dressFromGallery.price.toLocaleString()}
-              </p>
-              <Link
-                to="/gallery"
-                className="text-xs text-stone-600 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200 underline underline-offset-4"
-              >
-                Change dress
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
   };
 
   return (

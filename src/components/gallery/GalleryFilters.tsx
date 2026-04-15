@@ -31,7 +31,6 @@ type GalleryFiltersProps = {
   maxPrice: number | null;
   onMinPriceChange: (value: number | null) => void;
   onMaxPriceChange: (value: number | null) => void;
-  onApplyPriceFilter: () => void;
   priceFilterMin: number;
   priceFilterMax: number;
   priceFilterStep: number;
@@ -72,7 +71,6 @@ export default function GalleryFilters({
   maxPrice,
   onMinPriceChange,
   onMaxPriceChange,
-  onApplyPriceFilter,
   priceFilterMin,
   priceFilterMax,
   priceFilterStep,

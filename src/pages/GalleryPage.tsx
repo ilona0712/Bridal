@@ -64,12 +64,7 @@ export default function GalleryPage() {
   const [maxPrice, setMaxPrice] = useState<number | null>(null);
   const [selectedDress, setSelectedDress] = useState<Dress | null>(null);
   const [rentDress, setRentDress] = useState<Dress | null>(null);
-  const [draftMinPrice, setDraftMinPrice] = useState<number | null>(null);
-  const [draftMaxPrice, setDraftMaxPrice] = useState<number | null>(null);
-  const applyPriceFilter = () => {
-    setMinPrice(draftMinPrice);
-    setMaxPrice(draftMaxPrice);
-  };
+
   const [contextMenu, setContextMenu] = useState<{
     visible: boolean;
     x: number;
@@ -187,8 +182,6 @@ export default function GalleryPage() {
     setShowFavoritesOnly(false);
     setMinPrice(null);
     setMaxPrice(null);
-    setDraftMinPrice(null);
-    setDraftMaxPrice(null);
   };
 
   const handleClickOutside = () =>
@@ -261,7 +254,6 @@ export default function GalleryPage() {
             maxPrice={maxPrice}
             onMinPriceChange={setMinPrice}
             onMaxPriceChange={setMaxPrice}
-            onApplyPriceFilter={() => {}}
             priceFilterMin={priceFilterMin}
             priceFilterMax={priceFilterMax}
             priceFilterStep={priceFilterStep}

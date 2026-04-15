@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(npx supabase:*)",
-      "Bash(find /Users/hady/Documents/uni/mdp/bridemeup/supabase -type f -name *.sql)"
+      "Bash(find /Users/hady/Documents/uni/mdp/bridemeup/supabase -type f -name *.sql)",
+      "Bash(npm run:*)"
     ]
   }
 }

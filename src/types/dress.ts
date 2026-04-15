@@ -2,7 +2,7 @@ export interface Dress {
   id: string;
   name: string;
   collections: string[];
-  dress.price = number | null | undefined
+  price: number | null | undefined;
   image: string;
   images: string[];
   sizes: number[];
