@@ -3,7 +3,6 @@ import { supabase } from "../../lib/supabase"
 
 export interface SiteSettings {
   logo_text:         string
-  logo_tagline:      string
   logo_image_url:    string
   hero_image_url:    string
   hero_title:        string
@@ -16,7 +15,6 @@ export interface SiteSettings {
 
 export const DEFAULTS: SiteSettings = {
   logo_text:         "Bride Me Up",
-  logo_tagline:      "Your Dream Dress Awaits",
   logo_image_url:    "",
   hero_image_url:    "https://images.unsplash.com/photo-1761671613669-3b17b4a71bb9?auto=format&fit=crop&w=1080&q=80",
   hero_title:        "Find Your Perfect Dress",
