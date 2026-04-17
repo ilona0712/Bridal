@@ -1,23 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Sparkles, Check, ChevronRight } from "lucide-react";
+import { Check, ChevronRight, Sparkles } from "lucide-react";
 import Header from "../components/common/Header";
 import { supabase } from "../../lib/supabase";
 import { useSession } from "../routes";
-
-interface DressData {
-  id: number;
-  name: string;
-  collection: string;
-  price: number;
-  image: string;
-  sizes: number[];
-  neckline: string;
-  silhouette: string;
-  fabric: string;
-  trainLength: string;
-  sleeveStyle: string;
-}
+import type { Dress } from "../types/dress";
 
 interface MCQOption {
   label: string;
@@ -146,12 +133,36 @@ const QUESTIONS: BotQuestion[] = [
   },
 ];
 
-function buildChatGPTPrompt(answers: DressAnswers, dress?: DressData): string {
-  const base = dress
-    ? `A custom bridal dress inspired by the "${dress.name}" (${dress.collection} collection), reimagined with the following customizations:`
-    : `A custom bridal dress designed from scratch with these specifications:`;
+const FIELD_LABELS: Record<keyof DressAnswers, string> = {
+  occasion: "Occasion",
+  neckline: "Neckline",
+  silhouette: "Silhouette",
+  fabric: "Fabric",
+  train: "Train",
+  sleeves: "Sleeves",
+  embellishments: "Embellishments",
+  color: "Color",
+};
 
-  return `Generate a photorealistic fashion illustration or editorial photograph of the following custom dress:
+function buildChatGPTPrompt(answers: DressAnswers, dress?: Dress): string {
+  const collectionLabel =
+    dress && dress.collections.length > 0
+      ? `${dress.collections.join(", ")} collection`
+      : "selected gallery dress";
+
+  const base = dress
+    ? `A custom bridal dress inspired by the "${dress.name}" (${collectionLabel}), reimagined with the following customizations:`
+    : "A custom bridal dress designed from scratch with these specifications:";
+
+  return `Edit this bridal gown product image.The model’s face, hair, skin, hands, body proportions, pose, camera angle, lighting, and background must remain unchanged.
+This must look like the same original photograph with only the dress redesigned.
+
+STRICT INSTRUCTIONS:
+- Keep the same model, face, body, pose, and proportions
+- Keep the same camera angle, framing, lighting, and background
+- Do not change anything outside the dress
+
+Modify ONLY the dress design according to the following:
 
 ${base}
 
@@ -164,15 +175,54 @@ ${base}
 — Embellishments: ${answers.embellishments}
 — Color: ${answers.color}
 
-Style direction: High-fashion editorial. Studio lighting with a clean white or soft blush background. The model should be shown in a full-length pose to showcase the entire dress. Ultra-detailed fabric texture, photorealistic rendering, luxury bridal magazine quality.`;
+DESIGN PRIORITY:
+1. Silhouette and structure must be accurate
+2. Neckline and sleeves must match exactly
+3. Fabric texture must look realistic (satin, lace, chiffon, etc.)
+4. Embellishments should be refined and not excessive
+
+QUALITY REQUIREMENTS:
+- Photorealistic luxury bridal gown
+- Clean construction, no distortions
+- Natural fabric folds and draping
+- No blurriness or artifacts
+- Maintain high-end fashion editorial quality
+
+DO NOT:
+- Change the model identity
+- Add or remove limbs or alter hands
+- Change background or environment
+- Introduce unrealistic shapes or textures`;
+}
+
+function buildRequestSummary(answers: DressAnswers, dress?: Dress) {
+  const header = [
+    "Custom Dress Request",
+    dress ? `Inspired by: ${dress.name}` : "Designed from scratch",
+    dress && dress.collections.length > 0
+      ? `Collection: ${dress.collections.join(", ")}`
+      : null,
+    "",
+    "Selected customizations:",
+  ];
+
+  const details = (Object.entries(FIELD_LABELS) as Array<
+    [keyof DressAnswers, string]
+  >).map(([key, label]) => `- ${label}: ${answers[key]}`);
+
+  return [
+    ...header.filter((value): value is string => Boolean(value)),
+    ...details,
+    "",
+    "Status: Pending designer approval. We will review your request and message you here before generating a preview.",
+  ].join("\n");
 }
 
 export default function IsabellaPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const session = useSession();
-  const dressFromGallery = (location.state as { dress?: DressData } | null)
-    ?.dress;
+  const dressFromGallery = (location.state as { dress?: Dress } | null)?.dress;
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [answers, setAnswers] = useState<Partial<DressAnswers>>({});
@@ -187,9 +237,9 @@ export default function IsabellaPage() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Fetch the logged-in user's avatar
   useEffect(() => {
     if (!session?.user) return;
+
     supabase
       .from("profiles")
       .select("profile_image_url")
@@ -206,7 +256,6 @@ export default function IsabellaPage() {
     scrollToBottom();
   }, [messages]);
 
-  // Initialize chat
   useEffect(() => {
     const firstQ = QUESTIONS[0];
     const intro = dressFromGallery
@@ -229,46 +278,43 @@ export default function IsabellaPage() {
   }, [dressFromGallery]);
 
   const handleOptionSelect = (questionId: string, option: MCQOption) => {
-    // Prevent re-answering
     if (answeredQuestions.has(questionId)) return;
 
-    const question = QUESTIONS.find((q) => q.id === questionId);
+    const question = QUESTIONS.find((item) => item.id === questionId);
     if (!question) return;
 
     setAnsweredQuestions((prev) => new Set(prev).add(questionId));
 
     const newAnswers = { ...answers, [question.key]: option.value };
     setAnswers(newAnswers);
-
-    // Add user selection bubble
     setMessages((prev) => [...prev, { type: "user", text: option.label }]);
 
-    const nextIndex = QUESTIONS.findIndex((q) => q.id === questionId) + 1;
+    const nextIndex = QUESTIONS.findIndex((item) => item.id === questionId) + 1;
 
     setTimeout(() => {
       if (nextIndex < QUESTIONS.length) {
-        const nextQ = QUESTIONS[nextIndex];
+        const nextQuestion = QUESTIONS[nextIndex];
         setCurrentQuestionIndex(nextIndex);
         setMessages((prev) => [
           ...prev,
           {
             type: "bot",
-            text: nextQ.text,
-            options: nextQ.options,
-            questionId: nextQ.id,
+            text: nextQuestion.text,
+            options: nextQuestion.options,
+            questionId: nextQuestion.id,
           },
         ]);
-      } else {
-        // All answered
-        setIsComplete(true);
-        setMessages((prev) => [
-          ...prev,
-          {
-            type: "bot",
-            text: `Magnifique! ✨ I have everything I need to envision your dream dress.\n\nBased on your choices, I've crafted a detailed design prompt below. When you're ready, click **"Request This Style"** to send it to our designer — they'll use it to generate a visual of your dress and reach out to discuss next steps!`,
-          },
-        ]);
+        return;
       }
+
+      setIsComplete(true);
+      setMessages((prev) => [
+        ...prev,
+        {
+          type: "bot",
+          text: 'Magnifique! ✨ I have everything I need to prepare your request.\n\nWhen you click "Request This Style", I will send a clean summary to your chat and place the full design prompt into our internal review queue for designer approval.',
+        },
+      ]);
     }, 600);
   };
 
@@ -282,7 +328,6 @@ export default function IsabellaPage() {
 
     setIsSending(true);
     try {
-      // Get or create the customer's conversation
       let conversationId: string;
       const { data: existing } = await supabase
         .from("conversations")
@@ -298,22 +343,36 @@ export default function IsabellaPage() {
           .insert({ customer_id: session.user.id })
           .select("id")
           .single();
+
         if (error || !created) throw error;
         conversationId = created.id;
       }
 
-      // Send the prompt as a message from the customer
-      const messageContent = `✨ **Custom Dress Request**\n\nHi! I've designed my dream dress using MAI. Here is the full design prompt — feel free to paste it into ChatGPT / DALL·E to generate a visual, then let's chat about it!\n\n---\n\n${prompt}`;
+      const requestSummary = buildRequestSummary(fullAnswers, dressFromGallery);
 
-      await supabase.from("messages").insert({
+      const { error: messageError } = await supabase.from("messages").insert({
         conversation_id: conversationId,
-        content: messageContent,
+        content: requestSummary,
         sender_type: "customer",
       });
 
+      if (messageError) throw messageError;
+
+      const { error: requestError } = await supabase
+        .from("chatbot_sessions")
+        .insert({
+          customer_id: session.user.id,
+          conversation_id: conversationId,
+          dress_id: dressFromGallery?.id ?? null,
+          request_summary: requestSummary,
+          generated_prompt: prompt,
+          status: "pending_review",
+        });
+
+      if (requestError) throw requestError;
+
       setRequestSent(true);
 
-      // Navigate to the chat page after a moment
       setTimeout(() => {
         navigate("/chat");
       }, 1500);
@@ -329,167 +388,160 @@ export default function IsabellaPage() {
     <div className="h-screen flex flex-col bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
       <Header subtitle="Your Personal Bridal Consultant" />
 
-              {/* Messages */}
-              <div className="relative flex-1 min-h-0">
-              {/* blur-fade overlay */}
-              <div
-                className="absolute top-0 left-0 right-0 h-20 pointer-events-none z-10"
-                style={{
-                  backdropFilter: "blur(10px)",
-                  WebkitBackdropFilter: "blur(10px)",
-                  maskImage: "linear-gradient(to bottom, black 40%, transparent 100%)",
-                  WebkitMaskImage: "linear-gradient(to bottom, black 40%, transparent 100%)",
-                }}
-              />
-              {/* MAI name — above the blur */}
-              <div className="absolute top-0 left-0 right-0 z-20 flex items-center gap-2 px-6 py-3">
-                <Sparkles className="w-4 h-4 text-stone-500 dark:text-stone-400" />
-                <span className="font-serif text-stone-700 dark:text-stone-200">MAI</span>
-              </div>
-              <div className="absolute inset-0 overflow-y-auto pt-16 p-6 space-y-5 bg-stone-50/30 dark:bg-stone-900/30">
-                {messages.map((message, index) => (
-                  <div
-                    key={index}
-                    className={`flex gap-3 ${message.type === "user" ? "justify-end" : ""}`}
-                  >
-                    {message.type === "bot" && (
-                      <div className="w-10 h-10 bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 rounded-full flex-shrink-0 flex items-center justify-center">
-                        <Sparkles className="w-5 h-5 text-stone-600" />
-                      </div>
-                    )}
+      <div className="relative flex-1 min-h-0">
+        <div
+          className="absolute top-0 left-0 right-0 h-20 pointer-events-none z-10"
+          style={{
+            backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)",
+            maskImage:
+              "linear-gradient(to bottom, black 40%, transparent 100%)",
+            WebkitMaskImage:
+              "linear-gradient(to bottom, black 40%, transparent 100%)",
+          }}
+        />
+        <div className="absolute top-0 left-0 right-0 z-20 flex items-center gap-2 px-6 py-3">
+          <Sparkles className="w-4 h-4 text-stone-500 dark:text-stone-400" />
+          <span className="font-serif text-stone-700 dark:text-stone-200">
+            MAI
+          </span>
+        </div>
+        <div className="absolute inset-0 overflow-y-auto pt-16 p-6 space-y-5 bg-stone-50/30 dark:bg-stone-900/30">
+          {messages.map((message, index) => (
+            <div
+              key={index}
+              className={`flex gap-3 ${message.type === "user" ? "justify-end" : ""}`}
+            >
+              {message.type === "bot" && (
+                <div className="w-10 h-10 bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 rounded-full flex-shrink-0 flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-stone-600" />
+                </div>
+              )}
 
-                    <div className="flex flex-col gap-3 max-w-[85%]">
-                      <div
-                        className={`rounded-2xl px-5 py-4 ${
-                          message.type === "bot"
-                            ? "bg-white/90 dark:bg-stone-700/90 border border-stone-200/50 dark:border-stone-600/50 rounded-tl-none"
-                            : "bg-gradient-to-br from-stone-300 via-pink-200/40 to-stone-300 dark:from-stone-600 dark:via-pink-900/20 dark:to-stone-600 rounded-tr-none self-end"
-                        }`}
-                      >
-                        <p className="text-sm text-stone-800 dark:text-stone-100 leading-relaxed whitespace-pre-line">
-                          {message.text}
-                        </p>
-                      </div>
+              <div className="flex flex-col gap-3 max-w-[85%]">
+                <div
+                  className={`rounded-2xl px-5 py-4 ${
+                    message.type === "bot"
+                      ? "bg-white/90 dark:bg-stone-700/90 border border-stone-200/50 dark:border-stone-600/50 rounded-tl-none"
+                      : "bg-gradient-to-br from-stone-300 via-pink-200/40 to-stone-300 dark:from-stone-600 dark:via-pink-900/20 dark:to-stone-600 rounded-tr-none self-end"
+                  }`}
+                >
+                  <p className="text-sm text-stone-800 dark:text-stone-100 leading-relaxed whitespace-pre-line">
+                    {message.text}
+                  </p>
+                </div>
 
-                      {/* MCQ Options — only show for bot messages with options */}
-                      {message.type === "bot" &&
-                        message.options &&
-                        message.questionId && (
-                          <div className="flex flex-wrap gap-2 ml-0">
-                            {message.options.map((opt) => {
-                              const isAnswered = answeredQuestions.has(
-                                message.questionId!,
-                              );
-                              const isSelected =
-                                isAnswered &&
-                                answers[
-                                  QUESTIONS.find(
-                                    (q) => q.id === message.questionId,
-                                  )?.key as keyof DressAnswers
-                                ] === opt.value;
+                {message.type === "bot" && message.options && message.questionId && (
+                  <div className="flex flex-wrap gap-2 ml-0">
+                    {message.options.map((option) => {
+                      const isAnswered = answeredQuestions.has(message.questionId!);
+                      const questionKey = QUESTIONS.find(
+                        (item) => item.id === message.questionId,
+                      )?.key;
+                      const isSelected =
+                        isAnswered &&
+                        questionKey &&
+                        answers[questionKey] === option.value;
 
-                              return (
-                                <button
-                                  key={opt.value}
-                                  type="button"
-                                  onClick={() =>
-                                    handleOptionSelect(message.questionId!, opt)
-                                  }
-                                  disabled={isAnswered}
-                                  className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium border transition-all duration-200
-                                  ${
-                                    isSelected
-                                      ? "bg-gradient-to-r from-pink-200/60 to-stone-200 border-pink-300 text-stone-800 shadow-sm scale-[0.98]"
-                                      : isAnswered
-                                        ? "bg-white/40 dark:bg-stone-700/40 border-stone-200/30 dark:border-stone-600/30 text-stone-400 dark:text-stone-500 cursor-default"
-                                        : "bg-white/80 dark:bg-stone-700/80 border-stone-200 dark:border-stone-600 text-stone-700 dark:text-stone-200 hover:border-pink-300 hover:bg-pink-50/50 dark:hover:bg-pink-900/20 hover:shadow-sm cursor-pointer"
-                                  }`}
-                                >
-                                  {isSelected && (
-                                    <Check className="w-3.5 h-3.5 text-pink-500 flex-shrink-0" />
-                                  )}
-                                  {opt.label}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        )}
-                    </div>
-
-                    {message.type === "user" && (
-                      <div className="w-10 h-10 rounded-full flex-shrink-0 overflow-hidden bg-stone-200 dark:bg-stone-600">
-                        {myAvatarUrl ? (
-                          <img
-                            src={myAvatarUrl}
-                            alt="You"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-stone-300 via-pink-100/30 to-stone-400" />
-                        )}
-                      </div>
-                    )}
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() =>
+                            handleOptionSelect(message.questionId!, option)
+                          }
+                          disabled={isAnswered}
+                          className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium border transition-all duration-200 ${
+                            isSelected
+                              ? "bg-gradient-to-r from-pink-200/60 to-stone-200 border-pink-300 text-stone-800 shadow-sm scale-[0.98]"
+                              : isAnswered
+                                ? "bg-white/40 dark:bg-stone-700/40 border-stone-200/30 dark:border-stone-600/30 text-stone-400 dark:text-stone-500 cursor-default"
+                                : "bg-white/80 dark:bg-stone-700/80 border-stone-200 dark:border-stone-600 text-stone-700 dark:text-stone-200 hover:border-pink-300 hover:bg-pink-50/50 dark:hover:bg-pink-900/20 hover:shadow-sm cursor-pointer"
+                          }`}
+                        >
+                          {isSelected && (
+                            <Check className="w-3.5 h-3.5 text-pink-500 flex-shrink-0" />
+                          )}
+                          {option.label}
+                        </button>
+                      );
+                    })}
                   </div>
-                ))}
-                <div ref={messagesEndRef} />
+                )}
               </div>
-              </div>{/* end relative messages wrapper */}
 
-              {/* Completion Panel */}
-              {isComplete && (
-                <div className="border-t border-stone-200/50 dark:border-stone-700/50 p-6 bg-white/40 dark:bg-stone-800/40 space-y-4">
-                  {/* Request button */}
-                  {!requestSent ? (
-                    <button
-                      type="button"
-                      onClick={handleRequestStyle}
-                      disabled={isSending || !session?.user}
-                      className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-stone-700 via-pink-900/30 to-stone-700 dark:from-stone-800 dark:via-pink-900/40 dark:to-stone-800 text-white rounded-2xl font-serif text-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.01] disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
-                    >
-                      <Sparkles className="w-5 h-5 text-pink-300" />
-                      {isSending
-                        ? "Sending to designer…"
-                        : "Request This Style from Our Designer"}
-                      <ChevronRight className="w-5 h-5 text-pink-300" />
-                    </button>
+              {message.type === "user" && (
+                <div className="w-10 h-10 rounded-full flex-shrink-0 overflow-hidden bg-stone-200 dark:bg-stone-600">
+                  {myAvatarUrl ? (
+                    <img
+                      src={myAvatarUrl}
+                      alt="You"
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
-                    <div className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-2xl text-green-700 dark:text-green-300 font-medium">
-                      <Check className="w-5 h-5" />
-                      Request sent! Redirecting you to the chat…
-                    </div>
+                    <div className="w-full h-full bg-gradient-to-br from-stone-300 via-pink-100/30 to-stone-400" />
                   )}
-
-                  {!session?.user && (
-                    <p className="text-center text-xs text-stone-500 dark:text-stone-400">
-                      <Link
-                        to="/login"
-                        className="underline underline-offset-2 hover:text-stone-800 dark:hover:text-stone-200"
-                      >
-                        Sign in
-                      </Link>{" "}
-                      to send your request to our designer
-                    </p>
-                  )}
-
-                  <p className="text-center text-xs text-stone-400 dark:text-stone-500">
-                    The designer will receive your specifications, generate a
-                    visual of your dress, and reach out to discuss details.
-                  </p>
                 </div>
               )}
+            </div>
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+      </div>
 
-              {/* Placeholder while chatting (no text input — MCQ only) */}
-              {!isComplete && (
-                <div className="border-t border-stone-200/50 dark:border-stone-700/50 px-6 py-4 bg-white/30 dark:bg-stone-800/30">
-                  <p className="text-center text-xs text-stone-400 dark:text-stone-500 flex items-center justify-center gap-2">
-                    <Sparkles className="w-3.5 h-3.5 text-pink-400" />
-                    Select an option above to continue •{" "}
-                    <span className="font-medium text-stone-500 dark:text-stone-400">
-                      {currentQuestionIndex + 1} / {QUESTIONS.length}
-                    </span>
-                  </p>
-                </div>
-              )}
+      {isComplete && (
+        <div className="border-t border-stone-200/50 dark:border-stone-700/50 p-6 bg-white/40 dark:bg-stone-800/40 space-y-4">
+          {!requestSent ? (
+            <button
+              type="button"
+              onClick={handleRequestStyle}
+              disabled={isSending || !session?.user}
+              className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-stone-700 via-pink-900/30 to-stone-700 dark:from-stone-800 dark:via-pink-900/40 dark:to-stone-800 text-white rounded-2xl font-serif text-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.01] disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
+            >
+              <Sparkles className="w-5 h-5 text-pink-300" />
+              {isSending
+                ? "Sending for review…"
+                : "Request This Style from Our Designer"}
+              <ChevronRight className="w-5 h-5 text-pink-300" />
+            </button>
+          ) : (
+            <div className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-2xl text-green-700 dark:text-green-300 font-medium">
+              <Check className="w-5 h-5" />
+              Request submitted for designer approval. Redirecting to chat…
+            </div>
+          )}
+
+          {!session?.user && (
+            <p className="text-center text-xs text-stone-500 dark:text-stone-400">
+              <Link
+                to="/login"
+                className="underline underline-offset-2 hover:text-stone-800 dark:hover:text-stone-200"
+              >
+                Sign in
+              </Link>{" "}
+              to send your request to our designer
+            </p>
+          )}
+
+          <p className="text-center text-xs text-stone-400 dark:text-stone-500">
+            Your designer will review the request summary first. Once it is
+            approved, they can generate a preview and continue the conversation
+            in chat.
+          </p>
+        </div>
+      )}
+
+      {!isComplete && (
+        <div className="border-t border-stone-200/50 dark:border-stone-700/50 px-6 py-4 bg-white/30 dark:bg-stone-800/30">
+          <p className="text-center text-xs text-stone-400 dark:text-stone-500 flex items-center justify-center gap-2">
+            <Sparkles className="w-3.5 h-3.5 text-pink-400" />
+            Select an option above to continue •{" "}
+            <span className="font-medium text-stone-500 dark:text-stone-400">
+              {currentQuestionIndex + 1} / {QUESTIONS.length}
+            </span>
+          </p>
+        </div>
+      )}
     </div>
   );
 }

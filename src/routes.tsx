@@ -15,6 +15,7 @@ import ProfilePage from "./pages/ProfilePage"
 import ClientsChatPage from "./pages/ClientsChatPage"
 import ForgotPasswordPage from "./pages/ForgotPasswordPage"
 import ResetPasswordPage from "./pages/ResetPasswordPage"
+import AdminRequestsPage from "./pages/AdminRequestsPage"
 
 export const SessionContext = createContext<Session | null>(null)
 export const RoleContext = createContext<string | null>(null)
@@ -186,6 +187,7 @@ export const router = createBrowserRouter([
       { path: "/profile", element: <CustomerRoute allowAdmin><ProfilePage /></CustomerRoute> },
 
       { path: "/admin", element: <AdminRoute><AdminPage /></AdminRoute> },
+      { path: "/admin/requests", element: <AdminRoute><AdminRequestsPage /></AdminRoute> },
       { path: "/clients-chats", element: <AdminRoute><ClientsChatPage /></AdminRoute> },
     ],
   },

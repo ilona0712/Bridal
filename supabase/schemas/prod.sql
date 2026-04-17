@@ -195,11 +195,12 @@ CREATE TABLE IF NOT EXISTS "public"."chatbot_sessions" (
     "conversation_id" "uuid",
     "dress_id" "uuid",
     "status" character varying(30) DEFAULT 'in_progress'::character varying NOT NULL,
+    "request_summary" "text",
     "generated_prompt" "text",
     "image_url" "text",
     "created_at" timestamp(0) without time zone DEFAULT "now"() NOT NULL,
     "updated_at" timestamp(0) without time zone DEFAULT "now"() NOT NULL,
-    CONSTRAINT "chatbot_sessions_status_check" CHECK ((("status")::"text" = ANY ((ARRAY['in_progress'::character varying, 'completed'::character varying, 'image_generated'::character varying, 'designer_requested'::character varying, 'designer_joined'::character varying])::"text"[])))
+    CONSTRAINT "chatbot_sessions_status_check" CHECK ((("status")::"text" = ANY ((ARRAY['in_progress'::character varying, 'pending_review'::character varying, 'approved'::character varying, 'rejected'::character varying, 'image_requested'::character varying, 'image_generated'::character varying, 'completed'::character varying])::"text"[])))
 );
 
 
@@ -995,6 +996,14 @@ CREATE POLICY "chatbot_sessions_customer_update" ON "public"."chatbot_sessions" 
 
 
 CREATE POLICY "chatbot_sessions_privileged_select" ON "public"."chatbot_sessions" FOR SELECT TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "public"."profiles" "p"
+  WHERE (("p"."id" = "auth"."uid"()) AND (("p"."role")::"text" = ANY ((ARRAY['designer'::character varying, 'admin'::character varying])::"text"[]))))));
+
+
+
+CREATE POLICY "chatbot_sessions_privileged_update" ON "public"."chatbot_sessions" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "public"."profiles" "p"
+  WHERE (("p"."id" = "auth"."uid"()) AND (("p"."role")::"text" = ANY ((ARRAY['designer'::character varying, 'admin'::character varying])::"text"[])))))) WITH CHECK ((EXISTS ( SELECT 1
    FROM "public"."profiles" "p"
   WHERE (("p"."id" = "auth"."uid"()) AND (("p"."role")::"text" = ANY ((ARRAY['designer'::character varying, 'admin'::character varying])::"text"[]))))));
 

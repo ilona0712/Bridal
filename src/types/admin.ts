@@ -24,3 +24,28 @@ export type DressFormData = {
   trainLength: string;
   sleeveStyle: string;
 };
+
+export type ChatbotRequestStatus =
+  | "in_progress"
+  | "pending_review"
+  | "approved"
+  | "rejected"
+  | "image_requested"
+  | "image_generated"
+  | "completed";
+
+export type AdminCustomizationRequest = {
+  id: string;
+  customerId: string;
+  customerName: string;
+  conversationId: string | null;
+  dressId: string | null;
+  dressName: string | null;
+  dressImage: string | null;
+  requestSummary: string | null;
+  generatedPrompt: string | null;
+  imageUrl: string | null;
+  status: ChatbotRequestStatus;
+  createdAt: string;
+  updatedAt: string;
+};
