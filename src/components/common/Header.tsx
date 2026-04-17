@@ -125,7 +125,7 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
 
   return (
     <header
-      className={`border-b border-stone-200/50 dark:border-stone-700/50 bg-white/80 dark:bg-stone-900/80 backdrop-blur-sm ${fixed ? "fixed" : "sticky"} top-0 z-40 w-full`}
+      className={`safe-area-top border-b border-stone-200/50 dark:border-stone-700/50 bg-white/80 dark:bg-stone-900/80 backdrop-blur-sm ${fixed ? "fixed" : "sticky"} top-0 z-40 w-full`}
     >
       <div className="container mx-auto px-4 md:px-6 py-3 md:py-4">
         <div className="flex items-center justify-between w-full relative">
