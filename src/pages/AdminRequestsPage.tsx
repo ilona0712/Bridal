@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft,
-  Check,
   ClipboardList,
   Expand,
   LoaderCircle,
@@ -88,6 +87,11 @@ const STATUS_CLASSES: Record<ChatbotRequestStatus, string> = {
     "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300",
 };
 
+const FILTER_OPTIONS: Array<"all" | ChatbotRequestStatus> = [
+  "all",
+  ...REVIEWABLE_STATUSES,
+];
+
 function formatRequestTime(value: string) {
   return new Date(value).toLocaleString(undefined, {
     dateStyle: "medium",
@@ -116,6 +120,9 @@ export default function AdminRequestsPage() {
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<"all" | ChatbotRequestStatus>(
+    "all",
+  );
   const [fullscreenImageUrl, setFullscreenImageUrl] = useState<string | null>(
     null,
   );
@@ -136,6 +143,14 @@ export default function AdminRequestsPage() {
   const selectedRequest = useMemo(
     () => requests.find((request) => request.id === selectedRequestId) ?? null,
     [requests, selectedRequestId],
+  );
+
+  const filteredRequests = useMemo(
+    () =>
+      statusFilter === "all"
+        ? requests
+        : requests.filter((request) => request.status === statusFilter),
+    [requests, statusFilter],
   );
 
   const handleSelectRequest = (request: AdminCustomizationRequest | null) => {
@@ -219,17 +234,38 @@ export default function AdminRequestsPage() {
       };
     });
 
+    const filteredNextRequests =
+      statusFilter === "all"
+        ? nextRequests
+        : nextRequests.filter((request) => request.status === statusFilter);
+
     const nextSelectedRequest =
       (selectedRequestId
-        ? nextRequests.find((request) => request.id === selectedRequestId)
+        ? filteredNextRequests.find((request) => request.id === selectedRequestId)
         : null) ??
-      nextRequests[0] ??
+      filteredNextRequests[0] ??
       null;
 
     setRequests(nextRequests);
     handleSelectRequest(nextSelectedRequest);
     setLoading(false);
-  }, [selectedRequestId]);
+  }, [selectedRequestId, statusFilter]);
+
+  useEffect(() => {
+    const nextSelectedRequest =
+      selectedRequestId
+        ? filteredRequests.find((request) => request.id === selectedRequestId)
+        : null;
+
+    if (filteredRequests.length === 0) {
+      handleSelectRequest(null);
+      return;
+    }
+
+    if (!nextSelectedRequest) {
+      handleSelectRequest(filteredRequests[0]);
+    }
+  }, [filteredRequests, selectedRequestId]);
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -287,13 +323,6 @@ export default function AdminRequestsPage() {
     });
     setSaving(false);
     return true;
-  };
-
-  const handleApproveRequest = async () => {
-    await updateRequest({
-      generated_prompt: editablePrompt.trim() || null,
-      status: "approved",
-    });
   };
 
   const handleRejectRequest = async () => {
@@ -412,15 +441,6 @@ export default function AdminRequestsPage() {
     }
   };
 
-  const handleRejectGeneratedImage = async () => {
-    await updateRequest({
-      generated_prompt: editablePrompt.trim() || null,
-      image_url: imageUrlInput.trim() || null,
-      generation_error: null,
-      status: "rejected",
-    });
-  };
-
   const handleApproveGeneratedImage = async () => {
     if (!selectedRequest) return;
 
@@ -505,15 +525,34 @@ export default function AdminRequestsPage() {
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => void fetchRequests()}
-            disabled={loading}
-            className="inline-flex items-center gap-2 rounded-full border border-stone-200/70 bg-white/80 px-4 py-2 text-sm text-stone-700 shadow-sm transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60 dark:border-stone-700 dark:bg-stone-800/80 dark:text-stone-200 dark:hover:bg-stone-800"
-          >
-            <RefreshCcw className="w-4 h-4" />
-            Refresh
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="inline-flex items-center gap-2 rounded-full border border-stone-200/70 bg-white/80 px-4 py-2 text-sm text-stone-700 shadow-sm dark:border-stone-700 dark:bg-stone-800/80 dark:text-stone-200">
+              <span>Status</span>
+              <select
+                value={statusFilter}
+                onChange={(event) =>
+                  setStatusFilter(event.target.value as "all" | ChatbotRequestStatus)
+                }
+                className="bg-transparent text-sm outline-none"
+              >
+                {FILTER_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option === "all" ? "All requests" : STATUS_LABELS[option]}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <button
+              type="button"
+              onClick={() => void fetchRequests()}
+              disabled={loading}
+              className="inline-flex items-center gap-2 rounded-full border border-stone-200/70 bg-white/80 px-4 py-2 text-sm text-stone-700 shadow-sm transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60 dark:border-stone-700 dark:bg-stone-800/80 dark:text-stone-200 dark:hover:bg-stone-800"
+            >
+              <RefreshCcw className="w-4 h-4" />
+              Refresh
+            </button>
+          </div>
         </div>
 
         {loading ? (
@@ -524,11 +563,11 @@ export default function AdminRequestsPage() {
           <div className="rounded-3xl border border-stone-200/50 bg-white/60 p-12 text-center shadow-xl backdrop-blur-sm dark:border-stone-700/50 dark:bg-stone-800/60">
             <p className="text-red-600 dark:text-red-400">{error}</p>
           </div>
-        ) : requests.length === 0 ? (
+        ) : filteredRequests.length === 0 ? (
           <div className="rounded-3xl border border-stone-200/50 bg-white/60 p-12 text-center shadow-xl backdrop-blur-sm dark:border-stone-700/50 dark:bg-stone-800/60">
             <ClipboardList className="mx-auto mb-4 h-14 w-14 text-stone-300 dark:text-stone-600" />
             <p className="text-stone-600 dark:text-stone-300">
-              No customization requests are waiting for review.
+              No requests match the selected filter.
             </p>
           </div>
         ) : (
@@ -536,11 +575,11 @@ export default function AdminRequestsPage() {
             <aside className="overflow-hidden rounded-3xl border border-stone-200/50 bg-white/70 shadow-xl backdrop-blur-sm dark:border-stone-700/50 dark:bg-stone-800/70">
               <div className="border-b border-stone-200/50 px-5 py-4 dark:border-stone-700/50">
                 <p className="text-sm text-stone-500 dark:text-stone-400">
-                  {requests.length} active request{requests.length === 1 ? "" : "s"}
+                  {filteredRequests.length} request{filteredRequests.length === 1 ? "" : "s"}
                 </p>
               </div>
               <div className="max-h-[70vh] overflow-y-auto">
-                {requests.map((request) => {
+                {filteredRequests.map((request) => {
                   const isSelected = request.id === selectedRequestId;
 
                   return (
@@ -709,15 +748,6 @@ export default function AdminRequestsPage() {
                           <div className="grid gap-3 md:grid-cols-2">
                             <button
                               type="button"
-                              onClick={() => void handleApproveRequest()}
-                              disabled={saving}
-                              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-sky-100 px-4 py-3 text-sm font-medium text-sky-800 transition hover:bg-sky-200 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-sky-900/30 dark:text-sky-300 dark:hover:bg-sky-900/40"
-                            >
-                              <Check className="w-4 h-4" />
-                              Approve Request
-                            </button>
-                            <button
-                              type="button"
                               onClick={() => void handleRejectRequest()}
                               disabled={saving}
                               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-rose-100 px-4 py-3 text-sm font-medium text-rose-800 transition hover:bg-rose-200 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-rose-900/30 dark:text-rose-300 dark:hover:bg-rose-900/40"
@@ -746,15 +776,6 @@ export default function AdminRequestsPage() {
                             >
                               <Send className="w-4 h-4" />
                               Approve Image and Send to Customer
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => void handleRejectGeneratedImage()}
-                              disabled={saving || generating}
-                              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-stone-200 px-4 py-3 text-sm font-medium text-stone-800 transition hover:bg-stone-300 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-stone-700 dark:text-stone-200 dark:hover:bg-stone-600"
-                            >
-                              <RefreshCcw className="w-4 h-4" />
-                              Reject Image and Rework
                             </button>
                           </div>
                         </div>
