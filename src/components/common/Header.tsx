@@ -31,6 +31,7 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [pendingReviewCount, setPendingReviewCount] = useState(0);
 
   const isAdmin = role === "admin";
   const displayName =
@@ -117,6 +118,39 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
       supabase.removeChannel(channel);
     };
   }, [isAdmin, session?.user?.id]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    const fetchPendingReviewCount = async () => {
+      const { count, error } = await supabase
+        .from("chatbot_sessions")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "pending_review");
+
+      if (error) {
+        setPendingReviewCount(0);
+        return;
+      }
+
+      setPendingReviewCount(count ?? 0);
+    };
+
+    fetchPendingReviewCount();
+
+    const channel = supabase
+      .channel("header-pending-review-count")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "chatbot_sessions" },
+        fetchPendingReviewCount,
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isAdmin]);
 
   async function handleSignOut() {
     await signOut();
@@ -235,10 +269,15 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
                 </Link>
                 <Link
                   to="/admin/requests"
-                  className="inline-flex items-center gap-2 rounded-full border border-stone-200/50 dark:border-stone-700/50 bg-white/80 dark:bg-stone-800/80 px-4 py-2 text-sm text-stone-700 dark:text-stone-200 hover:shadow-md"
+                  className="relative inline-flex items-center gap-2 rounded-full border border-stone-200/50 dark:border-stone-700/50 bg-white/80 dark:bg-stone-800/80 px-4 py-2 text-sm text-stone-700 dark:text-stone-200 hover:shadow-md"
                 >
                   <ClipboardList className="h-4 w-4" />
                   Requests
+                  {pendingReviewCount > 0 && (
+                    <span className="absolute -right-2 -top-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-amber-500 px-1 text-xs font-medium text-white shadow-sm">
+                      {pendingReviewCount}
+                    </span>
+                  )}
                 </Link>
               </>
             ) : (
@@ -341,10 +380,15 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
                 </Link>
                 <Link
                   to="/admin/requests"
-                  className="inline-flex items-center gap-1 rounded-full border border-stone-200/50 dark:border-stone-700/50 bg-white/80 dark:bg-stone-800/80 px-3 py-2 text-xs text-stone-700 dark:text-stone-200"
+                  className="relative inline-flex items-center gap-1 rounded-full border border-stone-200/50 dark:border-stone-700/50 bg-white/80 dark:bg-stone-800/80 px-3 py-2 text-xs text-stone-700 dark:text-stone-200"
                 >
                   <ClipboardList className="h-4 w-4" />
                   Requests
+                  {pendingReviewCount > 0 && (
+                    <span className="absolute -right-2 -top-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-amber-500 px-1 text-xs font-medium text-white shadow-sm">
+                      {pendingReviewCount}
+                    </span>
+                  )}
                 </Link>
               </>
             ) : (

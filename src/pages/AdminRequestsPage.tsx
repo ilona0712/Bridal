@@ -49,7 +49,6 @@ type DressLookupRow = {
 
 const REVIEWABLE_STATUSES: ChatbotRequestStatus[] = [
   "pending_review",
-  "approved",
   "rejected",
   "image_requested",
   "image_generated",
@@ -65,7 +64,7 @@ const STATUS_LABELS: Record<ChatbotRequestStatus, string> = {
   image_requested: "Image Requested",
   image_generated: "Image Generated",
   generation_failed: "Generation Failed",
-  completed: "Completed",
+  completed: "Sent to customer",
 };
 
 const STATUS_CLASSES: Record<ChatbotRequestStatus, string> = {
@@ -89,7 +88,10 @@ const STATUS_CLASSES: Record<ChatbotRequestStatus, string> = {
 
 const FILTER_OPTIONS: Array<"all" | ChatbotRequestStatus> = [
   "all",
-  ...REVIEWABLE_STATUSES,
+  "pending_review",
+  "image_generated",
+  "completed",
+  "rejected",
 ];
 
 function formatRequestTime(value: string) {
@@ -107,6 +109,15 @@ function pickPrimaryImage(dress: DressLookupRow | undefined) {
     dress.dress_images[0]?.image_url ??
     null
   );
+}
+
+function getCustomizationLines(summary: string | null) {
+  if (!summary) return [];
+
+  return summary
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith("- "));
 }
 
 export default function AdminRequestsPage() {
@@ -609,7 +620,8 @@ export default function AdminRequestsPage() {
                         </span>
                       </div>
                       <p className="line-clamp-3 whitespace-pre-line text-sm text-stone-600 dark:text-stone-300">
-                        {request.requestSummary ?? "No summary provided."}
+                        {getCustomizationLines(request.requestSummary).join("\n") ||
+                          "No customization options selected."}
                       </p>
                       <p className="mt-3 text-xs text-stone-400 dark:text-stone-500">
                         {formatRequestTime(request.createdAt)}
@@ -708,15 +720,16 @@ export default function AdminRequestsPage() {
                     <div className="space-y-6">
                       <div className="overflow-hidden rounded-3xl border border-stone-200/60 bg-stone-50/80 dark:border-stone-700/60 dark:bg-stone-900/40">
                         <div className="border-b border-stone-200/60 px-5 py-4 dark:border-stone-700/60">
-                          <h3 className="font-serif text-xl text-stone-800 dark:text-stone-100">
-                            Customer Summary
-                          </h3>
-                        </div>
-                        <div className="p-5">
-                          <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-700 dark:text-stone-200">
-                            {selectedRequest.requestSummary ?? "No summary provided."}
-                          </pre>
-                        </div>
+                            <h3 className="font-serif text-xl text-stone-800 dark:text-stone-100">
+                            Requested Changes
+                            </h3>
+                          </div>
+                          <div className="p-5">
+                            <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-700 dark:text-stone-200">
+                            {getCustomizationLines(selectedRequest.requestSummary).join("\n") ||
+                              "No customization options selected."}
+                            </pre>
+                          </div>
                       </div>
 
                       <div className="overflow-hidden rounded-3xl border border-stone-200/60 bg-stone-50/80 dark:border-stone-700/60 dark:bg-stone-900/40">
