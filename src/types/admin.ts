@@ -32,6 +32,7 @@ export type ChatbotRequestStatus =
   | "rejected"
   | "image_requested"
   | "image_generated"
+  | "generation_failed"
   | "completed";
 
 export type AdminCustomizationRequest = {
@@ -45,6 +46,7 @@ export type AdminCustomizationRequest = {
   requestSummary: string | null;
   generatedPrompt: string | null;
   imageUrl: string | null;
+  generationError: string | null;
   status: ChatbotRequestStatus;
   createdAt: string;
   updatedAt: string;

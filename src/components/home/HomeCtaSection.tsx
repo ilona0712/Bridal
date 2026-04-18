@@ -42,7 +42,7 @@ export default function HomeCtaSection() {
 
         <div className="flex gap-4 justify-center flex-wrap">
           <Link
-            to="/isabella"
+            to="/gallery"
             className="px-8 py-4 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-200 rounded-xl hover:shadow-lg transition-all"
           >
             Start Now

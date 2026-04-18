@@ -127,12 +127,12 @@ function PhotoGrid({ urls, onOpen }: { urls: string[]; onOpen: (i: number) => vo
 
   if (count === 1) {
     return (
-      <img
-        src={urls[0]}
-        alt="photo"
-        className="w-full max-w-[180px] sm:max-w-[220px] rounded-xl object-cover cursor-pointer"
-        onClick={() => onOpen(0)}
-      />
+        <img
+          src={urls[0]}
+          alt="photo"
+          className="w-full max-w-[180px] sm:max-w-[220px] rounded-xl object-contain bg-white dark:bg-stone-900 cursor-pointer"
+          onClick={() => onOpen(0)}
+        />
     );
   }
 
@@ -212,7 +212,7 @@ export default function OwnerChatMessageBubble({
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!lightboxIndex !== null) return;
+    if (lightboxIndex === null) return;
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") setLightboxIndex(null);
     };
@@ -295,12 +295,12 @@ export default function OwnerChatMessageBubble({
             </>
           ) : hasImage ? (
             <>
-              <img
-                src={message.attachment_url!}
-                alt="attachment"
-                className="w-full max-w-[160px] sm:max-w-[220px] rounded-xl object-cover cursor-pointer"
-                onClick={() => setLightboxIndex(0)}
-              />
+                <img
+                  src={message.attachment_url!}
+                  alt="attachment"
+                  className="w-full max-w-[160px] sm:max-w-[220px] rounded-xl object-contain bg-white dark:bg-stone-900 cursor-pointer"
+                  onClick={() => setLightboxIndex(0)}
+                />
               {lightboxIndex === 0 &&
                 createPortal(
                   <PhotoLightbox

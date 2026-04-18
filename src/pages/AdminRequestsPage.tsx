@@ -4,7 +4,8 @@ import {
   ArrowLeft,
   Check,
   ClipboardList,
-  Image as ImageIcon,
+  Expand,
+  LoaderCircle,
   RefreshCcw,
   Send,
   Sparkles,
@@ -25,6 +26,7 @@ type ChatbotSessionRow = {
   request_summary: string | null;
   generated_prompt: string | null;
   image_url: string | null;
+  generation_error: string | null;
   status: ChatbotRequestStatus;
   created_at: string;
   updated_at: string;
@@ -52,6 +54,7 @@ const REVIEWABLE_STATUSES: ChatbotRequestStatus[] = [
   "rejected",
   "image_requested",
   "image_generated",
+  "generation_failed",
   "completed",
 ];
 
@@ -62,6 +65,7 @@ const STATUS_LABELS: Record<ChatbotRequestStatus, string> = {
   rejected: "Rejected",
   image_requested: "Image Requested",
   image_generated: "Image Generated",
+  generation_failed: "Generation Failed",
   completed: "Completed",
 };
 
@@ -78,6 +82,8 @@ const STATUS_CLASSES: Record<ChatbotRequestStatus, string> = {
     "bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-300",
   image_generated:
     "bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-900/30 dark:text-fuchsia-300",
+  generation_failed:
+    "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
   completed:
     "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300",
 };
@@ -108,7 +114,24 @@ export default function AdminRequestsPage() {
   const [imageUrlInput, setImageUrlInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fullscreenImageUrl, setFullscreenImageUrl] = useState<string | null>(
+    null,
+  );
+
+  useEffect(() => {
+    if (!fullscreenImageUrl) return;
+
+    const handler = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setFullscreenImageUrl(null);
+      }
+    };
+
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [fullscreenImageUrl]);
 
   const selectedRequest = useMemo(
     () => requests.find((request) => request.id === selectedRequestId) ?? null,
@@ -128,7 +151,7 @@ export default function AdminRequestsPage() {
     const { data: sessionRows, error: sessionError } = await supabase
       .from("chatbot_sessions")
       .select(
-        "id, customer_id, conversation_id, dress_id, request_summary, generated_prompt, image_url, status, created_at, updated_at",
+        "id, customer_id, conversation_id, dress_id, request_summary, generated_prompt, image_url, generation_error, status, created_at, updated_at",
       )
       .in("status", REVIEWABLE_STATUSES)
       .order("created_at", { ascending: false });
@@ -189,6 +212,7 @@ export default function AdminRequestsPage() {
         requestSummary: session.request_summary,
         generatedPrompt: session.generated_prompt,
         imageUrl: session.image_url,
+        generationError: session.generation_error,
         status: session.status,
         createdAt: session.created_at,
         updatedAt: session.updated_at,
@@ -228,6 +252,7 @@ export default function AdminRequestsPage() {
     patch: Partial<{
       generated_prompt: string | null;
       image_url: string | null;
+      generation_error: string | null;
       status: ChatbotRequestStatus;
     }>,
   ) => {
@@ -253,6 +278,10 @@ export default function AdminRequestsPage() {
           : selectedRequest.generatedPrompt,
       imageUrl:
         patch.image_url !== undefined ? patch.image_url : selectedRequest.imageUrl,
+      generationError:
+        patch.generation_error !== undefined
+          ? patch.generation_error
+          : selectedRequest.generationError,
       status: patch.status ?? selectedRequest.status,
       updatedAt: new Date().toISOString(),
     });
@@ -275,31 +304,119 @@ export default function AdminRequestsPage() {
   };
 
   const handleRequestGeneration = async () => {
-    await updateRequest({
-      generated_prompt: editablePrompt.trim() || null,
-      status: "image_requested",
-    });
-  };
+    if (!selectedRequest) return;
 
-  const handleMarkImageReady = async () => {
-    const nextImageUrl = imageUrlInput.trim();
+    const nextPrompt = editablePrompt.trim();
 
-    if (!nextImageUrl) {
-      alert("Paste an image URL before marking the request as image generated.");
+    if (!nextPrompt) {
+      alert("The prompt cannot be empty before generation.");
       return;
     }
 
-    await updateRequest({
-      generated_prompt: editablePrompt.trim() || null,
-      image_url: nextImageUrl,
-      status: "image_generated",
+    setGenerating(true);
+    applyLocalUpdate(selectedRequest.id, {
+      generatedPrompt: nextPrompt,
+      generationError: null,
+      status: "image_requested",
+      updatedAt: new Date().toISOString(),
     });
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session?.access_token) {
+      applyLocalUpdate(selectedRequest.id, {
+        generationError: "You must be signed in to generate a preview.",
+        status: "generation_failed",
+        updatedAt: new Date().toISOString(),
+      });
+      alert("You must be signed in to generate a preview.");
+      setGenerating(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-custom-dress`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+            "x-supabase-auth": `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            sessionId: selectedRequest.id,
+            prompt: nextPrompt,
+          }),
+        },
+      );
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const errorMessage =
+          data?.error ||
+          data?.message ||
+          `Generation request failed with status ${response.status}.`;
+        console.error("Failed to invoke generation function:", errorMessage, data);
+        applyLocalUpdate(selectedRequest.id, {
+          generatedPrompt: nextPrompt,
+          generationError: errorMessage,
+          status: "generation_failed",
+          updatedAt: new Date().toISOString(),
+        });
+        alert(errorMessage);
+        setGenerating(false);
+        return;
+      }
+
+      if (!data?.imageUrl) {
+        const fallbackError =
+          data?.error || "Image generation completed without returning an image URL.";
+        applyLocalUpdate(selectedRequest.id, {
+          generatedPrompt: nextPrompt,
+          generationError: fallbackError,
+          status: "generation_failed",
+          updatedAt: new Date().toISOString(),
+        });
+        alert(fallbackError);
+        setGenerating(false);
+        return;
+      }
+
+      setImageUrlInput(data.imageUrl);
+      applyLocalUpdate(selectedRequest.id, {
+        generatedPrompt: nextPrompt,
+        imageUrl: data.imageUrl,
+        generationError: data.generationError ?? null,
+        status: (data.status as ChatbotRequestStatus) ?? "image_generated",
+        updatedAt: new Date().toISOString(),
+      });
+    } catch (generationError) {
+      const message =
+        generationError instanceof Error
+          ? generationError.message
+          : "Failed to reach the generation service.";
+      console.error("Generation request failed:", generationError);
+      applyLocalUpdate(selectedRequest.id, {
+        generatedPrompt: nextPrompt,
+        generationError: message,
+        status: "generation_failed",
+        updatedAt: new Date().toISOString(),
+      });
+      alert(message);
+    } finally {
+      setGenerating(false);
+    }
   };
 
   const handleRejectGeneratedImage = async () => {
     await updateRequest({
       generated_prompt: editablePrompt.trim() || null,
       image_url: imageUrlInput.trim() || null,
+      generation_error: null,
       status: "rejected",
     });
   };
@@ -322,6 +439,7 @@ export default function AdminRequestsPage() {
     const requestUpdated = await updateRequest({
       generated_prompt: editablePrompt.trim() || null,
       image_url: nextImageUrl,
+      generation_error: null,
       status: "completed",
     });
 
@@ -501,7 +619,7 @@ export default function AdminRequestsPage() {
                             <img
                               src={selectedRequest.dressImage}
                               alt={selectedRequest.dressName ?? "Selected dress"}
-                              className="aspect-[3/4] w-full rounded-2xl object-cover"
+                              className="aspect-[3/4] w-full rounded-2xl object-contain bg-white dark:bg-stone-950/40"
                             />
                           ) : (
                             <div className="flex aspect-[3/4] w-full items-center justify-center rounded-2xl border border-dashed border-stone-300/70 bg-white/70 px-6 text-center text-sm text-stone-400 dark:border-stone-600/70 dark:bg-stone-800/60 dark:text-stone-500">
@@ -518,30 +636,32 @@ export default function AdminRequestsPage() {
                           </h3>
                         </div>
                         <div className="space-y-4 p-5">
-                          {imageUrlInput ? (
-                            <img
-                              src={imageUrlInput}
-                              alt="Generated preview"
-                              className="aspect-[3/4] w-full rounded-2xl object-cover"
-                            />
-                          ) : (
-                            <div className="flex aspect-[3/4] w-full items-center justify-center rounded-2xl border border-dashed border-stone-300/70 bg-white/70 px-6 text-center text-sm text-stone-400 dark:border-stone-600/70 dark:bg-stone-800/60 dark:text-stone-500">
-                              Paste a generated image URL to preview and approve it here.
+                          {selectedRequest.generationError && (
+                            <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
+                              {selectedRequest.generationError}
                             </div>
                           )}
-
-                          <label className="block">
-                            <span className="mb-2 block text-sm font-medium text-stone-700 dark:text-stone-200">
-                              Generated image URL
-                            </span>
-                            <input
-                              type="url"
-                              value={imageUrlInput}
-                              onChange={(event) => setImageUrlInput(event.target.value)}
-                              placeholder="https://..."
-                              className="w-full rounded-2xl border border-stone-200 bg-white/90 px-4 py-3 text-sm text-stone-800 outline-none transition focus:border-pink-300 dark:border-stone-600 dark:bg-stone-800/90 dark:text-stone-100"
-                            />
-                          </label>
+                          {imageUrlInput ? (
+                            <div className="space-y-3">
+                              <img
+                                src={imageUrlInput}
+                                alt="Generated preview"
+                                className="aspect-[3/4] w-full rounded-2xl object-contain bg-white dark:bg-stone-950/40"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setFullscreenImageUrl(imageUrlInput)}
+                                className="inline-flex items-center gap-2 rounded-full border border-stone-200/70 bg-white/90 px-3 py-2 text-sm text-stone-700 transition hover:bg-white dark:border-stone-700 dark:bg-stone-800/90 dark:text-stone-200 dark:hover:bg-stone-800"
+                              >
+                                <Expand className="h-4 w-4" />
+                                Full screen preview
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex aspect-[3/4] w-full items-center justify-center rounded-2xl border border-dashed border-stone-300/70 bg-white/70 px-6 text-center text-sm text-stone-400 dark:border-stone-600/70 dark:bg-stone-800/60 dark:text-stone-500">
+                              No generated preview is available yet.
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -568,11 +688,23 @@ export default function AdminRequestsPage() {
                         </div>
                         <div className="space-y-4 p-5">
                           <textarea
+                            id="request-prompt"
+                            name="requestPrompt"
                             value={editablePrompt}
                             onChange={(event) => setEditablePrompt(event.target.value)}
                             rows={18}
+                            disabled={generating}
                             className="w-full rounded-3xl border border-stone-200 bg-white/90 px-4 py-4 text-sm leading-relaxed text-stone-800 outline-none transition focus:border-pink-300 dark:border-stone-600 dark:bg-stone-800/90 dark:text-stone-100"
                           />
+
+                          {generating && (
+                            <div className="flex items-center gap-3 rounded-2xl border border-violet-200 bg-violet-50 px-4 py-3 text-sm text-violet-800 dark:border-violet-900/50 dark:bg-violet-950/30 dark:text-violet-300">
+                              <LoaderCircle className="h-4 w-4 animate-spin" />
+                              <span>
+                                OpenAI is generating the preview now. This can take a short while.
+                              </span>
+                            </div>
+                          )}
 
                           <div className="grid gap-3 md:grid-cols-2">
                             <button
@@ -596,25 +728,20 @@ export default function AdminRequestsPage() {
                             <button
                               type="button"
                               onClick={() => void handleRequestGeneration()}
-                              disabled={saving}
+                              disabled={saving || generating}
                               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-violet-100 px-4 py-3 text-sm font-medium text-violet-800 transition hover:bg-violet-200 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-violet-900/30 dark:text-violet-300 dark:hover:bg-violet-900/40"
                             >
-                              <Sparkles className="w-4 h-4" />
-                              Submit Prompt for Generation
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => void handleMarkImageReady()}
-                              disabled={saving}
-                              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-fuchsia-100 px-4 py-3 text-sm font-medium text-fuchsia-800 transition hover:bg-fuchsia-200 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-fuchsia-900/30 dark:text-fuchsia-300 dark:hover:bg-fuchsia-900/40"
-                            >
-                              <ImageIcon className="w-4 h-4" />
-                              Mark Image Ready
+                              {generating ? (
+                                <LoaderCircle className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Sparkles className="w-4 h-4" />
+                              )}
+                              {generating ? "Generating Preview..." : "Generate with OpenAI"}
                             </button>
                             <button
                               type="button"
                               onClick={() => void handleApproveGeneratedImage()}
-                              disabled={saving}
+                              disabled={saving || generating}
                               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-100 px-4 py-3 text-sm font-medium text-emerald-800 transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-emerald-900/30 dark:text-emerald-300 dark:hover:bg-emerald-900/40"
                             >
                               <Send className="w-4 h-4" />
@@ -623,7 +750,7 @@ export default function AdminRequestsPage() {
                             <button
                               type="button"
                               onClick={() => void handleRejectGeneratedImage()}
-                              disabled={saving}
+                              disabled={saving || generating}
                               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-stone-200 px-4 py-3 text-sm font-medium text-stone-800 transition hover:bg-stone-300 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-stone-700 dark:text-stone-200 dark:hover:bg-stone-600"
                             >
                               <RefreshCcw className="w-4 h-4" />
@@ -640,6 +767,27 @@ export default function AdminRequestsPage() {
           </div>
         )}
       </div>
+      {fullscreenImageUrl && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 p-6"
+          onClick={() => setFullscreenImageUrl(null)}
+        >
+          <button
+            type="button"
+            onClick={() => setFullscreenImageUrl(null)}
+            className="absolute right-6 top-6 inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
+            aria-label="Close fullscreen preview"
+          >
+            <X className="h-5 w-5" />
+          </button>
+          <img
+            src={fullscreenImageUrl}
+            alt="Fullscreen generated preview"
+            className="max-h-full max-w-full rounded-2xl object-contain"
+            onClick={(event) => event.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 }

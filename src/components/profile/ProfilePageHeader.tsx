@@ -39,7 +39,7 @@ export default function ProfilePageHeader({
             Gallery
           </Link>
           <Link
-            to="/isabella"
+            to="/gallery"
             className="text-sm text-stone-600 dark:text-stone-300 hover:text-stone-800 dark:hover:text-stone-100"
           >
             Consultant

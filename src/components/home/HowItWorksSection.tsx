@@ -9,13 +9,15 @@ export default function HowItWorksSection() {
   const cards = [
     {
       icon: <MessageCircle className="w-8 h-8 text-stone-600" />,
-      title: "Chat with Isabella",
-      description: "Tell our AI consultant about your vision, style preferences, and wedding theme. Isabella understands your unique story.",
+      title: "Choose a Dress",
+      description:
+        "Start in the gallery and pick the gown you want to personalize before opening the MAI customization flow.",
     },
     {
       icon: <Palette className="w-8 h-8 text-stone-600" />,
       title: "Customize Everything",
-      description: "Modify necklines, sleeves, trains, and embellishments. See your changes in real-time as you design your perfect dress.",
+      description:
+        "Refine the selected dress with MAI by changing necklines, sleeves, trains, fabrics, and embellishments to match your vision.",
     },
     {
       icon: <Star className="w-8 h-8 text-stone-600" />,

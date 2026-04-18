@@ -29,6 +29,8 @@ interface DressAnswers {
   color: string;
 }
 
+type PartialDressAnswers = Partial<DressAnswers>;
+
 type ChatMessage =
   | { type: "bot"; text: string; options?: MCQOption[]; questionId?: string }
   | { type: "user"; text: string };
@@ -144,15 +146,19 @@ const FIELD_LABELS: Record<keyof DressAnswers, string> = {
   color: "Color",
 };
 
-function buildChatGPTPrompt(answers: DressAnswers, dress?: Dress): string {
-  const collectionLabel =
-    dress && dress.collections.length > 0
-      ? `${dress.collections.join(", ")} collection`
-      : "selected gallery dress";
+function getSelectedAnswerLines(answers: PartialDressAnswers) {
+  return (Object.entries(FIELD_LABELS) as Array<[keyof DressAnswers, string]>)
+    .flatMap(([key, label]) =>
+      answers[key] ? [`- ${label}: ${answers[key]}`] : [],
+    );
+}
 
-  const base = dress
-    ? `A custom bridal dress inspired by the "${dress.name}" (${collectionLabel}), reimagined with the following customizations:`
-    : "A custom bridal dress designed from scratch with these specifications:";
+function buildChatGPTPromptLegacy(answers: PartialDressAnswers): string {
+  const selectedLines = getSelectedAnswerLines(answers);
+
+  if (selectedLines.length === 0) {
+    return "";
+  }
 
   return `Edit this bridal gown product image.The model’s face, hair, skin, hands, body proportions, pose, camera angle, lighting, and background must remain unchanged.
 This must look like the same original photograph with only the dress redesigned.
@@ -161,10 +167,12 @@ STRICT INSTRUCTIONS:
 - Keep the same model, face, body, pose, and proportions
 - Keep the same camera angle, framing, lighting, and background
 - Do not change anything outside the dress
+- Preserve the exact framing
+- Do not crop, zoom, reframe, or change the distance from the model
+- Keep the full visible dress area in frame, including the hem and train
 
 Modify ONLY the dress design according to the following:
 
-${base}
 
 — Occasion: ${answers.occasion}
 — Neckline: ${answers.neckline}
@@ -191,14 +199,15 @@ QUALITY REQUIREMENTS:
 DO NOT:
 - Change the model identity
 - Add or remove limbs or alter hands
+- Crop the image or cut off any part of the visible dress
 - Change background or environment
 - Introduce unrealistic shapes or textures`;
 }
 
-function buildRequestSummary(answers: DressAnswers, dress?: Dress) {
+function buildRequestSummaryLegacy(answers: DressAnswers, dress?: Dress) {
   const header = [
     "Hello Designer! Here's a my custom dress request from MAI, the personal bridal consultant chatbot.",
-    dress ? `Inspired by: ${dress.name}` : "Designed from scratch",
+    dress ? `Inspired by: ${dress.name}` : null,
     dress && dress.collections.length > 0
       ? `Collection: ${dress.collections.join(", ")}`
       : null,
@@ -215,6 +224,65 @@ function buildRequestSummary(answers: DressAnswers, dress?: Dress) {
   );
 }
 
+void buildChatGPTPromptLegacy;
+void buildRequestSummaryLegacy;
+
+function buildChatGPTPrompt(answers: PartialDressAnswers): string {
+  const selectedLines = getSelectedAnswerLines(answers);
+
+  if (selectedLines.length === 0) {
+    return "";
+  }
+
+  return `Edit this bridal gown product image.The modelâ€™s face, hair, skin, hands, body proportions, pose, camera angle, lighting, and background must remain unchanged.
+This must look like the same original photograph with only the dress redesigned.
+
+STRICT INSTRUCTIONS:
+- Keep the same model, face, body, pose, and proportions
+- Keep the same camera angle, framing, lighting, and background
+- Do not change anything outside the dress
+
+Modify ONLY the dress design according to the following:
+
+${selectedLines.join("\n")}
+
+DESIGN PRIORITY:
+1. Silhouette and structure must be accurate
+2. Neckline and sleeves must match exactly
+3. Fabric texture must look realistic (satin, lace, chiffon, etc.)
+4. Embellishments should be refined and not excessive
+
+QUALITY REQUIREMENTS:
+- Photorealistic luxury bridal gown
+- Clean construction, no distortions
+- Natural fabric folds and draping
+- No blurriness or artifacts
+- Maintain high-end fashion editorial quality
+
+DO NOT:
+- Change the model identity
+- Add or remove limbs or alter hands
+- Change background or environment
+- Introduce unrealistic shapes or textures`;
+}
+
+function buildRequestSummary(answers: PartialDressAnswers, dress?: Dress) {
+  const details = getSelectedAnswerLines(answers);
+
+  return [
+    "Hello Designer! Here's a my custom dress request from MAI, the personal bridal consultant chatbot.",
+    dress ? `Inspired by: ${dress.name}` : null,
+    dress && dress.collections.length > 0
+      ? `Collection: ${dress.collections.join(", ")}`
+      : null,
+    "",
+    "I selected the following options:",
+    ...details,
+  ]
+    .filter((value): value is string => Boolean(value))
+    .join("\n");
+}
+
 export default function IsabellaPage() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -222,7 +290,7 @@ export default function IsabellaPage() {
   const dressFromGallery = (location.state as { dress?: Dress } | null)?.dress;
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [answers, setAnswers] = useState<Partial<DressAnswers>>({});
+  const [answers, setAnswers] = useState<PartialDressAnswers>({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
   const [isSending, setIsSending] = useState(false);
@@ -233,6 +301,12 @@ export default function IsabellaPage() {
   const [myAvatarUrl, setMyAvatarUrl] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!dressFromGallery) {
+      navigate("/gallery", { replace: true });
+    }
+  }, [dressFromGallery, navigate]);
 
   useEffect(() => {
     if (!session?.user) return;
@@ -254,6 +328,8 @@ export default function IsabellaPage() {
   }, [messages]);
 
   useEffect(() => {
+    if (!dressFromGallery) return;
+
     const firstQ = QUESTIONS[0];
     const intro = dressFromGallery
       ? `Hello! I'm MAI ✨\n\nI see you've chosen the gorgeous "${dressFromGallery.name}" — wonderful taste! Let's customize it to be uniquely yours. I'll ask you a few quick questions.\n\n${firstQ.text}`
@@ -274,17 +350,21 @@ export default function IsabellaPage() {
     setAnsweredQuestions(new Set());
   }, [dressFromGallery]);
 
-  const handleOptionSelect = (questionId: string, option: MCQOption) => {
+  const advanceToNextQuestion = (
+    questionId: string,
+    userMessage: string,
+    answerPatch?: PartialDressAnswers,
+  ) => {
     if (answeredQuestions.has(questionId)) return;
 
     const question = QUESTIONS.find((item) => item.id === questionId);
     if (!question) return;
 
     setAnsweredQuestions((prev) => new Set(prev).add(questionId));
-
-    const newAnswers = { ...answers, [question.key]: option.value };
-    setAnswers(newAnswers);
-    setMessages((prev) => [...prev, { type: "user", text: option.label }]);
+    if (answerPatch) {
+      setAnswers((prev) => ({ ...prev, ...answerPatch }));
+    }
+    setMessages((prev) => [...prev, { type: "user", text: userMessage }]);
 
     const nextIndex = QUESTIONS.findIndex((item) => item.id === questionId) + 1;
 
@@ -315,16 +395,32 @@ export default function IsabellaPage() {
     }, 600);
   };
 
-  const fullAnswers = answers as DressAnswers;
-  const prompt = isComplete
-    ? buildChatGPTPrompt(fullAnswers, dressFromGallery)
-    : "";
+  const handleOptionSelect = (questionId: string, option: MCQOption) => {
+    const question = QUESTIONS.find((item) => item.id === questionId);
+    if (!question) return;
+
+    advanceToNextQuestion(questionId, option.label, {
+      [question.key]: option.value,
+    });
+  };
+
+  const handleSkipQuestion = (questionId: string) => {
+    advanceToNextQuestion(questionId, "Skipped this option");
+  };
+
+  const selectedAnswerCount = Object.values(answers).filter(Boolean).length;
+  const prompt = isComplete ? buildChatGPTPrompt(answers) : "";
 
   const handleRequestStyle = async () => {
-    if (!session?.user || isSending) return;
+    if (!session?.user || isSending || !dressFromGallery) return;
 
     setIsSending(true);
     try {
+      if (selectedAnswerCount === 0) {
+        alert("Please choose at least one customization option before sending your request.");
+        return;
+      }
+
       let conversationId: string;
       const { data: existing } = await supabase
         .from("conversations")
@@ -345,7 +441,7 @@ export default function IsabellaPage() {
         conversationId = created.id;
       }
 
-      const requestSummary = buildRequestSummary(fullAnswers, dressFromGallery);
+      const requestSummary = buildRequestSummary(answers, dressFromGallery);
       const designerStatusMessage =
         "MAI has submitted this customization request for designer review.\n\nPlease be patient, we will be back to you as soon as possible with the next steps!";
 
@@ -384,7 +480,7 @@ export default function IsabellaPage() {
         .insert({
           customer_id: session.user.id,
           conversation_id: conversationId,
-          dress_id: dressFromGallery?.id ?? null,
+          dress_id: dressFromGallery.id,
           request_summary: requestSummary,
           generated_prompt: prompt,
           status: "pending_review",
@@ -487,6 +583,15 @@ export default function IsabellaPage() {
                         </button>
                       );
                     })}
+                    {!answeredQuestions.has(message.questionId) && (
+                      <button
+                        type="button"
+                        onClick={() => handleSkipQuestion(message.questionId!)}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium border transition-all duration-200 bg-white/80 dark:bg-stone-700/80 border-stone-200 dark:border-stone-600 text-stone-500 dark:text-stone-300 hover:border-stone-300 hover:bg-stone-50/50 dark:hover:bg-stone-700/90 hover:shadow-sm cursor-pointer"
+                      >
+                        Skip this option
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -516,7 +621,7 @@ export default function IsabellaPage() {
             <button
               type="button"
               onClick={handleRequestStyle}
-              disabled={isSending || !session?.user}
+              disabled={isSending || !session?.user || selectedAnswerCount === 0}
               className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-stone-700 via-pink-900/30 to-stone-700 dark:from-stone-800 dark:via-pink-900/40 dark:to-stone-800 text-white rounded-2xl font-serif text-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.01] disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
             >
               <Sparkles className="w-5 h-5 text-pink-300" />
@@ -549,6 +654,11 @@ export default function IsabellaPage() {
             approved, they can generate a preview and continue the conversation
             in chat.
           </p>
+          {selectedAnswerCount === 0 && (
+            <p className="text-center text-xs text-amber-600 dark:text-amber-400">
+              Choose at least one customization option to submit your request.
+            </p>
+          )}
         </div>
       )}
 

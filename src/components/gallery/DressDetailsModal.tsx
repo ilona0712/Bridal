@@ -188,7 +188,7 @@ export default function DressDetailsModal({
                   className="w-full py-3 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 dark:from-stone-600 dark:via-pink-900/20 dark:to-stone-600 text-stone-700 dark:text-stone-200 rounded-xl hover:shadow-lg transition-all text-sm flex items-center justify-center gap-2"
                 >
                   <MessageCircle className="w-5 h-5" />
-                  Customize with Isabella
+                  Customize with MAI
                 </Link>
 
                 {!isAdmin && (

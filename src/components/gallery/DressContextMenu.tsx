@@ -134,7 +134,7 @@ export default function DressContextMenu({
           state={{ dress }}
           className="w-full px-3 py-2 text-left text-xs text-stone-700 dark:text-stone-200 hover:bg-stone-100/50 dark:hover:bg-stone-700/50 rounded-lg transition-colors block"
         >
-          Customize with Isabella
+          Customize with MAI
         </Link>
       </div>
     </div>

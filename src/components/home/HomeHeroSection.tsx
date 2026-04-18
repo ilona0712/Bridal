@@ -67,7 +67,7 @@ export default function HomeHeroSection() {
             className="flex gap-4 justify-center lg:justify-start flex-wrap"
           >
             <Link
-              to="/isabella"
+              to="/gallery"
               className="px-8 py-4 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 text-stone-700 rounded-xl hover:shadow-lg transition-all"
             >
               {loading ? "Start Consultation" : settings.hero_cta_text}
