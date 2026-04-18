@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import OwnerChatMessageBubble from "./OwnerChatMessageBubble";
 import type { ChatMessage } from "../../types/chat";
 
@@ -59,10 +59,28 @@ export default function OwnerChatMessagesList({
   onViewProfile,
   headerOverlay,
 }: OwnerChatMessagesListProps) {
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const hasLoadedInitialMessagesRef = useRef(false);
+  const previousMessageCountRef = useRef(0);
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  useLayoutEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    if (messages.length === 0) {
+      previousMessageCountRef.current = 0;
+      return;
+    }
+
+    if (!hasLoadedInitialMessagesRef.current) {
+      container.scrollTop = container.scrollHeight;
+      hasLoadedInitialMessagesRef.current = true;
+    } else if (messages.length > previousMessageCountRef.current) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+
+    previousMessageCountRef.current = messages.length;
   }, [messages]);
 
   const displayItems = groupMessages(messages);
@@ -70,7 +88,10 @@ export default function OwnerChatMessagesList({
   return (
     <div className="relative flex-1 min-h-0">
       {/* scrollable messages */}
-      <div className="absolute inset-0 overflow-y-auto pt-16 p-6 space-y-4 bg-stone-50/30 dark:bg-stone-900/30">
+      <div
+        ref={scrollContainerRef}
+        className="absolute inset-0 overflow-y-auto pt-16 p-6 space-y-4 bg-stone-50/30 dark:bg-stone-900/30"
+      >
         {displayItems.map((item) =>
           item.kind === "album" ? (
             <OwnerChatMessageBubble

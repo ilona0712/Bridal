@@ -247,12 +247,6 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
             >
               Gallery
             </Link>
-            <Link
-              to="/gallery"
-              className="text-sm text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 transition-colors"
-            >
-              Consultant
-            </Link>
             {isAdmin ? (
               <>
                 <Link
@@ -461,13 +455,6 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
               className="text-sm text-stone-600 dark:text-stone-300 hover:text-stone-800 dark:hover:text-stone-100 px-1"
             >
               Gallery
-            </Link>
-            <Link
-              to="/gallery"
-              onClick={() => setMenuOpen(false)}
-              className="text-sm text-stone-600 dark:text-stone-300 hover:text-stone-800 dark:hover:text-stone-100 px-1"
-            >
-              Consultant
             </Link>
             {!session && (
               <Link
