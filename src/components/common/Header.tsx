@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   Sparkles,
   MessageCircle,
+  ClipboardList,
   User,
   LogOut,
   Menu,
@@ -219,18 +220,27 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
               Consultant
             </Link>
             {isAdmin ? (
-              <Link
-                to="/clients-chats"
-                className="relative inline-flex items-center gap-2 rounded-full border border-stone-200/50 dark:border-stone-700/50 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 dark:from-stone-700 dark:via-pink-900/20 dark:to-stone-700 px-4 py-2 text-sm text-stone-700 dark:text-stone-200 hover:shadow-md"
-              >
-                <MessageCircle className="h-4 w-4" />
-                Client Chats
-                {unreadCount > 0 && (
-                  <span className="absolute -right-2 -top-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-pink-500 px-1 text-xs font-medium text-white shadow-sm">
-                    {unreadCount}
-                  </span>
-                )}
-              </Link>
+              <>
+                <Link
+                  to="/clients-chats"
+                  className="relative inline-flex items-center gap-2 rounded-full border border-stone-200/50 dark:border-stone-700/50 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 dark:from-stone-700 dark:via-pink-900/20 dark:to-stone-700 px-4 py-2 text-sm text-stone-700 dark:text-stone-200 hover:shadow-md"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  Client Chats
+                  {unreadCount > 0 && (
+                    <span className="absolute -right-2 -top-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-pink-500 px-1 text-xs font-medium text-white shadow-sm">
+                      {unreadCount}
+                    </span>
+                  )}
+                </Link>
+                <Link
+                  to="/admin/requests"
+                  className="inline-flex items-center gap-2 rounded-full border border-stone-200/50 dark:border-stone-700/50 bg-white/80 dark:bg-stone-800/80 px-4 py-2 text-sm text-stone-700 dark:text-stone-200 hover:shadow-md"
+                >
+                  <ClipboardList className="h-4 w-4" />
+                  Requests
+                </Link>
+              </>
             ) : (
               <Link
                 to="/chat"
@@ -316,18 +326,27 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
               )}
             </button>
             {isAdmin ? (
-              <Link
-                to="/clients-chats"
-                className="relative inline-flex items-center gap-1 rounded-full border border-stone-200/50 dark:border-stone-700/50 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 dark:from-stone-700 dark:via-pink-900/20 dark:to-stone-700 px-3 py-2 text-xs text-stone-700 dark:text-stone-200"
-              >
-                <MessageCircle className="h-4 w-4" />
-                Chats
-                {unreadCount > 0 && (
-                  <span className="absolute -right-2 -top-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-pink-500 px-1 text-xs font-medium text-white shadow-sm">
-                    {unreadCount}
-                  </span>
-                )}
-              </Link>
+              <>
+                <Link
+                  to="/clients-chats"
+                  className="relative inline-flex items-center gap-1 rounded-full border border-stone-200/50 dark:border-stone-700/50 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 dark:from-stone-700 dark:via-pink-900/20 dark:to-stone-700 px-3 py-2 text-xs text-stone-700 dark:text-stone-200"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  Chats
+                  {unreadCount > 0 && (
+                    <span className="absolute -right-2 -top-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-pink-500 px-1 text-xs font-medium text-white shadow-sm">
+                      {unreadCount}
+                    </span>
+                  )}
+                </Link>
+                <Link
+                  to="/admin/requests"
+                  className="inline-flex items-center gap-1 rounded-full border border-stone-200/50 dark:border-stone-700/50 bg-white/80 dark:bg-stone-800/80 px-3 py-2 text-xs text-stone-700 dark:text-stone-200"
+                >
+                  <ClipboardList className="h-4 w-4" />
+                  Requests
+                </Link>
+              </>
             ) : (
               <Link
                 to="/chat"
@@ -374,6 +393,15 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
                 className="text-sm text-stone-600 dark:text-stone-300 hover:text-stone-800 dark:hover:text-stone-100 px-1"
               >
                 Admin
+              </Link>
+            )}
+            {isAdmin && (
+              <Link
+                to="/admin/requests"
+                onClick={() => setMenuOpen(false)}
+                className="text-sm text-stone-600 dark:text-stone-300 hover:text-stone-800 dark:hover:text-stone-100 px-1"
+              >
+                Requests
               </Link>
             )}
             <Link

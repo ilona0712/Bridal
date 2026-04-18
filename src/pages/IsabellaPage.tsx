@@ -197,25 +197,22 @@ DO NOT:
 
 function buildRequestSummary(answers: DressAnswers, dress?: Dress) {
   const header = [
-    "Custom Dress Request",
+    "Hello Designer! Here's a my custom dress request from MAI, the personal bridal consultant chatbot.",
     dress ? `Inspired by: ${dress.name}` : "Designed from scratch",
     dress && dress.collections.length > 0
       ? `Collection: ${dress.collections.join(", ")}`
       : null,
     "",
-    "Selected customizations:",
+    "I selected the following options:",
   ];
 
   const details = (Object.entries(FIELD_LABELS) as Array<
     [keyof DressAnswers, string]
   >).map(([key, label]) => `- ${label}: ${answers[key]}`);
 
-  return [
-    ...header.filter((value): value is string => Boolean(value)),
-    ...details,
-    "",
-    "Status: Pending designer approval. We will review your request and message you here before generating a preview.",
-  ].join("\n");
+  return [...header.filter((value): value is string => Boolean(value)), ...details].join(
+    "\n",
+  );
 }
 
 export default function IsabellaPage() {
@@ -349,6 +346,20 @@ export default function IsabellaPage() {
       }
 
       const requestSummary = buildRequestSummary(fullAnswers, dressFromGallery);
+      const designerStatusMessage =
+        "MAI has submitted this customization request for designer review.\n\nPlease be patient, we will be back to you as soon as possible with the next steps!";
+
+      if (dressFromGallery?.image) {
+        const { error: imageMessageError } = await supabase.from("messages").insert({
+          conversation_id: conversationId,
+          content: dressFromGallery.image,
+          sender_type: "customer",
+          attachment_url: dressFromGallery.image,
+          attachment_type: "image",
+        });
+
+        if (imageMessageError) throw imageMessageError;
+      }
 
       const { error: messageError } = await supabase.from("messages").insert({
         conversation_id: conversationId,
@@ -357,6 +368,16 @@ export default function IsabellaPage() {
       });
 
       if (messageError) throw messageError;
+
+      const { error: designerMessageError } = await supabase
+        .from("messages")
+        .insert({
+          conversation_id: conversationId,
+          content: designerStatusMessage,
+          sender_type: "designer",
+        });
+
+      if (designerMessageError) throw designerMessageError;
 
       const { error: requestError } = await supabase
         .from("chatbot_sessions")
@@ -500,14 +521,14 @@ export default function IsabellaPage() {
             >
               <Sparkles className="w-5 h-5 text-pink-300" />
               {isSending
-                ? "Sending for review…"
+                ? "Sending for review..."
                 : "Request This Style from Our Designer"}
               <ChevronRight className="w-5 h-5 text-pink-300" />
             </button>
           ) : (
             <div className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-2xl text-green-700 dark:text-green-300 font-medium">
               <Check className="w-5 h-5" />
-              Request submitted for designer approval. Redirecting to chat…
+              Request submitted for designer approval. Redirecting to chat...
             </div>
           )}
 
