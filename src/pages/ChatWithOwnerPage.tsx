@@ -163,6 +163,18 @@ export default function ChatWithOwnerPage() {
           setMessages((prev) => [...prev, payload.new as ChatMessage]);
         }
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "messages",
+          filter: `conversation_id=eq.${conversationId}`,
+        },
+        (payload) => {
+          setMessages((prev) => prev.filter((msg) => msg.id !== payload.old.id));
+        }
+      )
       .subscribe((status) => {
         console.log("Realtime status:", status);
       });
@@ -292,6 +304,21 @@ const mediaRecorder = new MediaRecorder(stream, { mimeType });
     }
   };
 
+  const handleDeleteMessage = async (messageId: string) => {
+    const { error } = await supabase
+      .from("messages")
+      .delete()
+      .eq("id", messageId);
+
+    if (error) {
+      console.error("Failed to delete message:", error);
+      return;
+    }
+
+    // Remove the message from local state
+    setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
+  };
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as Node;
@@ -325,6 +352,7 @@ const mediaRecorder = new MediaRecorder(stream, { mimeType });
         myAvatarUrl={myAvatarUrl}
         otherAvatarUrl={otherAvatarUrl}
         onViewProfile={role === "admin" && stateCustomerId ? () => setShowProfile(true) : undefined}
+        onDeleteMessage={handleDeleteMessage}
         headerOverlay={
           <div className="flex items-center gap-3 px-4 py-3">
             <button

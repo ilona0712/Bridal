@@ -1,4 +1,4 @@
-import { Mic, User, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Mic, User, X, ChevronLeft, ChevronRight, MoreVertical } from "lucide-react";
 import type { ChatMessage } from "../../types/chat";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -10,6 +10,7 @@ type OwnerChatMessageBubbleProps = {
   myAvatarUrl?: string | null;
   otherAvatarUrl?: string | null;
   onViewProfile?: () => void;
+  onDeleteMessage?: (messageId: string) => void;
   albumUrls?: string[];
 };
 
@@ -191,6 +192,7 @@ export default function OwnerChatMessageBubble({
   myAvatarUrl,
   otherAvatarUrl,
   onViewProfile,
+  onDeleteMessage,
   albumUrls,
 }: OwnerChatMessageBubbleProps) {
   const isMine =
@@ -210,6 +212,7 @@ export default function OwnerChatMessageBubble({
 
   const [duration, setDuration] = useState<string | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [showMenu, setShowMenu] = useState(false);
 
   useEffect(() => {
     if (lightboxIndex === null) return;
@@ -219,6 +222,17 @@ export default function OwnerChatMessageBubble({
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, [lightboxIndex]);
+
+  useEffect(() => {
+    if (!showMenu) return;
+    const handler = (event: MouseEvent) => {
+      if (!(event.target as Element).closest('.message-menu')) {
+        setShowMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [showMenu]);
 
   useEffect(() => {
     if (!hasAudio || !message.content) return;
@@ -254,68 +268,99 @@ export default function OwnerChatMessageBubble({
       >
         <span className="text-[10px] sm:text-xs text-stone-500 px-1">{senderLabel}</span>
 
-        <div
-          className={[
-            "rounded-xl sm:rounded-2xl shadow-sm backdrop-blur-sm transition-all w-fit",
-            isAlbum ? "overflow-hidden p-0" : hasAudio ? "min-w-[140px] sm:min-w-[200px] max-w-full px-2.5 py-1.5 sm:px-4 sm:py-2.5" : "max-w-full px-2.5 py-1.5 sm:px-4 sm:py-2.5",
-            isMine
-              ? "bg-gradient-to-br from-stone-300 via-pink-100 to-stone-200 dark:from-stone-600 dark:via-pink-900/20 dark:to-stone-600 text-stone-800 dark:text-stone-100 rounded-br-sm border border-pink-100/60 dark:border-stone-500/60"
-              : "bg-white/90 dark:bg-stone-700/90 text-stone-800 dark:text-stone-100 rounded-bl-sm border border-stone-200/70 dark:border-stone-600/70",
-          ].join(" ")}
-        >
-          {hasAudio ? (
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-1.5 text-xs text-stone-500 dark:text-stone-400">
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center ${isMine ? "bg-white/50 border border-white/60" : "bg-amber-50 border border-amber-100"}`}>
-                  <Mic className="w-3 h-3" />
+        {/* Message row with content and menu */}
+        <div className={`flex items-end gap-2 ${isMine ? "justify-end" : "flex-row"}`}>
+          <div
+            className={[
+              "rounded-xl sm:rounded-2xl shadow-sm backdrop-blur-sm transition-all w-fit relative",
+              isAlbum ? "overflow-hidden p-0" : hasAudio ? "min-w-[140px] sm:min-w-[200px] max-w-full px-2.5 py-1.5 sm:px-4 sm:py-2.5" : "max-w-full px-2.5 py-1.5 sm:px-4 sm:py-2.5",
+              isMine
+                ? "bg-gradient-to-br from-stone-300 via-pink-100 to-stone-200 dark:from-stone-600 dark:via-pink-900/20 dark:to-stone-600 text-stone-800 dark:text-stone-100 rounded-br-sm border border-pink-100/60 dark:border-stone-500/60"
+                : "bg-white/90 dark:bg-stone-700/90 text-stone-800 dark:text-stone-100 rounded-bl-sm border border-stone-200/70 dark:border-stone-600/70",
+            ].join(" ")}
+          >
+            {hasAudio ? (
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5 text-xs text-stone-500 dark:text-stone-400">
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center ${isMine ? "bg-white/50 border border-white/60" : "bg-amber-50 border border-amber-100"}`}>
+                    <Mic className="w-3 h-3" />
+                  </div>
+                  <span className="font-medium">Voice message</span>
+                  {duration && <span className="text-stone-400">{duration}</span>}
                 </div>
-                <span className="font-medium">Voice message</span>
-                {duration && <span className="text-stone-400">{duration}</span>}
+                {message.content ? (
+                  <audio controls className="w-full h-8 rounded-xl" preload="metadata">
+                    <source src={message.content} />
+                  </audio>
+                ) : (
+                  <p className="text-xs text-stone-400">Audio unavailable</p>
+                )}
               </div>
-              {message.content ? (
-                <audio controls className="w-full h-8 rounded-xl" preload="metadata">
-                  <source src={message.content} />
-                </audio>
-              ) : (
-                <p className="text-xs text-stone-400">Audio unavailable</p>
-              )}
-            </div>
-          ) : isAlbum ? (
-            <>
-              <PhotoGrid urls={albumUrls!} onOpen={setLightboxIndex} />
-              {lightboxIndex !== null &&
-                createPortal(
-                  <PhotoLightbox
-                    urls={albumUrls!}
-                    initialIndex={lightboxIndex}
-                    onClose={() => setLightboxIndex(null)}
-                  />,
-                  document.body,
+            ) : isAlbum ? (
+              <>
+                <PhotoGrid urls={albumUrls!} onOpen={setLightboxIndex} />
+                {lightboxIndex !== null &&
+                  createPortal(
+                    <PhotoLightbox
+                      urls={albumUrls!}
+                      initialIndex={lightboxIndex}
+                      onClose={() => setLightboxIndex(null)}
+                    />,
+                    document.body
+                  )}
+              </>
+            ) : hasImage ? (
+              <>
+                  <img
+                    src={message.attachment_url!}
+                    alt="attachment"
+                    className="w-full max-w-[160px] sm:max-w-[220px] rounded-xl object-contain bg-white dark:bg-stone-900 cursor-pointer"
+                    onClick={() => setLightboxIndex(0)}
+                  />
+                {lightboxIndex === 0 &&
+                  createPortal(
+                    <PhotoLightbox
+                      urls={[message.attachment_url!]}
+                      initialIndex={0}
+                      onClose={() => setLightboxIndex(null)}
+                    />,
+                    document.body,
+                  )}
+                </>
+            ) : (
+              <p className="text-xs sm:text-sm leading-relaxed break-words whitespace-pre-wrap">
+                {message.content}
+              </p>
+            )}
+
+            {isMine && onDeleteMessage && (
+              <div className="absolute -right-6 top-1/2 -translate-y-1/2 message-menu">
+                <button
+                  onClick={() => setShowMenu(!showMenu)}
+                  className="w-5 h-5 rounded-full flex items-center justify-center text-stone-400 dark:text-stone-500 hover:bg-pink-100/40 dark:hover:bg-pink-900/20 hover:text-amber-600 dark:hover:text-amber-400 transition-all duration-150"
+                  title="Delete message"
+                >
+                  <MoreVertical className="w-3.5 h-3.5" />
+                </button>
+                {showMenu && (
+                  <div className="absolute -left-32 top-6 z-10 bg-white/95 dark:bg-stone-700/95 backdrop-blur-sm border border-pink-100/60 dark:border-stone-600/60 rounded-lg shadow-lg py-1.5 px-1 min-w-[120px] message-menu">
+                    <button
+                      onClick={() => {
+                        onDeleteMessage(message.id);
+                        setShowMenu(false);
+                      }}
+                      className="w-full px-3 py-2 text-left text-xs text-stone-700 dark:text-stone-200 hover:bg-pink-50/80 dark:hover:bg-stone-600/80 transition-colors duration-150 flex items-center gap-2 group rounded-md"
+                    >
+                      <svg viewBox="0 0 24 24" className="w-3 h-3 text-stone-500 dark:text-stone-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M6 7h12M8 7V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v1m1 0h-14l1 13a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-13" />
+                      </svg>
+                      <span className="text-xs font-medium">Delete</span>
+                    </button>
+                  </div>
                 )}
-            </>
-          ) : hasImage ? (
-            <>
-                <img
-                  src={message.attachment_url!}
-                  alt="attachment"
-                  className="w-full max-w-[160px] sm:max-w-[220px] rounded-xl object-contain bg-white dark:bg-stone-900 cursor-pointer"
-                  onClick={() => setLightboxIndex(0)}
-                />
-              {lightboxIndex === 0 &&
-                createPortal(
-                  <PhotoLightbox
-                    urls={[message.attachment_url!]}
-                    initialIndex={0}
-                    onClose={() => setLightboxIndex(null)}
-                  />,
-                  document.body,
-                )}
-            </>
-          ) : (
-            <p className="text-xs sm:text-sm leading-relaxed break-words whitespace-pre-wrap">
-              {message.content}
-            </p>
-          )}
+              </div>
+            )}
+          </div>
         </div>
 
         <span className="text-[10px] sm:text-xs text-stone-400 dark:text-stone-500 px-1">

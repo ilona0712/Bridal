@@ -10,6 +10,7 @@ type OwnerChatMessagesListProps = {
   myAvatarUrl?: string | null;
   otherAvatarUrl?: string | null;
   onViewProfile?: () => void;
+  onDeleteMessage?: (messageId: string) => void;
   headerOverlay?: React.ReactNode;
 };
 
@@ -73,6 +74,7 @@ export default function OwnerChatMessagesList({
   myAvatarUrl,
   otherAvatarUrl,
   onViewProfile,
+  onDeleteMessage,
   headerOverlay,
 }: OwnerChatMessagesListProps) {
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -123,6 +125,7 @@ export default function OwnerChatMessagesList({
                   myAvatarUrl={myAvatarUrl}
                   otherAvatarUrl={otherAvatarUrl}
                   onViewProfile={onViewProfile}
+                  onDeleteMessage={onDeleteMessage}
                 />
               ) : (
                 <OwnerChatMessageBubble
@@ -131,6 +134,7 @@ export default function OwnerChatMessagesList({
                   myAvatarUrl={myAvatarUrl}
                   otherAvatarUrl={otherAvatarUrl}
                   onViewProfile={onViewProfile}
+                  onDeleteMessage={onDeleteMessage}
                 />
               )}
             </div>
