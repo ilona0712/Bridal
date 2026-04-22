@@ -100,13 +100,13 @@ export default function DressCard({
               Sizes: {dress.sizes[0]}-{dress.sizes[dress.sizes.length - 1]}
             </span>
           )}
-          {dress.price !== null && dress.price !== undefined ? (
+          {dress.price !== null && dress.price !== undefined && dress.price > 0 ? (
             <p className="text-2xl font-serif text-stone-800 dark:text-stone-100">
               ${dress.price.toLocaleString()}
             </p>
-          ) : (
+          ) : dress.price === null || dress.price === undefined ? (
             <p className="text-2xl font-serif text-stone-800 dark:text-stone-100">Custom</p>
-          )}
+          ) : null}
         </div>
 
         {(dress.fabric || dress.sleeveStyle) && (
