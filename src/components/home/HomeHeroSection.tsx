@@ -72,12 +72,6 @@ export default function HomeHeroSection() {
             >
               {loading ? "Start Consultation" : settings.hero_cta_text}
             </Link>
-            <Link
-              to="#features"
-              className="px-8 py-4 bg-white/80 dark:bg-stone-800/80 border border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-200 rounded-xl hover:bg-stone-50/50 dark:hover:bg-stone-700/50 transition-all"
-            >
-              Learn More
-            </Link>
           </motion.div>
         </div>
 

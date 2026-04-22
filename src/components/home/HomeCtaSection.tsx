@@ -1,9 +1,24 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useInView } from "../../hooks/useInView";
+import { useEffect, useState } from "react";
+import { supabase } from "../../../lib/supabase";
 
 export default function HomeCtaSection() {
   const { ref, inView } = useInView();
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <section className="container mx-auto px-6 py-20">
@@ -47,12 +62,14 @@ export default function HomeCtaSection() {
           >
             Start Now
           </Link>
+          {!user && (
           <Link
             to="/login"
             className="px-8 py-4 bg-stone-800/10 dark:bg-stone-100/10 text-stone-800 dark:text-stone-200 rounded-xl hover:bg-stone-800/20 dark:hover:bg-stone-100/20 transition-all"
           >
             Sign In
           </Link>
+          )}
         </div>
       </motion.div>
     </section>
