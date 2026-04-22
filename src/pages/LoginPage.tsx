@@ -47,7 +47,7 @@ export default function LoginPage() {
                 <Sparkles className="w-8 h-8 text-stone-600" />
               </div>
               <h1 className="font-serif text-4xl text-stone-800 dark:text-stone-100">
-                Bride Me Up
+                Maria Badari
               </h1>
               <p className="text-stone-500 dark:text-stone-400">
                 Your journey to the perfect dress begins here

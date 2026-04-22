@@ -14,7 +14,7 @@ export interface SiteSettings {
 }
 
 export const DEFAULTS: SiteSettings = {
-  logo_text:         "Bride Me Up",
+  logo_text:         "Maria Badari",
   logo_image_url:    "",
   hero_image_url:    "https://images.unsplash.com/photo-1761671613669-3b17b4a71bb9?auto=format&fit=crop&w=1080&q=80",
   hero_title:        "Find Your Perfect Dress",

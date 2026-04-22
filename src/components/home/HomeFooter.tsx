@@ -10,7 +10,7 @@ export default function HomeFooter() {
             <div className="w-8 h-8 bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 rounded-full flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-stone-600" />
             </div>
-            <span className="font-serif text-stone-800 dark:text-stone-100">Bride Me Up</span>
+            <span className="font-serif text-stone-800 dark:text-stone-100">Maria Badari</span>
           </div>
 
           <div className="flex gap-6 text-sm text-stone-600 dark:text-stone-300">
@@ -26,7 +26,7 @@ export default function HomeFooter() {
           </div>
 
           <div className="text-sm text-stone-500 dark:text-stone-400">
-            © 2026 Bride Me Up. All rights reserved.
+            © 2026 Maria Badari. All rights reserved.
           </div>
         </div>
       </div>

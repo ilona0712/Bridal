@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.bridemeup.mobile',
-  appName: 'Bride Me Up',
+  appId: 'com.mariabadari.mobile',
+  appName: 'Maria Badari',
   webDir: 'dist'
 };
 

@@ -5,6 +5,7 @@ import Header from "../components/common/Header";
 import { supabase } from "../../lib/supabase";
 import { useSession } from "../routes";
 import type { Dress } from "../types/dress";
+import { sendPushNotification } from "../services/pushNotificationService";
 
 interface MCQOption {
   label: string;
@@ -475,7 +476,7 @@ export default function IsabellaPage() {
 
       if (designerMessageError) throw designerMessageError;
 
-      const { error: requestError } = await supabase
+      const { data: requestRow, error: requestError } = await supabase
         .from("chatbot_sessions")
         .insert({
           customer_id: session.user.id,
@@ -484,9 +485,21 @@ export default function IsabellaPage() {
           request_summary: requestSummary,
           generated_prompt: prompt,
           status: "pending_review",
-        });
+        })
+        .select("id")
+        .single();
 
       if (requestError) throw requestError;
+
+      void sendPushNotification({
+        type: "custom_request_submitted",
+        sessionId: requestRow?.id,
+        customerName:
+          session.user.user_metadata?.full_name ||
+          session.user.user_metadata?.first_name ||
+          session.user.email?.split("@")[0] ||
+          "A customer",
+      });
 
       setRequestSent(true);
 
