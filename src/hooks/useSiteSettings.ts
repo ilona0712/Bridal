@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 
+export const DEFAULT_LOGO_IMAGE_URL = "/maria_badari_logo.svg"
+
 export interface SiteSettings {
   logo_text:          string
   logo_image_url:     string
@@ -17,7 +19,7 @@ export interface SiteSettings {
 
 export const DEFAULTS: SiteSettings = {
   logo_text:          "Maria Badari",
-  logo_image_url:     "",
+  logo_image_url:     DEFAULT_LOGO_IMAGE_URL,
   hero_image_url:     "https://images.unsplash.com/photo-1761671613669-3b17b4a71bb9?auto=format&fit=crop&w=1080&q=80",
   hero_title:         "Find Your Perfect Dress",
   hero_subtitle:      "Chat with our intelligent consultant to design and customize your dream wedding dress. Every detail, every wish, brought to life.",
@@ -30,6 +32,13 @@ export const DEFAULTS: SiteSettings = {
 }
 
 let cache: SiteSettings | null = null
+
+function normalizeSiteSettings(settings: SiteSettings): SiteSettings {
+  return {
+    ...settings,
+    logo_image_url: settings.logo_image_url.trim() || DEFAULT_LOGO_IMAGE_URL,
+  }
+}
 
 export function useSiteSettings() {
   const [settings, setSettings] = useState<SiteSettings>(cache ?? DEFAULTS)
@@ -54,8 +63,9 @@ export function useSiteSettings() {
         if (row.key in mapped) (mapped as any)[row.key] = row.value
       }
 
-      cache = mapped
-      setSettings(mapped)
+      const normalized = normalizeSiteSettings(mapped)
+      cache = normalized
+      setSettings(normalized)
       setLoading(false)
     }
 
