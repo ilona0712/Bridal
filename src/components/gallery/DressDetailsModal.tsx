@@ -35,8 +35,9 @@ export default function DressDetailsModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white/95 dark:bg-stone-900/95 backdrop-blur-sm rounded-3xl shadow-2xl border border-stone-200/50 dark:border-stone-700/50 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-gradient-to-r from-stone-200 via-pink-100/30 to-stone-200 dark:from-stone-800 dark:via-stone-700 dark:to-stone-800 px-6 py-5 border-b border-stone-200/50 dark:border-stone-700/50 flex items-center justify-between z-10">
+      <div className="bg-white/95 dark:bg-stone-900/95 backdrop-blur-sm rounded-3xl shadow-2xl border border-stone-200/50 dark:border-stone-700/50 max-w-4xl w-full max-h-[90vh] flex flex-col">
+        {/* Sticky header */}
+        <div className="flex-shrink-0 bg-gradient-to-r from-stone-200 via-pink-100/30 to-stone-200 dark:from-stone-800 dark:via-stone-700 dark:to-stone-800 px-6 py-5 border-b border-stone-200/50 dark:border-stone-700/50 flex items-center justify-between rounded-t-3xl">
           <h2 className="font-serif text-2xl text-stone-800 dark:text-stone-100">
             {dress.name}
           </h2>
@@ -49,7 +50,8 @@ export default function DressDetailsModal({
           </button>
         </div>
 
-        <div className="p-8 space-y-10">
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto p-8">
           <div className="grid md:grid-cols-2 gap-8">
             <div className="relative aspect-[3/4] rounded-2xl overflow-hidden">
               <ImageWithFallback
@@ -173,36 +175,37 @@ export default function DressDetailsModal({
                   </div>
                 </div>
               )}
-
-              <div className="pt-6 space-y-3">
-                <button
-                  type="button"
-                  className="w-full py-3 bg-stone-800 dark:bg-stone-600 text-white rounded-xl hover:bg-stone-700 dark:hover:bg-stone-500 transition-all text-sm"
-                >
-                  Request to Rent
-                </button>
-
-                <Link
-                  to="/isabella"
-                  state={{ dress }}
-                  className="w-full py-3 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 dark:from-stone-600 dark:via-pink-900/20 dark:to-stone-600 text-stone-700 dark:text-stone-200 rounded-xl hover:shadow-lg transition-all text-sm flex items-center justify-center gap-2"
-                >
-                  <MessageCircle className="w-5 h-5" />
-                  Customize with MAI
-                </Link>
-
-                {!isAdmin && (
-                  <button
-                    type="button"
-                    onClick={() => onToggleFavorite?.(String(dress.id))}
-                    className="w-full py-3 bg-stone-100/70 dark:bg-stone-700/70 text-stone-700 dark:text-stone-200 rounded-xl hover:bg-stone-100 dark:hover:bg-stone-700 transition-all text-sm"
-                  >
-                    {isFavorite ? "Remove from Favorites" : "Add to Favorites"}
-                  </button>
-                )}
-              </div>
             </div>
           </div>
+        </div>
+
+        {/* Fixed action footer */}
+        <div className="flex-shrink-0 border-t border-stone-200/50 dark:border-stone-700/50 bg-white/80 dark:bg-stone-900/80 backdrop-blur-sm px-8 py-5 rounded-b-3xl space-y-3">
+          <button
+            type="button"
+            className="w-full py-3 bg-stone-800 dark:bg-stone-600 text-white rounded-xl hover:bg-stone-700 dark:hover:bg-stone-500 transition-all text-sm"
+          >
+            Request to Rent
+          </button>
+
+          <Link
+            to="/isabella"
+            state={{ dress }}
+            className="w-full py-3 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 dark:from-stone-600 dark:via-pink-900/20 dark:to-stone-600 text-stone-700 dark:text-stone-200 rounded-xl hover:shadow-lg transition-all text-sm flex items-center justify-center gap-2"
+          >
+            <MessageCircle className="w-5 h-5" />
+            Customize with MAI
+          </Link>
+
+          {!isAdmin && (
+            <button
+              type="button"
+              onClick={() => onToggleFavorite?.(String(dress.id))}
+              className="w-full py-3 bg-stone-100/70 dark:bg-stone-700/70 text-stone-700 dark:text-stone-200 rounded-xl hover:bg-stone-100 dark:hover:bg-stone-700 transition-all text-sm"
+            >
+              {isFavorite ? "Remove from Favorites" : "Add to Favorites"}
+            </button>
+          )}
         </div>
       </div>
     </div>

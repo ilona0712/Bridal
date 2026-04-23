@@ -1,4 +1,4 @@
-import { Check, Edit2, FolderPlus, Save, Trash2, X } from "lucide-react";
+import { Check, Edit2, Eye, EyeOff, FolderPlus, Save, Trash2, X } from "lucide-react";
 import type { AdminCollection, EditingCollection } from "../../types/admin";
 import type { Dress } from "../../types/dress";
 
@@ -19,6 +19,7 @@ type AdminCollectionsTabProps = {
   onUpdateCollection: () => void;
   onCancelEditCollection: () => void;
   onDeleteCollection: (collection: AdminCollection) => void;
+  onToggleHomepage: (collection: AdminCollection) => void;
   onToggleDressForCollection: (dressId: string) => void;
   onToggleDressForEditCollection: (dressId: string) => void;
 };
@@ -40,9 +41,11 @@ export default function AdminCollectionsTab({
   onUpdateCollection,
   onCancelEditCollection,
   onDeleteCollection,
+  onToggleHomepage,
   onToggleDressForCollection,
   onToggleDressForEditCollection,
 }: AdminCollectionsTabProps) {
+  const activeCount = collections.filter((c) => c.isActive).length;
   return (
     <div className="space-y-6">
       <div className="bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-2xl shadow-lg border border-stone-200/50 dark:border-stone-700/50 p-6">
@@ -141,9 +144,18 @@ export default function AdminCollectionsTab({
       </div>
 
       <div className="bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-2xl shadow-lg border border-stone-200/50 dark:border-stone-700/50 p-6">
-        <h2 className="text-2xl font-serif text-stone-800 dark:text-stone-100 mb-4">
-          Existing Collections
-        </h2>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-2xl font-serif text-stone-800 dark:text-stone-100">
+            Existing Collections
+          </h2>
+          <span className="text-sm text-stone-500 dark:text-stone-400">
+            {activeCount} / 6 shown on homepage
+          </span>
+        </div>
+        <p className="text-xs text-stone-400 dark:text-stone-500 mb-4 flex items-center gap-1.5">
+          <Eye className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
+          The eye icon toggles whether a collection appears on the homepage (max 6).
+        </p>
 
         <div className="space-y-3">
           {collections.map((collection) => {
@@ -208,6 +220,29 @@ export default function AdminCollectionsTab({
                       </>
                     ) : (
                       <>
+                        <button
+                          type="button"
+                          onClick={() => onToggleHomepage(collection)}
+                          disabled={!collection.isActive && activeCount >= 6}
+                          title={
+                            !collection.isActive && activeCount >= 6
+                              ? "Maximum 6 collections can be shown on the homepage"
+                              : collection.isActive
+                              ? "Hide from homepage"
+                              : "Show on homepage"
+                          }
+                          className={`w-9 h-9 rounded-lg transition-colors flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed ${
+                            collection.isActive
+                              ? "bg-emerald-100 dark:bg-emerald-900/30 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400"
+                              : "bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 dark:hover:bg-stone-600 text-stone-400 dark:text-stone-500"
+                          }`}
+                        >
+                          {collection.isActive
+                            ? <Eye className="w-4 h-4" />
+                            : <EyeOff className="w-4 h-4" />
+                          }
+                        </button>
+
                         <button
                           type="button"
                           onClick={() => onStartEditingCollection(collection)}

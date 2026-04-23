@@ -12,6 +12,7 @@ import type { Dress } from "../../types/dress";
 type CollectionRow = {
   id: string | number;
   name: string | null;
+  is_active: boolean | null;
 };
 
 export function useAdminData() {
@@ -60,7 +61,7 @@ export function useAdminData() {
           .returns<AdminDressRow[]>(),
         supabase
           .from("collections")
-          .select("id, name")
+          .select("id, name, is_active")
           .order("name", { ascending: true })
           .returns<CollectionRow[]>(),
       ]);
@@ -85,6 +86,7 @@ export function useAdminData() {
         .map((collection) => ({
           id: String(collection.id),
           name: collection.name as string,
+          isActive: collection.is_active ?? false,
         }));
 
       setDresses(mappedDresses);

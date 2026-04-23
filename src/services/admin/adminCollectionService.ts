@@ -28,7 +28,7 @@ export async function createCollection(
         description: trimmedName,
         season: "General",
         year: new Date().getFullYear(),
-        is_active: true,
+        is_active: false,
         created_by: session.user.id,
       })
       .select("id, name")
@@ -61,6 +61,7 @@ export async function createCollection(
   return {
     id: String(insertedCollection.id),
     name: insertedCollection.name ?? trimmedName,
+    isActive: false,
   };
 }
 
@@ -121,6 +122,17 @@ export async function updateCollection(
     id: String(existingCollection.id),
     name: trimmedName,
   };
+}
+
+export async function setCollectionIsActive(collectionId: string, isActive: boolean) {
+  const { error } = await supabase
+    .from("collections")
+    .update({ is_active: isActive })
+    .eq("id", collectionId);
+
+  if (error) {
+    throw new Error(`Failed to update homepage visibility: ${error.message}`);
+  }
 }
 
 export async function deleteCollectionById(collectionId: string) {

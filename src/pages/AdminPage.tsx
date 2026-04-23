@@ -25,6 +25,7 @@ import {
   createCollection,
   deleteCollectionById,
   updateCollection,
+  setCollectionIsActive,
 } from "../services/admin/adminCollectionService";
 import { sendPushNotification } from "../services/pushNotificationService";
 
@@ -395,6 +396,38 @@ export default function AdminPage() {
     }
   };
 
+  const MAX_HOMEPAGE_COLLECTIONS = 6;
+
+  const handleToggleHomepage = async (collection: AdminCollection) => {
+    const nextIsActive = !collection.isActive;
+
+    if (nextIsActive) {
+      const currentlyActive = collections.filter((c) => c.isActive).length;
+      if (currentlyActive >= MAX_HOMEPAGE_COLLECTIONS) {
+        alert(
+          `You can show at most ${MAX_HOMEPAGE_COLLECTIONS} collections on the homepage. Please hide another collection first.`,
+        );
+        return;
+      }
+    }
+
+    try {
+      await setCollectionIsActive(collection.id, nextIsActive);
+      setCollections((prev) =>
+        prev.map((c) =>
+          c.id === collection.id ? { ...c, isActive: nextIsActive } : c,
+        ),
+      );
+    } catch (err) {
+      console.error("Failed to toggle homepage visibility:", err);
+      alert(
+        err instanceof Error
+          ? err.message
+          : "Unexpected error while updating homepage visibility.",
+      );
+    }
+  };
+
   const toggleDressForCollection = (dressId: string) => {
     setSelectedDressesForCollection((prev) =>
       prev.includes(dressId)
@@ -557,6 +590,7 @@ export default function AdminPage() {
                   setSelectedDressesForEditCollection([]);
                 }}
                 onDeleteCollection={handleDeleteCollection}
+                onToggleHomepage={handleToggleHomepage}
                 onToggleDressForCollection={toggleDressForCollection}
                 onToggleDressForEditCollection={toggleDressForEditCollection}
               />

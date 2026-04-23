@@ -57,8 +57,8 @@ useEffect(() => {
   )}
 </div>
       <div className="text-center">
-        <div className="text-stone-800 dark:text-stone-100">{name}</div>
-        <div className="text-sm text-stone-500 dark:text-stone-400">{style}</div>
+        <div className="font-medium text-stone-900 dark:text-white">{name}</div>
+        <div className="text-sm text-stone-500 dark:text-stone-300">{style}</div>
       </div>
     </Link>
   );

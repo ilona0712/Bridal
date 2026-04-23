@@ -268,7 +268,7 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
                   <ClipboardList className="h-4 w-4" />
                   Requests
                   {pendingReviewCount > 0 && (
-                    <span className="absolute -right-2 -top-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-amber-500 px-1 text-xs font-medium text-white shadow-sm">
+                    <span className="absolute -right-2 -top-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-pink-400 px-1 text-xs font-medium text-white shadow-sm">
                       {pendingReviewCount}
                     </span>
                   )}
@@ -362,24 +362,24 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
               <>
                 <Link
                   to="/clients-chats"
-                  className="relative inline-flex items-center gap-1 rounded-full border border-stone-200/50 dark:border-stone-700/50 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 dark:from-stone-700 dark:via-pink-900/20 dark:to-stone-700 px-3 py-2 text-xs text-stone-700 dark:text-stone-200"
+                  className="relative flex h-9 w-9 items-center justify-center rounded-full border border-stone-200/50 dark:border-stone-700/50 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 dark:from-stone-700 dark:via-pink-900/20 dark:to-stone-700"
+                  title="Client Chats"
                 >
-                  <MessageCircle className="h-4 w-4" />
-                  Chats
+                  <MessageCircle className="h-4 w-4 text-stone-700 dark:text-stone-200" />
                   {unreadCount > 0 && (
-                    <span className="absolute -right-2 -top-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-pink-500 px-1 text-xs font-medium text-white shadow-sm">
+                    <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-pink-500 px-0.5 text-[10px] font-medium text-white shadow-sm">
                       {unreadCount}
                     </span>
                   )}
                 </Link>
                 <Link
                   to="/admin/requests"
-                  className="relative inline-flex items-center gap-1 rounded-full border border-stone-200/50 dark:border-stone-700/50 bg-white/80 dark:bg-stone-800/80 px-3 py-2 text-xs text-stone-700 dark:text-stone-200"
+                  className="relative flex h-9 w-9 items-center justify-center rounded-full border border-stone-200/50 dark:border-stone-700/50 bg-white/80 dark:bg-stone-800/80"
+                  title="Requests"
                 >
-                  <ClipboardList className="h-4 w-4" />
-                  Requests
+                  <ClipboardList className="h-4 w-4 text-stone-700 dark:text-stone-200" />
                   {pendingReviewCount > 0 && (
-                    <span className="absolute -right-2 -top-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-amber-500 px-1 text-xs font-medium text-white shadow-sm">
+                    <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-pink-400 px-0.5 text-[10px] font-medium text-white shadow-sm">
                       {pendingReviewCount}
                     </span>
                   )}

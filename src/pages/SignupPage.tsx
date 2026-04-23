@@ -7,8 +7,11 @@ import ProfilePhotoUpload from "../components/authentication/ProfilePhotoUpload"
 import NameFields from "../components/authentication/NameFields";
 import { signUp } from "../auth";
 import { supabase } from "../../lib/supabase";
+import { useSiteSettings } from "../hooks/useSiteSettings";
 
 export default function Signup() {
+  const { settings } = useSiteSettings();
+  const brandName = settings.logo_text || "Bride Me Up";
   const [passwordTouched, setPasswordTouched] = useState(false);
   const [firstName, setFirstName] = useState<string>("");
   const [lastName, setLastName] = useState<string>("");
@@ -114,7 +117,7 @@ export default function Signup() {
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950 flex items-center justify-center p-6">
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
         <AuthImagePanel
-          src="https://images.unsplash.com/photo-1766104797322-3826d7158c64?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3ZWRkaW5nJTIwZHJlc3MlMjBmaXR0aW5nJTIwYnJpZGV8ZW58MXx8fHwxNzcwODk2NjM5fDA&ixlib=rb-4.1.0&q=80&w=1080"
+          src={settings.signup_image_url || settings.hero_image_url || "https://images.unsplash.com/photo-1766104797322-3826d7158c64?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3ZWRkaW5nJTIwZHJlc3MlMjBmaXR0aW5nJTIwYnJpZGV8ZW58MXx8fHwxNzcwODk2NjM5fDA&ixlib=rb-4.1.0&q=80&w=1080"}
           alt="Bridal Fitting"
         />
         <div className="bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 dark:border-stone-700/50 p-12">
@@ -123,6 +126,9 @@ export default function Signup() {
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 rounded-full">
                 <Sparkles className="w-8 h-8 text-stone-600" />
               </div>
+              <p className="font-serif text-sm text-stone-500 dark:text-stone-400 tracking-wide">
+                {brandName}
+              </p>
               <h1 className="font-serif text-4xl text-stone-800 dark:text-stone-100">
                 Create Your Profile
               </h1>

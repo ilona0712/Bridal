@@ -49,7 +49,7 @@ export default function DressCard({
 }: DressCardProps) {
   return (
     <div
-      className="group overflow-hidden rounded-2xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+      className="group flex flex-col overflow-hidden rounded-2xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
       onContextMenu={(e) => onRightClick(e, dress)}
     >
       <div
@@ -84,7 +84,7 @@ export default function DressCard({
         )}
       </div>
 
-      <div className="space-y-3 p-5">
+      <div className="flex flex-col gap-3 p-5 flex-1">
         <div>
           <h3 className="font-serif text-lg text-stone-800 dark:text-stone-100">
             {dress.name}
@@ -124,21 +124,23 @@ export default function DressCard({
           </div>
         )}
 
-        <button
-          type="button"
-          className="w-full rounded-lg bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 dark:from-stone-600 dark:via-pink-900/20 dark:to-stone-600 py-2 text-sm text-stone-700 dark:text-stone-200 transition-all hover:shadow-lg"
-          onClick={() => onViewDetails(dress)}
-        >
-          View Details
-        </button>
+        <div className="mt-auto space-y-2">
+          <button
+            type="button"
+            className="w-full rounded-lg bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 dark:from-stone-600 dark:via-pink-900/20 dark:to-stone-600 py-2 text-sm text-stone-700 dark:text-stone-200 transition-all hover:shadow-lg"
+            onClick={() => onViewDetails(dress)}
+          >
+            View Details
+          </button>
 
-        <button
-          type="button"
-          className="w-full rounded-lg bg-stone-800 dark:bg-stone-600 py-2 text-sm text-white transition-all hover:bg-stone-700 dark:hover:bg-stone-500"
-          onClick={() => onRequestRent(dress)}
-        >
-          Request to Rent
-        </button>
+          <button
+            type="button"
+            className="w-full rounded-lg bg-stone-800 dark:bg-stone-600 py-2 text-sm text-white transition-all hover:bg-stone-700 dark:hover:bg-stone-500"
+            onClick={() => onRequestRent(dress)}
+          >
+            Request to Rent
+          </button>
+        </div>
       </div>
     </div>
   );

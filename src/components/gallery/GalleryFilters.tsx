@@ -36,7 +36,8 @@ type GalleryFiltersProps = {
   priceFilterStep: number;
 };
 
-import { X, Heart } from "lucide-react";
+import { X, Heart, ChevronDown } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 export default function GalleryFilters({
   showFilters,
@@ -81,6 +82,38 @@ export default function GalleryFilters({
   const effectiveMax = maxPrice ?? PRICE_MAX;
   const minPct = (effectiveMin / PRICE_MAX) * 100;
   const maxPct = (effectiveMax / PRICE_MAX) * 100;
+
+  const [sizeDropdownOpen, setSizeDropdownOpen] = useState(false);
+  const sizeDropdownRef = useRef<HTMLDivElement>(null);
+
+  const SIZE_MIN = sizes.length > 0 ? sizes[0] : 0;
+  const SIZE_MAX = sizes.length > 0 ? sizes[sizes.length - 1] : 0;
+  const effectiveSizeMin = minSize ?? SIZE_MIN;
+  const effectiveSizeMax = maxSize ?? SIZE_MAX;
+  const sizeMinPct = SIZE_MAX > SIZE_MIN ? ((effectiveSizeMin - SIZE_MIN) / (SIZE_MAX - SIZE_MIN)) * 100 : 0;
+  const sizeMaxPct = SIZE_MAX > SIZE_MIN ? ((effectiveSizeMax - SIZE_MIN) / (SIZE_MAX - SIZE_MIN)) * 100 : 100;
+
+  const sizeLabel =
+    minSize === null && maxSize === null
+      ? "All Sizes"
+      : minSize !== null && maxSize !== null && minSize === maxSize
+      ? `Size ${minSize}`
+      : minSize !== null && maxSize !== null
+      ? `${minSize}–${maxSize}`
+      : minSize !== null
+      ? `≥ ${minSize}`
+      : `≤ ${maxSize}`;
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (sizeDropdownRef.current && !sizeDropdownRef.current.contains(e.target as Node)) {
+        setSizeDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
     <div className={`lg:block ${showFilters ? "block" : "hidden"}`}>
       <div className="sticky top-24 h-[calc(100vh-7rem)]">
@@ -139,7 +172,7 @@ export default function GalleryFilters({
                         onChange={() => onCollectionToggle(collection)}
                         className="text-pink-300 focus:ring-pink-200/50 rounded"
                       />
-                      <span className="text-sm text-stone-600">
+                      <span className="text-sm text-stone-600 dark:text-stone-200">
                         {collection}
                       </span>
                     </label>
@@ -147,46 +180,117 @@ export default function GalleryFilters({
                 })}
               </div>
             </div>
-            <div>
+            <div ref={sizeDropdownRef} className="relative">
               <label className="text-sm font-medium text-stone-700 dark:text-stone-300 mb-3 block">
-                Dress Size Range
+                Dress Size
               </label>
+              <button
+                type="button"
+                onClick={() => setSizeDropdownOpen((o) => !o)}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg border text-sm transition-all ${
+                  minSize !== null || maxSize !== null
+                    ? "bg-pink-50 dark:bg-pink-900/20 border-pink-300 dark:border-pink-700 text-pink-700 dark:text-pink-300"
+                    : "bg-stone-50/50 dark:bg-stone-700/50 border-stone-200 dark:border-stone-600 text-stone-700 dark:text-stone-200"
+                }`}
+              >
+                <span>{sizeLabel}</span>
+                <ChevronDown className={`w-4 h-4 transition-transform ${sizeDropdownOpen ? "rotate-180" : ""}`} />
+              </button>
 
-              <div className="grid grid-cols-2 gap-3">
-                <select
-                  value={minSize ?? ""}
-                  onChange={(e) =>
-                    onMinSizeChange(
-                      e.target.value ? Number(e.target.value) : null,
-                    )
-                  }
-                  className="w-full px-3 py-2 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-lg text-sm text-stone-800 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-pink-200/50"
-                >
-                  <option value="">Min Size</option>
-                  {sizes.map((size) => (
-                    <option key={size} value={size}>
-                      {size}
-                    </option>
-                  ))}
-                </select>
+              {sizeDropdownOpen && (
+                <div className="absolute left-0 right-0 top-full mt-2 z-20 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl shadow-xl p-4 space-y-4">
+                  {/* Size chips */}
+                  <div className="flex flex-wrap gap-2">
+                    {sizes.map((size) => {
+                      const isExact = minSize === size && maxSize === size;
+                      const inRange =
+                        !isExact &&
+                        (minSize ?? SIZE_MIN) <= size &&
+                        size <= (maxSize ?? SIZE_MAX) &&
+                        (minSize !== null || maxSize !== null);
+                      return (
+                        <button
+                          key={size}
+                          type="button"
+                          onClick={() => {
+                            if (isExact) {
+                              onMinSizeChange(null);
+                              onMaxSizeChange(null);
+                            } else {
+                              onMinSizeChange(size);
+                              onMaxSizeChange(size);
+                            }
+                          }}
+                          className={`px-3 py-1 rounded-full text-sm font-medium border transition-all ${
+                            isExact
+                              ? "bg-pink-200 dark:bg-pink-800/60 border-pink-400 dark:border-pink-600 text-pink-800 dark:text-pink-200"
+                              : inRange
+                              ? "bg-pink-50 dark:bg-pink-900/20 border-pink-200 dark:border-pink-800 text-pink-700 dark:text-pink-300"
+                              : "bg-stone-50 dark:bg-stone-700 border-stone-200 dark:border-stone-600 text-stone-700 dark:text-stone-200 hover:border-pink-200 dark:hover:border-pink-700"
+                          }`}
+                        >
+                          {size}
+                        </button>
+                      );
+                    })}
+                  </div>
 
-                <select
-                  value={maxSize ?? ""}
-                  onChange={(e) =>
-                    onMaxSizeChange(
-                      e.target.value ? Number(e.target.value) : null,
-                    )
-                  }
-                  className="w-full px-3 py-2 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-lg text-sm text-stone-800 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-pink-200/50"
-                >
-                  <option value="">Max Size</option>
-                  {sizes.map((size) => (
-                    <option key={size} value={size}>
-                      {size}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                  <div className="border-t border-stone-200 dark:border-stone-700 pt-4 space-y-3">
+                    <p className="text-xs font-medium text-stone-500 dark:text-stone-400">Size Range</p>
+
+                    <div className="flex justify-between">
+                      <span className="px-2 py-0.5 bg-stone-700 dark:bg-stone-200 text-stone-100 dark:text-stone-800 text-xs font-semibold rounded">
+                        {effectiveSizeMin}
+                      </span>
+                      <span className="px-2 py-0.5 bg-stone-700 dark:bg-stone-200 text-stone-100 dark:text-stone-800 text-xs font-semibold rounded">
+                        {effectiveSizeMax}
+                      </span>
+                    </div>
+
+                    <div className="relative h-5">
+                      <div className="absolute top-1/2 -translate-y-1/2 w-full h-1.5 bg-stone-200 dark:bg-stone-600 rounded-full" />
+                      <div
+                        className="absolute top-1/2 -translate-y-1/2 h-1.5 bg-gradient-to-r from-stone-400 via-pink-300/70 to-stone-400 rounded-full"
+                        style={{ left: `${sizeMinPct}%`, right: `${100 - sizeMaxPct}%` }}
+                      />
+                      <input
+                        type="range"
+                        min={SIZE_MIN}
+                        max={SIZE_MAX}
+                        step={2}
+                        value={effectiveSizeMin}
+                        onChange={(e) => {
+                          const val = Number(e.target.value);
+                          if (val <= effectiveSizeMax) onMinSizeChange(val === SIZE_MIN ? null : val);
+                        }}
+                        className="absolute w-full h-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-stone-400 [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-stone-400 [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer"
+                        style={{ zIndex: 3 }}
+                      />
+                      <input
+                        type="range"
+                        min={SIZE_MIN}
+                        max={SIZE_MAX}
+                        step={2}
+                        value={effectiveSizeMax}
+                        onChange={(e) => {
+                          const val = Number(e.target.value);
+                          if (val >= effectiveSizeMin) onMaxSizeChange(val === SIZE_MAX ? null : val);
+                        }}
+                        className="absolute w-full h-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-pink-300 [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-pink-300 [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer"
+                        style={{ zIndex: 4 }}
+                      />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => { onMinSizeChange(null); onMaxSizeChange(null); }}
+                      className="w-full text-xs text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 text-center py-1"
+                    >
+                      Clear size filter
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div>

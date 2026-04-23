@@ -1,7 +1,11 @@
 import { Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
 
 export default function HomeFooter() {
+  const { settings } = useSiteSettings();
+  const brandName = settings.logo_text || "Bride Me Up";
+
   return (
     <footer className="border-t border-stone-200/50 dark:border-stone-700/50 bg-white/60 dark:bg-stone-900/60 backdrop-blur-sm">
       <div className="container mx-auto px-6 py-8">
@@ -10,7 +14,7 @@ export default function HomeFooter() {
             <div className="w-8 h-8 bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 rounded-full flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-stone-600" />
             </div>
-            <span className="font-serif text-stone-800 dark:text-stone-100">Maria Badari</span>
+            <span className="font-serif text-stone-800 dark:text-stone-100">{brandName}</span>
           </div>
 
           <div className="flex gap-6 text-sm text-stone-600 dark:text-stone-300">
@@ -26,7 +30,7 @@ export default function HomeFooter() {
           </div>
 
           <div className="text-sm text-stone-500 dark:text-stone-400">
-            © 2026 Maria Badari. All rights reserved.
+            © 2026 {brandName}. All rights reserved.
           </div>
         </div>
       </div>

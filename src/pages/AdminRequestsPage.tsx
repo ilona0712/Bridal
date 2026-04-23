@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   ClipboardList,
@@ -121,7 +121,10 @@ function getCustomizationLines(summary: string | null) {
     .filter((line) => line.startsWith("- "));
 }
 
+const PULL_THRESHOLD = 80;
+
 export default function AdminRequestsPage() {
+  const navigate = useNavigate();
   const [requests, setRequests] = useState<AdminCustomizationRequest[]>([]);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(
     null,
@@ -138,6 +141,10 @@ export default function AdminRequestsPage() {
   const [fullscreenImageUrl, setFullscreenImageUrl] = useState<string | null>(
     null,
   );
+  const [mobileView, setMobileView] = useState<"list" | "detail">("list");
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isPulling, setIsPulling] = useState(false);
+  const touchStartY = useRef<number | null>(null);
 
   useEffect(() => {
     if (!fullscreenImageUrl) return;
@@ -169,6 +176,11 @@ export default function AdminRequestsPage() {
     setSelectedRequestId(request?.id ?? null);
     setEditablePrompt(request?.generatedPrompt ?? "");
     setImageUrlInput(request?.imageUrl ?? "");
+  };
+
+  const handleTapRequest = (request: AdminCustomizationRequest) => {
+    handleSelectRequest(request);
+    setMobileView("detail");
   };
 
   const fetchRequests = useCallback(async (showLoadingState = true) => {
@@ -278,6 +290,42 @@ export default function AdminRequestsPage() {
       handleSelectRequest(filteredRequests[0]);
     }
   }, [filteredRequests, selectedRequestId]);
+
+  useEffect(() => {
+    const onTouchStart = (event: TouchEvent) => {
+      if (window.scrollY === 0) {
+        touchStartY.current = event.touches[0].clientY;
+        setIsPulling(true);
+      }
+    };
+
+    const onTouchMove = (event: TouchEvent) => {
+      if (touchStartY.current === null) return;
+      const delta = event.touches[0].clientY - touchStartY.current;
+      if (delta > 0 && window.scrollY === 0) {
+        setPullDistance(Math.min(delta, PULL_THRESHOLD + 40));
+      }
+    };
+
+    const onTouchEnd = () => {
+      if (pullDistance >= PULL_THRESHOLD) {
+        void fetchRequests();
+      }
+      touchStartY.current = null;
+      setPullDistance(0);
+      setIsPulling(false);
+    };
+
+    document.addEventListener("touchstart", onTouchStart, { passive: true });
+    document.addEventListener("touchmove", onTouchMove, { passive: true });
+    document.addEventListener("touchend", onTouchEnd);
+
+    return () => {
+      document.removeEventListener("touchstart", onTouchStart);
+      document.removeEventListener("touchmove", onTouchMove);
+      document.removeEventListener("touchend", onTouchEnd);
+    };
+  }, [pullDistance, fetchRequests]);
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -543,12 +591,43 @@ export default function AdminRequestsPage() {
     if (imageError) {
       console.error("Failed to send generated image:", imageError);
       alert("The request was updated, but the image could not be sent to chat.");
+      return;
     }
+
+    navigate("/chat", {
+      state: {
+        conversationId: selectedRequest.conversationId,
+        clientName: selectedRequest.customerName,
+        customerId: selectedRequest.customerId,
+      },
+    });
   };
+
+  const activeImageUrl = imageUrlInput || selectedRequest?.imageUrl || null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
       <Header subtitle="Customization Requests" />
+
+      {isPulling && (
+        <div
+          className="pointer-events-none fixed left-1/2 top-0 z-50 flex -translate-x-1/2 items-center justify-center transition-all"
+          style={{ paddingTop: `${Math.min(pullDistance / 2, 48)}px` }}
+        >
+          <div
+            className={`flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-md dark:bg-stone-800/90 ${
+              pullDistance >= PULL_THRESHOLD ? "text-pink-500" : "text-stone-400"
+            }`}
+          >
+            <RefreshCcw
+              className="h-5 w-5 transition-transform duration-300"
+              style={{
+                transform: `rotate(${Math.min((pullDistance / PULL_THRESHOLD) * 360, 360)}deg)`,
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       <div className="mx-auto max-w-7xl px-6 py-10">
         <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
@@ -594,16 +673,6 @@ export default function AdminRequestsPage() {
                 ))}
               </select>
             </label>
-
-            <button
-              type="button"
-              onClick={() => void fetchRequests()}
-              disabled={loading}
-              className="inline-flex items-center gap-2 rounded-full border border-stone-200/70 bg-white/80 px-4 py-2 text-sm text-stone-700 shadow-sm transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60 dark:border-stone-700 dark:bg-stone-800/80 dark:text-stone-200 dark:hover:bg-stone-800"
-            >
-              <RefreshCcw className="w-4 h-4" />
-              Refresh
-            </button>
           </div>
         </div>
 
@@ -623,14 +692,14 @@ export default function AdminRequestsPage() {
             </p>
           </div>
         ) : (
-          <div className="grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
-            <aside className="overflow-hidden rounded-3xl border border-stone-200/50 bg-white/70 shadow-xl backdrop-blur-sm dark:border-stone-700/50 dark:bg-stone-800/70">
+          <div className="grid items-start gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
+            <aside className={`overflow-hidden rounded-3xl border border-stone-200/50 bg-white/70 shadow-xl backdrop-blur-sm dark:border-stone-700/50 dark:bg-stone-800/70 ${mobileView === "detail" ? "hidden lg:block" : "block"}`}>
               <div className="border-b border-stone-200/50 px-5 py-4 dark:border-stone-700/50">
                 <p className="text-sm text-stone-500 dark:text-stone-400">
                   {filteredRequests.length} request{filteredRequests.length === 1 ? "" : "s"}
                 </p>
               </div>
-              <div className="max-h-[70vh] overflow-y-auto">
+              <div>
                 {filteredRequests.map((request) => {
                   const isSelected = request.id === selectedRequestId;
 
@@ -638,7 +707,7 @@ export default function AdminRequestsPage() {
                     <button
                       key={request.id}
                       type="button"
-                      onClick={() => handleSelectRequest(request)}
+                      onClick={() => handleTapRequest(request)}
                       className={`w-full border-b border-stone-200/40 px-5 py-4 text-left transition last:border-b-0 dark:border-stone-700/40 ${
                         isSelected
                           ? "bg-pink-50/70 dark:bg-stone-700/70"
@@ -673,9 +742,17 @@ export default function AdminRequestsPage() {
               </div>
             </aside>
 
-            <section className="rounded-3xl border border-stone-200/50 bg-white/70 shadow-xl backdrop-blur-sm dark:border-stone-700/50 dark:bg-stone-800/70">
+            <section className={`rounded-3xl border border-stone-200/50 bg-white/70 shadow-xl backdrop-blur-sm dark:border-stone-700/50 dark:bg-stone-800/70 ${mobileView === "list" ? "hidden lg:block" : "block"}`}>
               {selectedRequest ? (
                 <div className="space-y-6 p-6">
+                  <button
+                    type="button"
+                    onClick={() => setMobileView("list")}
+                    className="lg:hidden mb-2 inline-flex items-center gap-2 text-sm text-stone-600 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Back to Requests
+                  </button>
                   <div className="flex flex-wrap items-start justify-between gap-4 border-b border-stone-200/50 pb-6 dark:border-stone-700/50">
                     <div>
                       <h2 className="font-serif text-3xl text-stone-800 dark:text-stone-100">
@@ -721,41 +798,39 @@ export default function AdminRequestsPage() {
                         </div>
                       </div>
 
-                      <div className="overflow-hidden rounded-3xl border border-stone-200/60 bg-stone-50/80 dark:border-stone-700/60 dark:bg-stone-900/40">
-                        <div className="border-b border-stone-200/60 px-5 py-4 dark:border-stone-700/60">
-                          <h3 className="font-serif text-xl text-stone-800 dark:text-stone-100">
-                            Generated Preview
-                          </h3>
+                      {(activeImageUrl || selectedRequest.generationError) && (
+                        <div className="overflow-hidden rounded-3xl border border-stone-200/60 bg-stone-50/80 dark:border-stone-700/60 dark:bg-stone-900/40">
+                          <div className="border-b border-stone-200/60 px-5 py-4 dark:border-stone-700/60">
+                            <h3 className="font-serif text-xl text-stone-800 dark:text-stone-100">
+                              Generated Preview
+                            </h3>
+                          </div>
+                          <div className="space-y-4 p-5">
+                            {selectedRequest.generationError && (
+                              <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
+                                {selectedRequest.generationError}
+                              </div>
+                            )}
+                            {activeImageUrl && (
+                              <div className="space-y-3">
+                                <img
+                                  src={activeImageUrl}
+                                  alt="Generated preview"
+                                  className="aspect-[3/4] w-full rounded-2xl object-contain bg-white dark:bg-stone-950/40"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => setFullscreenImageUrl(activeImageUrl)}
+                                  className="inline-flex items-center gap-2 rounded-full border border-stone-200/70 bg-white/90 px-3 py-2 text-sm text-stone-700 transition hover:bg-white dark:border-stone-700 dark:bg-stone-800/90 dark:text-stone-200 dark:hover:bg-stone-800"
+                                >
+                                  <Expand className="h-4 w-4" />
+                                  Full screen preview
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        <div className="space-y-4 p-5">
-                          {selectedRequest.generationError && (
-                            <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
-                              {selectedRequest.generationError}
-                            </div>
-                          )}
-                          {imageUrlInput ? (
-                            <div className="space-y-3">
-                              <img
-                                src={imageUrlInput}
-                                alt="Generated preview"
-                                className="aspect-[3/4] w-full rounded-2xl object-contain bg-white dark:bg-stone-950/40"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setFullscreenImageUrl(imageUrlInput)}
-                                className="inline-flex items-center gap-2 rounded-full border border-stone-200/70 bg-white/90 px-3 py-2 text-sm text-stone-700 transition hover:bg-white dark:border-stone-700 dark:bg-stone-800/90 dark:text-stone-200 dark:hover:bg-stone-800"
-                              >
-                                <Expand className="h-4 w-4" />
-                                Full screen preview
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="flex aspect-[3/4] w-full items-center justify-center rounded-2xl border border-dashed border-stone-300/70 bg-white/70 px-6 text-center text-sm text-stone-400 dark:border-stone-600/70 dark:bg-stone-800/60 dark:text-stone-500">
-                              No generated preview is available yet.
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                      )}
                     </div>
 
                     <div className="space-y-6">
@@ -822,15 +897,17 @@ export default function AdminRequestsPage() {
                               )}
                               {generating ? "Generating Preview..." : "Generate with OpenAI"}
                             </button>
-                            <button
-                              type="button"
-                              onClick={() => void handleApproveGeneratedImage()}
-                              disabled={saving || generating}
-                              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-100 px-4 py-3 text-sm font-medium text-emerald-800 transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-emerald-900/30 dark:text-emerald-300 dark:hover:bg-emerald-900/40"
-                            >
-                              <Send className="w-4 h-4" />
-                              Approve Image and Send to Customer
-                            </button>
+                            {activeImageUrl && (
+                              <button
+                                type="button"
+                                onClick={() => void handleApproveGeneratedImage()}
+                                disabled={saving || generating}
+                                className="col-span-full inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-100 px-4 py-3 text-sm font-medium text-emerald-800 transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-emerald-900/30 dark:text-emerald-300 dark:hover:bg-emerald-900/40"
+                              >
+                                <Send className="w-4 h-4" />
+                                Approve Image and Send to Customer
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -859,7 +936,7 @@ export default function AdminRequestsPage() {
             src={fullscreenImageUrl}
             alt="Fullscreen generated preview"
             className="max-h-full max-w-full rounded-2xl object-contain"
-            onClick={(event) => event.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
           />
         </div>
       )}
