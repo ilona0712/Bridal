@@ -1,6 +1,6 @@
 import type { ChangeEvent, DragEvent, FormEvent, RefObject } from "react";
 import { useRef, useState } from "react";
-import { Check, Loader2, Plus, Upload, X } from "lucide-react";
+import { Check, Loader2, Upload, X } from "lucide-react";
 import type { DressFormData } from "../../types/admin";
 
 type AdminDressFormTabProps = {
@@ -154,8 +154,7 @@ export default function AdminDressFormTab({
     <div className="bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 dark:border-stone-700/50 p-8 md:p-12">
       <form onSubmit={onSubmit} className="space-y-8">
         <div className="space-y-6">
-          <h2 className="text-2xl font-serif text-stone-800 dark:text-stone-100 flex items-center gap-2">
-            <Plus className="w-6 h-6" />
+          <h2 className="text-2xl font-serif text-stone-800 dark:text-stone-100">
             Basic Information
           </h2>
 

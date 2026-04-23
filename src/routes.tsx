@@ -16,6 +16,7 @@ import ClientsChatPage from "./pages/ClientsChatPage"
 import ForgotPasswordPage from "./pages/ForgotPasswordPage"
 import ResetPasswordPage from "./pages/ResetPasswordPage"
 import AdminRequestsPage from "./pages/AdminRequestsPage"
+import { registerDeviceForPushNotifications } from "./services/pushNotificationService"
 
 export const SessionContext = createContext<Session | null>(null)
 export const RoleContext = createContext<string | null>(null)
@@ -115,6 +116,11 @@ export function Root({ children }: { children: React.ReactNode }) {
       window.removeEventListener("beforeunload", handleBeforeUnload)
     }
   }, [])
+
+  useEffect(() => {
+    if (!session?.user?.id) return
+    void registerDeviceForPushNotifications(session.user.id)
+  }, [session?.user?.id])
 
   if (checkingSession) {
     return (

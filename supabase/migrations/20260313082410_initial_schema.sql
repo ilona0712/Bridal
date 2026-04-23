@@ -1,5 +1,5 @@
 -- ============================================================
--- Bride Me Up – Initial Schema Migration
+-- Maria Badari - Initial Schema Migration
 -- Generated: 2026-03-13
 -- ============================================================
 

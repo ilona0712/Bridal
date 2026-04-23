@@ -436,7 +436,7 @@ export default function ProfilePage() {
               onClick={handleLogout}
               className="px-6 py-3 bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm border border-stone-300/50 dark:border-stone-600/50 text-stone-700 dark:text-stone-200 hover:bg-stone-100/50 dark:hover:bg-stone-700/50 rounded-xl transition-all flex items-center gap-2 mx-auto"
             >
-              Logout from Bride Me Up
+              Logout from Maria Badari
             </button>
           </div>
         </div>

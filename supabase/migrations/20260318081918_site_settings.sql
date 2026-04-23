@@ -17,7 +17,7 @@ USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'))
 WITH CHECK (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
 
 INSERT INTO "site_settings" ("key", "value", "label") VALUES
-  ('logo_text',      'Bride Me Up',            'Logo Text'),
+  ('logo_text',      'Maria Badari',           'Logo Text'),
   ('logo_tagline',   'Your Dream Gown Awaits',  'Logo Tagline'),
   ('hero_image_url', 'https://images.unsplash.com/photo-1761671613669-3b17b4a71bb9?auto=format&fit=crop&w=1080&q=80', 'Hero Image URL'),
   ('hero_title',     'Find Your Perfect Dress', 'Hero Title'),

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../../lib/supabase";
 import { useSession } from "../../routes";
+import { sendPushNotification } from "../../services/pushNotificationService";
 
 interface Dress {
   id: string;
@@ -116,6 +117,33 @@ export default function RentModal({ dress, onClose }: RentModalProps) {
       return;
     }
 
+    const [{ data: profile }, rentalResult] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", session.user.id)
+        .maybeSingle(),
+      supabase
+        .from("rentals")
+        .insert({
+          customer_id: session.user.id,
+          dress_id: dress.id,
+          start_date: startDate,
+          end_date: toLocalISODate(endDate!),
+          notes: buildMessage(),
+          status: "pending",
+        })
+        .select("id")
+        .single(),
+    ]);
+
+    if (rentalResult.error) {
+      console.error("Failed to create rental record:", rentalResult.error);
+      setError("Failed to send request. Please try again.");
+      setLoading(false);
+      return;
+    }
+
     // Send dress image first if available
     if (dress.image) {
       await supabase.from("messages").insert({
@@ -139,6 +167,19 @@ export default function RentModal({ dress, onClose }: RentModalProps) {
       setLoading(false);
       return;
     }
+
+    void sendPushNotification({
+      type: "rental_request_submitted",
+      rentalId: rentalResult.data?.id,
+      dressName: dress.name,
+      customerName:
+        profile?.full_name ||
+        session.user.user_metadata?.full_name ||
+        session.user.email?.split("@")[0] ||
+        "A customer",
+      startDate,
+      endDate: toLocalISODate(endDate!),
+    });
 
     setLoading(false);
     onClose();

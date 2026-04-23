@@ -1,4 +1,4 @@
-package com.bridemeup.mobile;
+package com.mariabadari.mobile;
 
 import com.getcapacitor.BridgeActivity;
 

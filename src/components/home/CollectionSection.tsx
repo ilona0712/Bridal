@@ -1,6 +1,7 @@
 import CollectionCard from "./CollectionCard";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { supabase } from "../../../lib/supabase";
 
 export default function CollectionSection() {
@@ -122,6 +123,15 @@ export default function CollectionSection() {
             {collections.map((c, i) => renderCard(c, i))}
           </div>
         )}
+
+        <div className="mt-12 text-center">
+          <Link
+            to="/gallery"
+            className="inline-flex items-center gap-2 px-8 py-3 rounded-full border border-stone-300 dark:border-stone-600 bg-white/60 dark:bg-stone-800/60 text-stone-700 dark:text-stone-200 text-sm font-medium hover:bg-white dark:hover:bg-stone-800 hover:shadow-md transition-all duration-300"
+          >
+            Explore More Collections
+          </Link>
+        </div>
       </div>
     </section>
   );

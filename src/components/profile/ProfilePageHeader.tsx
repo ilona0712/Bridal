@@ -17,7 +17,7 @@ export default function ProfilePageHeader({
           </div>
           <div>
             <h1 className="font-serif text-xl text-stone-800 dark:text-stone-100">
-              Bride Me Up
+              Maria Badari
             </h1>
             <p className="text-xs text-stone-500 dark:text-stone-400">
               Your Dream Dress Awaits

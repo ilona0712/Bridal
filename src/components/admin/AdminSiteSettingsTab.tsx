@@ -222,7 +222,7 @@ export default function AdminSiteSettingsTab() {
                 type="text"
                 value={current.logo_text}
                 onChange={(e) => handleChange("logo_text", e.target.value)}
-                placeholder="Bride Me Up"
+                placeholder="Maria Badari"
                 className="w-full px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 text-stone-800 dark:text-stone-100"
               />
               <p className="text-xs text-stone-400 dark:text-stone-500">
@@ -317,6 +317,47 @@ export default function AdminSiteSettingsTab() {
             previewClass="w-full aspect-[4/3] rounded-xl object-cover border border-stone-200 dark:border-stone-600"
             hint="Large background image shown on the homepage hero section"
           />
+        </div>
+
+        <div className="mt-8 space-y-6">
+          <div className="flex items-center gap-2">
+            <Image className="w-5 h-5 text-stone-400" />
+            <h3 className="font-medium text-stone-700 dark:text-stone-300">
+              Auth Page Images
+            </h3>
+          </div>
+
+          <p className="text-xs text-stone-400 dark:text-stone-500 -mt-2">
+            Side panel image shown on the Sign In and Sign Up pages. Falls back to the Hero Image if left empty.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+            <div className="space-y-2">
+              <label className="text-sm text-stone-600 dark:text-stone-300">
+                Sign In Page Image
+              </label>
+              <ImageUploadField
+                value={current.signin_image_url}
+                onChange={(url) => handleChange("signin_image_url", url)}
+                storagePath="signin"
+                previewClass="w-full aspect-[3/4] rounded-xl object-cover border border-stone-200 dark:border-stone-600"
+                hint="Shown on the left panel of the sign-in page"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm text-stone-600 dark:text-stone-300">
+                Sign Up Page Image
+              </label>
+              <ImageUploadField
+                value={current.signup_image_url}
+                onChange={(url) => handleChange("signup_image_url", url)}
+                storagePath="signup"
+                previewClass="w-full aspect-[3/4] rounded-xl object-cover border border-stone-200 dark:border-stone-600"
+                hint="Shown on the left panel of the sign-up page"
+              />
+            </div>
+          </div>
         </div>
 
         <div className="mt-8 space-y-4">
