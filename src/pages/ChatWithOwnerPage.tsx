@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import EmojiPicker from "emoji-picker-react";
 import { ArrowLeft, User } from "lucide-react";
 import Header from "../components/common/Header";
@@ -9,6 +9,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 import { useSession, useRole } from "../routes";
 import type { ChatMessage } from "../types/chat";
+import { sendPushNotification } from "../services/pushNotificationService";
 
 export default function ChatWithOwnerPage() {
   const navigate = useNavigate();
@@ -32,6 +33,12 @@ export default function ChatWithOwnerPage() {
   const [otherAvatarUrl, setOtherAvatarUrl] = useState<string | null>(null);
   const [showProfile, setShowProfile] = useState(false);
   console.log("conversationId:", conversationId, "role:", role);
+
+  const senderName =
+    session?.user?.user_metadata?.full_name ||
+    session?.user?.user_metadata?.first_name ||
+    session?.user?.email?.split("@")[0] ||
+    (role === "admin" ? "Maria Badari" : "A customer");
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -127,11 +134,9 @@ export default function ChatWithOwnerPage() {
     fetchAvatars();
   }, [session, role, stateConversationId]);
 
-  // Step 2: load messages when conversationId is ready
-  useEffect(() => {
+  const fetchMessages = useCallback(async () => {
     if (!conversationId) return;
 
-    const fetchMessages = async () => {
       const { data, error } = await supabase
         .from("messages")
         .select("*")
@@ -144,7 +149,11 @@ export default function ChatWithOwnerPage() {
         return;
       }
       setMessages(data ?? []);
-    };
+  }, [conversationId]);
+
+  // Step 2: load messages when conversationId is ready
+  useEffect(() => {
+    if (!conversationId) return;
 
     fetchMessages();
 
@@ -177,12 +186,33 @@ export default function ChatWithOwnerPage() {
       )
       .subscribe((status) => {
         console.log("Realtime status:", status);
+        if (status === "SUBSCRIBED") {
+          void fetchMessages();
+        }
       });
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [conversationId]);
+  }, [conversationId, fetchMessages]);
+
+  useEffect(() => {
+    if (!conversationId) return;
+
+    const refreshVisibleChat = () => {
+      if (document.visibilityState === "visible") {
+        void fetchMessages();
+      }
+    };
+
+    window.addEventListener("focus", fetchMessages);
+    document.addEventListener("visibilitychange", refreshVisibleChat);
+
+    return () => {
+      window.removeEventListener("focus", fetchMessages);
+      document.removeEventListener("visibilitychange", refreshVisibleChat);
+    };
+  }, [conversationId, fetchMessages]);
 
   const handleSendMessage = async () => {
     const trimmed = inputValue.trim();
@@ -198,6 +228,14 @@ export default function ChatWithOwnerPage() {
     });
 
     if (error) console.error("Failed to send message:", error);
+    if (!error && session?.user?.id) {
+      void sendPushNotification({
+        type: "chat_message",
+        conversationId,
+        senderUserId: session.user.id,
+        senderName,
+      });
+    }
   };
 
   const handleSendImage = async (file: File) => {
@@ -227,6 +265,14 @@ export default function ChatWithOwnerPage() {
     });
 
     if (error) console.error("Failed to send image:", error);
+    if (!error && session?.user?.id) {
+      void sendPushNotification({
+        type: "chat_message",
+        conversationId,
+        senderUserId: session.user.id,
+        senderName,
+      });
+    }
   };
 
   const handleEmojiClick = (emojiData: { emoji: string }) => {
@@ -280,6 +326,14 @@ const mediaRecorder = new MediaRecorder(stream, { mimeType });
   });
 
   if (msgError) console.error("Failed to send voice message:", msgError);
+  if (!msgError && session?.user?.id && conversationId) {
+    void sendPushNotification({
+      type: "chat_message",
+      conversationId,
+      senderUserId: session.user.id,
+      senderName,
+    });
+  }
 };
 
       mediaRecorder.start();
@@ -369,13 +423,13 @@ const mediaRecorder = new MediaRecorder(stream, { mimeType });
             >
               <div className="w-8 h-8 rounded-full overflow-hidden bg-stone-200/80 dark:bg-stone-700/80 flex-shrink-0 flex items-center justify-center">
                 {otherAvatarUrl ? (
-                  <img src={otherAvatarUrl} alt={role === "admin" ? stateClientName : "Bride Me Up"} className="w-full h-full object-cover" />
+                  <img src={otherAvatarUrl} alt={role === "admin" ? stateClientName : "Maria Badari"} className="w-full h-full object-cover" />
                 ) : (
                   <User className="w-4 h-4 text-stone-500 dark:text-stone-400" />
                 )}
               </div>
               <span className="font-serif text-stone-800 dark:text-stone-100 text-base">
-                {role === "admin" ? stateClientName : "Bride Me Up"}
+                {role === "admin" ? stateClientName : "Maria Badari"}
               </span>
             </button>
           </div>

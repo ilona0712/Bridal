@@ -26,6 +26,7 @@ import {
   deleteCollectionById,
   updateCollection,
 } from "../services/admin/adminCollectionService";
+import { sendPushNotification } from "../services/pushNotificationService";
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("list");
@@ -270,6 +271,11 @@ export default function AdminPage() {
       setNewCollectionName("");
       setSelectedDressesForCollection([]);
       setAddingCollectionMode(false);
+      void sendPushNotification({
+        type: "collection_published",
+        collectionId: insertedCollection.id,
+        collectionName: insertedCollection.name,
+      });
       alert("Collection created successfully!");
     } catch (err) {
       console.error("Unexpected create collection error:", err);

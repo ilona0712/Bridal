@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "192381382115",
+    "project_id": "maria-badari-haute-couture",
+    "storage_bucket": "maria-badari-haute-couture.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:192381382115:android:3f0aa867559275aa2584d6",
+        "android_client_info": {
+          "package_name": "com.mariabadari.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAoeuF1W8TPSFn2cri3PKQf7PbVjVH1xrE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

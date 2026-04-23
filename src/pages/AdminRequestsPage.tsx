@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import Header from "../components/common/Header";
 import { supabase } from "../../lib/supabase";
+import { sendPushNotification } from "../services/pushNotificationService";
 import type {
   AdminCustomizationRequest,
   ChatbotRequestStatus,
@@ -333,6 +334,15 @@ export default function AdminRequestsPage() {
       updatedAt: new Date().toISOString(),
     });
     setSaving(false);
+
+    if (patch.status) {
+      void sendPushNotification({
+        type: "custom_request_review_updated",
+        sessionId: selectedRequest.id,
+        requestStatus: patch.status,
+      });
+    }
+
     return true;
   };
 
@@ -361,17 +371,28 @@ export default function AdminRequestsPage() {
       updatedAt: new Date().toISOString(),
     });
 
+    void sendPushNotification({
+      type: "custom_request_review_updated",
+      sessionId: selectedRequest.id,
+      requestStatus: "image_requested",
+    });
+
     const {
       data: { session },
     } = await supabase.auth.getSession();
 
     if (!session?.access_token) {
-      applyLocalUpdate(selectedRequest.id, {
-        generationError: "You must be signed in to generate a preview.",
-        status: "generation_failed",
-        updatedAt: new Date().toISOString(),
-      });
-      alert("You must be signed in to generate a preview.");
+        applyLocalUpdate(selectedRequest.id, {
+          generationError: "You must be signed in to generate a preview.",
+          status: "generation_failed",
+          updatedAt: new Date().toISOString(),
+        });
+        void sendPushNotification({
+          type: "custom_request_review_updated",
+          sessionId: selectedRequest.id,
+          requestStatus: "generation_failed",
+        });
+        alert("You must be signed in to generate a preview.");
       setGenerating(false);
       return;
     }
@@ -407,6 +428,11 @@ export default function AdminRequestsPage() {
           status: "generation_failed",
           updatedAt: new Date().toISOString(),
         });
+        void sendPushNotification({
+          type: "custom_request_review_updated",
+          sessionId: selectedRequest.id,
+          requestStatus: "generation_failed",
+        });
         alert(errorMessage);
         setGenerating(false);
         return;
@@ -421,6 +447,11 @@ export default function AdminRequestsPage() {
           status: "generation_failed",
           updatedAt: new Date().toISOString(),
         });
+        void sendPushNotification({
+          type: "custom_request_review_updated",
+          sessionId: selectedRequest.id,
+          requestStatus: "generation_failed",
+        });
         alert(fallbackError);
         setGenerating(false);
         return;
@@ -434,6 +465,11 @@ export default function AdminRequestsPage() {
         status: (data.status as ChatbotRequestStatus) ?? "image_generated",
         updatedAt: new Date().toISOString(),
       });
+      void sendPushNotification({
+        type: "custom_request_review_updated",
+        sessionId: selectedRequest.id,
+        requestStatus: (data.status as ChatbotRequestStatus) ?? "image_generated",
+      });
     } catch (generationError) {
       const message =
         generationError instanceof Error
@@ -445,6 +481,11 @@ export default function AdminRequestsPage() {
         generationError: message,
         status: "generation_failed",
         updatedAt: new Date().toISOString(),
+      });
+      void sendPushNotification({
+        type: "custom_request_review_updated",
+        sessionId: selectedRequest.id,
+        requestStatus: "generation_failed",
       });
       alert(message);
     } finally {

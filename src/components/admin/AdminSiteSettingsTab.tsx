@@ -222,7 +222,7 @@ export default function AdminSiteSettingsTab() {
                 type="text"
                 value={current.logo_text}
                 onChange={(e) => handleChange("logo_text", e.target.value)}
-                placeholder="Bride Me Up"
+                placeholder="Maria Badari"
                 className="w-full px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 text-stone-800 dark:text-stone-100"
               />
               <p className="text-xs text-stone-400 dark:text-stone-500">
