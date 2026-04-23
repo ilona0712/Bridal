@@ -1,11 +1,10 @@
-import { useState } from "react";
 import { createPortal } from "react-dom";
 
 const styles = {
   overlay: {
     position: "fixed",
     inset: 0,
-    zIndex: 2147483647,
+    zIndex: 9999,
     pointerEvents: "none",
   },
   container: {
@@ -13,184 +12,105 @@ const styles = {
     left: "50%",
     bottom: "max(16px, env(safe-area-inset-bottom))",
     transform: "translateX(-50%)",
-    width: "min(760px, calc(100% - 20px))",
+    width: "min(560px, calc(100% - 32px))",
+    zIndex: 10000, 
     pointerEvents: "auto",
-    borderRadius: "18px",
-    border: "1px solid var(--color-border-primary, #e8d8d3)",
-    background:
-      "linear-gradient(120deg, var(--color-background-primary, #fffaf9) 0%, var(--color-background-secondary, #fff2ee) 100%)",
-    color: "var(--color-text-primary, #3c2f2f)",
-    boxShadow: "0 24px 60px rgba(52, 26, 26, 0.2)",
-    padding: "18px 16px 14px",
+    borderRadius: "12px",
+    background: "var(--color-accent-primary, #8f5b6a)",
+    color: "var(--color-text-inverse, #fff8f6)",
+    boxShadow: "0 8px 32px rgba(52, 26, 26, 0.25)",
+    padding: "20px 20px 16px",
     fontFamily: "inherit",
   },
   closeButton: {
     position: "absolute",
-    top: "10px",
-    left: "10px",
-    width: "30px",
-    height: "30px",
-    borderRadius: "999px",
-    border: "1px solid var(--color-border-primary, #d8c8c3)",
-    background: "var(--color-background-primary, #fff)",
-    color: "var(--color-text-primary, #3c2f2f)",
+    top: "12px",
+    right: "14px",
+    background: "transparent",
+    border: "none",
+    color: "var(--color-text-inverse, #fff8f6)",
     cursor: "pointer",
-    fontSize: "1.1rem",
+    fontSize: "1.25rem",
     lineHeight: 1,
+    padding: 0,
   },
   heading: {
-    margin: "0 0 0 34px",
-    fontSize: "1.03rem",
-    fontWeight: 700,
-    letterSpacing: "0.01em",
-  },
-  description: {
-    margin: "9px 0 12px",
-    fontSize: "0.92rem",
+    margin: "0 0 10px",
+    fontSize: "1rem",
+    fontWeight: 600,
     lineHeight: 1.5,
-    color: "var(--color-text-secondary, #5c4b4b)",
+    color: "var(--color-text-inverse, #fff8f6)",
+    paddingRight: "24px",
   },
-  badges: {
-    display: "flex",
-    gap: "8px",
-    marginBottom: "14px",
+  body: {
+    margin: "0 0 10px",
+    fontSize: "0.88rem",
+    lineHeight: 1.55,
+    color: "rgba(255, 248, 246, 0.88)",
   },
-  badge: {
-    fontSize: "0.72rem",
-    fontWeight: 700,
-    borderRadius: "999px",
-    padding: "4px 10px",
-    border: "1px solid var(--color-border-primary, #dcc7c1)",
-    color: "var(--color-text-primary, #4a3535)",
-    background: "rgba(255, 255, 255, 0.68)",
-    backdropFilter: "blur(4px)",
+  policyLine: {
+    margin: "0 0 16px",
+    fontSize: "0.88rem",
+    lineHeight: 1.55,
+    color: "rgba(255, 248, 246, 0.88)",
   },
-  toggleRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "10px 12px",
-    borderRadius: "10px",
-    border: "1px solid var(--color-border-primary, #e4cfc8)",
-    background: "rgba(255, 255, 255, 0.62)",
-    marginBottom: "10px",
-  },
-  toggleLabelWrap: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "2px",
-  },
-  toggleTitle: {
-    fontWeight: 600,
-    fontSize: "0.92rem",
-    color: "var(--color-text-primary, #18181b)",
-  },
-  toggleHint: {
-    fontSize: "0.8rem",
-    color: "var(--color-text-secondary, #644d4d)",
-  },
-  actions: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "8px",
-    marginTop: "12px",
-  },
-  button: {
-    border: "1px solid var(--color-border-primary, #ddc6bf)",
-    borderRadius: "10px",
-    padding: "10px 12px",
-    fontWeight: 600,
-    cursor: "pointer",
-    background: "rgba(255, 255, 255, 0.72)",
-    color: "var(--color-text-primary, #3a2f2f)",
+  policyLink: {
+    color: "var(--color-text-inverse, #fff8f6)",
+    textDecoration: "underline",
   },
   acceptButton: {
-    background: "var(--color-accent-primary, #8f5b6a)",
-    color: "var(--color-text-inverse, #fff8f6)",
-    border: "1px solid var(--color-accent-primary, #8f5b6a)",
-  },
-  link: {
-    marginTop: "10px",
-    display: "inline-block",
-    color: "var(--color-link, #2563eb)",
-    fontSize: "0.84rem",
-    textDecoration: "underline",
+    background: "var(--color-text-inverse, #fff8f6)",
+    color: "var(--color-accent-primary, #8f5b6a)",
+    border: "2px solid var(--color-text-inverse, #fff8f6)",
+    borderRadius: "8px",
+    padding: "9px 20px",
+    fontWeight: 600,
+    fontSize: "0.92rem",
+    cursor: "pointer",
+    fontFamily: "inherit",
   },
 };
 
-export default function CookieBanner({
-  onAcceptAll,
-  onRejectAll,
-  onSavePreferences,
-  onClose,
-}) {
-  const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
-
-  const savePreferences = () => {
-    onSavePreferences({
-      necessary: true,
-      analytics: analyticsEnabled,
-    });
-  };
-
-  const rejectAll = () => {
-    setAnalyticsEnabled(false);
-    onRejectAll();
-  };
-
+export default function CookieBanner({ onAcceptAll, onRejectAll, onClose }) {
   const banner = (
     <div style={styles.overlay}>
-    <section role="dialog" aria-live="polite" aria-label="Cookie consent banner" style={styles.container}>
-      <button type="button" style={styles.closeButton} onClick={onClose ?? rejectAll} aria-label="Close cookie banner">
-        ×
-      </button>
-      <h2 style={styles.heading}>Cookie Preferences</h2>
-      <p style={styles.description}>
-        We use essential cookies for site functionality and optional analytics cookies to improve performance.
-      </p>
-
-      <div style={styles.badges}>
-        <span style={styles.badge}>GDPR</span>
-        <span style={styles.badge}>CCPA</span>
-      </div>
-
-      <div style={styles.toggleRow}>
-        <div style={styles.toggleLabelWrap}>
-          <span style={styles.toggleTitle}>Necessary</span>
-          <span style={styles.toggleHint}>Required for security and core functionality</span>
-        </div>
-        <input type="checkbox" checked disabled aria-label="Necessary cookies enabled" />
-      </div>
-
-      <div style={styles.toggleRow}>
-        <div style={styles.toggleLabelWrap}>
-          <span style={styles.toggleTitle}>Analytics</span>
-          <span style={styles.toggleHint}>Helps us understand usage trends</span>
-        </div>
-        <input
-          type="checkbox"
-          checked={analyticsEnabled}
-          onChange={(event) => setAnalyticsEnabled(event.target.checked)}
-          aria-label="Analytics cookies toggle"
-        />
-      </div>
-
-      <div style={styles.actions}>
-        <button type="button" style={{ ...styles.button, ...styles.acceptButton }} onClick={onAcceptAll}>
-          Accept all
+      <section
+        role="dialog"
+        aria-live="polite"
+        aria-label="Cookie consent banner"
+        style={styles.container}
+      >
+        <button
+          type="button"
+          style={styles.closeButton}
+          onClick={onClose ?? onRejectAll}
+          aria-label="Close cookie banner"
+        >
+          ×
         </button>
-        <button type="button" style={styles.button} onClick={savePreferences}>
-          Save preferences
-        </button>
-        <button type="button" style={styles.button} onClick={rejectAll}>
-          Reject all
-        </button>
-      </div>
 
-      <a href="/privacy-policy" style={styles.link}>
-        Read our Privacy Policy
-      </a>
-    </section>
+        <h2 style={styles.heading}>
+          This site uses cookies to store information on your computer.
+        </h2>
+
+        <p style={styles.body}>
+          Some of these cookies are essential to make our site work and others
+          help us to improve by giving us some insight into how the site is
+          being used.
+        </p>
+
+        <p style={styles.policyLine}>
+          By using our site you accept the terms of our{" "}
+          <a href="/privacy-policy" style={styles.policyLink}>
+            Privacy Policy
+          </a>
+          .
+        </p>
+
+        <button type="button" style={styles.acceptButton} onClick={onAcceptAll}>
+          I Accept
+        </button>
+      </section>
     </div>
   );
 

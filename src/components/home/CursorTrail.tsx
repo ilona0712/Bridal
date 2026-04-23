@@ -23,7 +23,14 @@ export default function CursorTrail() {
     useEffect(() => {
         // Force cursor: none on everything so the hand pointer never shows
         const style = document.createElement("style");
-        style.textContent = "* { cursor: none !important; }";
+        style.textContent = `
+         *:not(button):not(a):not(input):not(select):not(textarea) { 
+             cursor: none !important; 
+            }
+         button, a, input, select, textarea { 
+            cursor: none !important; 
+        }
+        `;
         document.head.appendChild(style);
         return () => {
             document.head.removeChild(style);
@@ -185,7 +192,7 @@ export default function CursorTrail() {
         <>
             <canvas
                 ref={canvasRef}
-                className="fixed inset-0 pointer-events-none z-[9999]"
+                className="fixed inset-0 pointer-events-none z-[9998]"
             />
             {visible && (
                 <div
