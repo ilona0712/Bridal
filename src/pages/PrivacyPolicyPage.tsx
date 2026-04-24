@@ -18,12 +18,12 @@ const sections = [
     title: "2. How We Use Your Information",
     content: `We use the information we collect to:
 
-• Provide, maintain, and improve our services
+• Provide, maintain, and improve our services within Lebanon
 • Personalise your experience and offer tailored dress recommendations
 • Communicate with you about your orders, appointments, and enquiries
 • Send you updates and promotional materials (only with your consent)
 • Analyse usage patterns to enhance site performance
-• Comply with legal obligations and protect our rights`,
+• Comply with Lebanese legal obligations and protect our rights`,
   },
   {
     title: "3. Cookies",
@@ -42,7 +42,7 @@ By continuing to use our site after accepting our cookie notice, you consent to 
     content: `We do not sell, trade, or rent your personal information to third parties. We may share your data with:
 
 • **Service providers**: Trusted partners who assist us in operating our website (such as Supabase for authentication and database services), under strict confidentiality agreements.
-• **Legal requirements**: If required by law or to protect our rights, safety, or the safety of others.
+• **Legal requirements**: If required by Lebanese law or by order of a Lebanese court or competent authority, or to protect our rights, safety, or the safety of others.
 • **Business transfers**: In the event of a merger or acquisition, your data may be transferred as part of that transaction.`,
   },
   {
@@ -53,7 +53,7 @@ Analytics data is retained in anonymised form for up to 24 months to help us ide
   },
   {
     title: "6. Your Rights",
-    content: `Depending on your location, you may have the following rights regarding your personal data:
+    content: `As a user based in Lebanon, you have the following rights regarding your personal data:
 
 • **Access**: Request a copy of the personal data we hold about you
 • **Correction**: Request that we correct inaccurate or incomplete data
@@ -61,7 +61,7 @@ Analytics data is retained in anonymised form for up to 24 months to help us ide
 • **Objection**: Object to our processing of your data for certain purposes
 • **Portability**: Request that we transfer your data to another service
 
-To exercise any of these rights, please contact us using the details below.`,
+Lebanon does not currently have a comprehensive data protection law equivalent to international frameworks; however, we voluntarily uphold the above rights as part of our commitment to your privacy. To exercise any of these rights, please contact us using the details below.`,
   },
   {
     title: "7. Security",
@@ -70,17 +70,26 @@ To exercise any of these rights, please contact us using the details below.`,
 However, no method of transmission over the internet is 100% secure. While we strive to protect your data, we cannot guarantee absolute security.`,
   },
   {
-    title: "8. Changes to This Policy",
-    content: `We may update this Privacy Policy from time to time to reflect changes in our practices or legal requirements. When we make significant changes, we will notify you by updating the date at the top of this page or by displaying a notice on our website.
+    title: "8. Lebanon-Specific Notice",
+    content: `This website and its services are operated exclusively for users located in Lebanon. By using this site, you confirm that you are accessing it from within Lebanon.
+
+We process your data in accordance with applicable Lebanese laws, including but not limited to the Lebanese Penal Code provisions relating to privacy, and any relevant regulations issued by Lebanese authorities. We are committed to complying with Lebanese consumer protection principles and handling your data responsibly.
+
+If Lebanese data protection legislation is enacted or updated in the future, we will update this policy accordingly.`,
+  },
+  {
+    title: "9. Changes to This Policy",
+    content: `We may update this Privacy Policy from time to time to reflect changes in our practices or Lebanese legal requirements. When we make significant changes, we will notify you by updating the date at the top of this page or by displaying a notice on our website.
 
 We encourage you to review this policy periodically to stay informed about how we protect your information.`,
   },
   {
-    title: "9. Contact Us",
+    title: "10. Contact Us",
     content: `If you have any questions, concerns, or requests regarding this Privacy Policy or how we handle your data, please contact us at:
 
 **Maria Badari**
 Email: privacy@mariabadari.com
+Location: Lebanon
 
 We aim to respond to all enquiries within 5 business days.`,
   },
@@ -128,7 +137,7 @@ export default function PrivacyPolicyPage() {
       transition={{ duration: 0.8, ease: "easeOut" }}
       className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950"
     >
-      <Header subtitle="Your Dream dress Awaits" />
+      <Header subtitle="Your Dream Dress Awaits" />
 
       <main className="max-w-3xl mx-auto px-6 py-16">
 
@@ -152,7 +161,7 @@ export default function PrivacyPolicyPage() {
           className="mb-12"
         >
           <p className="text-xs uppercase tracking-widest text-stone-400 dark:text-stone-500 mb-3 font-medium">
-            Legal
+            Legal · Lebanon
           </p>
           <h1 className="text-4xl font-light text-stone-900 dark:text-stone-100 mb-4 tracking-tight">
             Privacy Policy
@@ -163,7 +172,8 @@ export default function PrivacyPolicyPage() {
           </p>
           <p className="mt-4 text-stone-600 dark:text-stone-400 leading-relaxed">
             At Maria Badari, your privacy matters to us. This policy explains what information we collect,
-            how we use it, and the choices you have regarding your data.
+            how we use it, and the choices you have regarding your data. This policy applies exclusively
+            to users based in Lebanon.
           </p>
         </motion.div>
 
@@ -196,7 +206,8 @@ export default function PrivacyPolicyPage() {
         >
           <p className="text-sm text-stone-500 dark:text-stone-400 text-center leading-relaxed">
             This Privacy Policy applies to{" "}
-            <span className="text-stone-700 dark:text-stone-300 font-medium">mariabadari.com</span>.
+            <span className="text-stone-700 dark:text-stone-300 font-medium">mariabadari.com</span>{" "}
+            and is intended for users in <span className="text-stone-700 dark:text-stone-300 font-medium">Lebanon</span> only.
             By using our site, you acknowledge that you have read and understood this policy.
           </p>
         </motion.div>
