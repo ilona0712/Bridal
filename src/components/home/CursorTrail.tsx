@@ -192,11 +192,11 @@ export default function CursorTrail() {
         <>
             <canvas
                 ref={canvasRef}
-                className="fixed inset-0 pointer-events-none z-[9998]"
+                className="fixed inset-0 pointer-events-none z-[10001]"
             />
             {visible && (
                 <div
-                    className="fixed pointer-events-none z-[9999] select-none"
+                    className="fixed pointer-events-none z-[10002] select-none"
                     style={{
                         left: pos.x - 10,
                         top: pos.y - 10,

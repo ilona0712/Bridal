@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 const CONSENT_STORAGE_KEY = "cookie_consent";
+const SESSION_DISMISSED_KEY = "cookie_banner_dismissed";
 const CONSENT_VERSION = "1.0";
 const DEFAULT_PREFERENCES = {
   necessary: true,
@@ -78,7 +79,7 @@ export default function useCookieConsent() {
 
     if (!stored) {
       setConsent(null);
-      setShowBanner(true);
+      setShowBanner(sessionStorage.getItem(SESSION_DISMISSED_KEY) !== "1");
       return;
     }
 
@@ -115,6 +116,11 @@ export default function useCookieConsent() {
     persistConsent(buildConsent(nextPreferences));
   }, [persistConsent]);
 
+  const dismissForSession = useCallback(() => {
+    sessionStorage.setItem(SESSION_DISMISSED_KEY, "1");
+    setShowBanner(false);
+  }, []);
+
   const hasConsented = useCallback((type) => {
     if (type === "necessary") return true;
     return Boolean(consent?.preferences?.[type]);
@@ -127,5 +133,6 @@ export default function useCookieConsent() {
     rejectAll,
     savePreferences,
     hasConsented,
-  }), [consent, showBanner, acceptAll, rejectAll, savePreferences, hasConsented]);
+    dismissForSession,
+  }), [consent, showBanner, acceptAll, rejectAll, savePreferences, hasConsented, dismissForSession]);
 }

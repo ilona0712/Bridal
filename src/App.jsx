@@ -28,7 +28,7 @@ function loadGoogleAnalytics() {
 }
 
 export default function App() {
-  const { showBanner, acceptAll, rejectAll, savePreferences, hasConsented } = useCookieConsent();
+  const { showBanner, acceptAll, rejectAll, savePreferences, hasConsented, dismissForSession } = useCookieConsent();
 
   useEffect(() => {
     if (hasConsented("analytics")) {
@@ -45,7 +45,7 @@ export default function App() {
             onAcceptAll={acceptAll}
             onRejectAll={rejectAll}
             onSavePreferences={savePreferences}
-            onClose={rejectAll}
+            onClose={dismissForSession}
           />
         )}
       </Root>

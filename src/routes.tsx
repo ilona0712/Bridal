@@ -16,6 +16,7 @@ import ClientsChatPage from "./pages/ClientsChatPage"
 import ForgotPasswordPage from "./pages/ForgotPasswordPage"
 import ResetPasswordPage from "./pages/ResetPasswordPage"
 import AdminRequestsPage from "./pages/AdminRequestsPage"
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage"
 import { registerDeviceForPushNotifications } from "./services/pushNotificationService"
 
 export const SessionContext = createContext<Session | null>(null)
@@ -187,6 +188,7 @@ export const router = createBrowserRouter([
       { path: "/gallery", element: <GalleryPage /> },
       { path: "/forgot-password", element: <ForgotPasswordPage /> },
       { path: "/reset-password", element: <ResetPasswordPage /> },
+      { path: "/privacy-policy", element: <PrivacyPolicyPage /> },
 
       { path: "/isabella", element: <CustomerRoute allowAdmin><IsabellaPage /></CustomerRoute> },
       { path: "/chat", element: <CustomerRoute allowAdmin><ChatWithOwnerPage /></CustomerRoute> },
