@@ -18,13 +18,13 @@ export default function HomeFooter() {
           </div>
 
           <div className="flex gap-6 text-sm text-stone-600 dark:text-stone-300">
-            <Link to="#" className="hover:text-stone-800 dark:hover:text-stone-100">
+            <Link to="/privacy-policy" className="hover:text-stone-800 dark:hover:text-stone-100 transition-colors">
               Privacy
             </Link>
-            <Link to="#" className="hover:text-stone-800 dark:hover:text-stone-100">
+            <Link to="/terms" className="hover:text-stone-800 dark:hover:text-stone-100 transition-colors">
               Terms
             </Link>
-            <Link to="#" className="hover:text-stone-800 dark:hover:text-stone-100">
+            <Link to="/chat" className="hover:text-stone-800 dark:hover:text-stone-100 transition-colors">
               Contact
             </Link>
           </div>

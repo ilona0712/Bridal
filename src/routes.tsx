@@ -17,6 +17,7 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage"
 import ResetPasswordPage from "./pages/ResetPasswordPage"
 import AdminRequestsPage from "./pages/AdminRequestsPage"
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage"
+import TermsOfServicePage from "./pages/TermsOfServicePage"
 import { registerDeviceForPushNotifications } from "./services/pushNotificationService"
 
 export const SessionContext = createContext<Session | null>(null)
@@ -197,6 +198,7 @@ export const router = createBrowserRouter([
       { path: "/admin", element: <AdminRoute><AdminPage /></AdminRoute> },
       { path: "/admin/requests", element: <AdminRoute><AdminRequestsPage /></AdminRoute> },
       { path: "/clients-chats", element: <AdminRoute><ClientsChatPage /></AdminRoute> },
+      { path: "/terms", element: <TermsOfServicePage /> },
     ],
   },
 ])
