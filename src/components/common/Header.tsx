@@ -178,22 +178,20 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
             </button>
 
             <Link to="/" className="flex items-center gap-2 min-w-0">
-              <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 overflow-hidden">
-                {settings.logo_image_url ? (
-                  <img
-                    src={settings.logo_image_url}
-                    alt="Logo"
-                    className="h-full w-full object-cover rounded-full"
-                  />
-                ) : (
-                  <Sparkles className="h-4 w-4 text-stone-600" />
-                )}
-              </div>
-              <div className="min-w-0">
-                <h1 className="truncate font-serif text-base text-stone-800 dark:text-stone-100">
-                  {settings.logo_text}
-                </h1>
-              </div>
+              {settings.logo_image_url ? (
+                <img src={settings.logo_image_url} alt="Logo" className="h-9 w-auto flex-shrink-0" />
+              ) : (
+                <>
+                  <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300">
+                    <Sparkles className="h-4 w-4 text-stone-600" />
+                  </div>
+                  <div className="min-w-0">
+                    <h1 className="truncate font-serif text-base text-stone-800 dark:text-stone-100">
+                      {settings.logo_text}
+                    </h1>
+                  </div>
+                </>
+              )}
             </Link>
           </div>
 
@@ -202,27 +200,25 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
             to="/"
             className="hidden md:flex items-center gap-3 min-w-0 flex-shrink-0"
           >
-            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 overflow-hidden">
-              {settings.logo_image_url ? (
-                <img
-                  src={settings.logo_image_url}
-                  alt="Logo"
-                  className="h-full w-full object-cover rounded-full"
-                />
-              ) : (
-                <Sparkles className="h-5 w-5 text-stone-600" />
-              )}
-            </div>
-            <div className="min-w-0">
-              <h1 className="truncate font-serif text-xl text-stone-800 dark:text-stone-100">
-                {settings.logo_text}
-              </h1>
-              {tagline && (
-                <p className="truncate text-xs text-stone-500 dark:text-stone-400">
-                  {tagline}
-                </p>
-              )}
-            </div>
+            {settings.logo_image_url ? (
+              <img src={settings.logo_image_url} alt="Logo" className="h-10 w-auto flex-shrink-0" />
+            ) : (
+              <>
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300">
+                  <Sparkles className="h-5 w-5 text-stone-600" />
+                </div>
+                <div className="min-w-0">
+                  <h1 className="truncate font-serif text-xl text-stone-800 dark:text-stone-100">
+                    {settings.logo_text}
+                  </h1>
+                  {tagline && (
+                    <p className="truncate text-xs text-stone-500 dark:text-stone-400">
+                      {tagline}
+                    </p>
+                  )}
+                </div>
+              </>
+            )}
           </Link>
 
           {/* Desktop: nav centered */}

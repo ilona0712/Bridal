@@ -125,7 +125,7 @@ export default function Signup() {
             <div className="text-center space-y-3">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 rounded-full overflow-hidden">
                 {settings.logo_image_url ? (
-                  <img src={settings.logo_image_url} alt="Logo" className="w-full h-full object-cover" />
+                  <img src={settings.logo_image_url} alt="Logo" className="w-full h-full object-contain p-1" />
                 ) : (
                   <Sparkles className="w-8 h-8 text-stone-600" />
                 )}

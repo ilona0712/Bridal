@@ -1,5 +1,6 @@
 import { Sparkles, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
 
 type ProfilePageHeaderProps = {
   onLogout: () => void;
@@ -8,16 +9,21 @@ type ProfilePageHeaderProps = {
 export default function ProfilePageHeader({
   onLogout,
 }: ProfilePageHeaderProps) {
+  const { settings } = useSiteSettings();
   return (
     <header className="border-b border-stone-200/50 dark:border-stone-700/50 bg-white/60 dark:bg-stone-900/60 backdrop-blur-sm sticky top-0 z-40 w-full">
       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 rounded-full flex items-center justify-center">
-            <Sparkles className="w-5 h-5 text-stone-600" />
+          <div className="w-10 h-10 bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 rounded-full flex items-center justify-center overflow-hidden">
+            {settings.logo_image_url ? (
+              <img src={settings.logo_image_url} alt="Logo" className="w-full h-full object-contain p-1" />
+            ) : (
+              <Sparkles className="w-5 h-5 text-stone-600" />
+            )}
           </div>
           <div>
             <h1 className="font-serif text-xl text-stone-800 dark:text-stone-100">
-              Maria Badari
+              {settings.logo_text || "Maria Badari"}
             </h1>
             <p className="text-xs text-stone-500 dark:text-stone-400">
               Your Dream Dress Awaits
