@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import webpush from "npm:web-push@3.6.7";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -49,6 +50,15 @@ type NotificationPayload = {
 type PushTokenRow = {
   token: string;
   platform: "ios" | "android" | "web";
+};
+
+type WebPushSubscription = {
+  endpoint: string;
+  expirationTime?: number | null;
+  keys?: {
+    auth?: string;
+    p256dh?: string;
+  };
 };
 
 type FirebaseServiceAccount = {
@@ -539,6 +549,67 @@ async function sendApnsMessages(tokens: string[], payload: NotificationPayload) 
   };
 }
 
+function parseWebPushSubscription(token: string) {
+  try {
+    const parsed = JSON.parse(token) as WebPushSubscription;
+
+    if (
+      typeof parsed.endpoint !== "string" ||
+      !parsed.endpoint ||
+      typeof parsed.keys?.auth !== "string" ||
+      typeof parsed.keys?.p256dh !== "string"
+    ) {
+      return null;
+    }
+
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+async function sendWebPushMessages(
+  subscriptions: WebPushSubscription[],
+  payload: NotificationPayload,
+) {
+  const publicKey = Deno.env.get("WEB_PUSH_VAPID_PUBLIC_KEY");
+  const privateKey = Deno.env.get("WEB_PUSH_VAPID_PRIVATE_KEY");
+  const subject =
+    Deno.env.get("WEB_PUSH_VAPID_SUBJECT") ?? "mailto:notifications@mariabadari.com";
+
+  if (!publicKey || !privateKey || subscriptions.length === 0) {
+    return { sent: 0, skipped: subscriptions.length };
+  }
+
+  webpush.setVapidDetails(subject, publicKey, privateKey);
+
+  const results = await Promise.all(
+    subscriptions.map(async (subscription) => {
+      try {
+        await webpush.sendNotification(
+          subscription,
+          JSON.stringify({
+            title: payload.title,
+            body: payload.body,
+            path: payload.path,
+            type: payload.type,
+          }),
+        );
+
+        return true;
+      } catch (error) {
+        console.error("Web push delivery failed:", error);
+        return false;
+      }
+    }),
+  );
+
+  return {
+    sent: results.filter(Boolean).length,
+    skipped: results.filter((ok) => !ok).length,
+  };
+}
+
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -650,24 +721,32 @@ Deno.serve(async (request) => {
     const tokens = (tokenRows ?? []) as PushTokenRow[];
     const androidTokens = [
       ...new Set(
-        tokens
-          .filter((row) => row.platform === "android" || row.platform === "web")
-          .map((row) => row.token),
+        tokens.filter((row) => row.platform === "android").map((row) => row.token),
       ),
     ];
     const iosTokens = [
       ...new Set(tokens.filter((row) => row.platform === "ios").map((row) => row.token)),
     ];
-    const [fcmDelivery, apnsDelivery] = await Promise.all([
+    const webSubscriptions = [
+      ...new Map(
+        tokens
+          .filter((row) => row.platform === "web")
+          .map((row) => [row.token, parseWebPushSubscription(row.token)])
+          .filter((entry): entry is [string, WebPushSubscription] => Boolean(entry[1])),
+      ).values(),
+    ];
+
+    const [fcmDelivery, apnsDelivery, webDelivery] = await Promise.all([
       sendFcmMessages(androidTokens, payload),
       sendApnsMessages(iosTokens, payload),
+      sendWebPushMessages(webSubscriptions, payload),
     ]);
 
     return jsonResponse(200, {
       recipients: userIds.length,
-      tokens: androidTokens.length + iosTokens.length,
-      sent: fcmDelivery.sent + apnsDelivery.sent,
-      skipped: fcmDelivery.skipped + apnsDelivery.skipped,
+      tokens: androidTokens.length + iosTokens.length + webSubscriptions.length,
+      sent: fcmDelivery.sent + apnsDelivery.sent + webDelivery.sent,
+      skipped: fcmDelivery.skipped + apnsDelivery.skipped + webDelivery.skipped,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Push delivery failed.";
