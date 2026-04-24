@@ -7,10 +7,10 @@ type AuthImagePanelProps = {
 
 export default function AuthImagePanel({ src, alt }: AuthImagePanelProps) {
   return (
-    <div className="hidden lg:block">
-      <div className="relative">
+    <div className="hidden lg:flex lg:flex-col">
+      <div className="relative flex-1">
         <div className="absolute inset-0 bg-gradient-to-br from-pink-50/30 to-transparent rounded-3xl" />
-        <div className="aspect-[3/4] rounded-3xl overflow-hidden shadow-2xl">
+        <div className="h-full min-h-[400px] rounded-3xl overflow-hidden shadow-2xl">
           <ImageWithFallback
             src={src}
             alt={alt}

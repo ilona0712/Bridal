@@ -46,8 +46,12 @@ export default function LoginPage() {
         <div className="bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 dark:border-stone-700/50 p-12">
           <div className="max-w-md mx-auto space-y-8">
             <div className="text-center space-y-3">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 rounded-full">
-                <Sparkles className="w-8 h-8 text-stone-600" />
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 rounded-full overflow-hidden">
+                {settings.logo_image_url ? (
+                  <img src={settings.logo_image_url} alt="Logo" className="w-full h-full object-cover" />
+                ) : (
+                  <Sparkles className="w-8 h-8 text-stone-600" />
+                )}
               </div>
               <h1 className="font-serif text-4xl text-stone-800 dark:text-stone-100">
                 {brandName}

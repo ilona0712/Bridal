@@ -115,7 +115,7 @@ export default function Signup() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950 flex items-center justify-center p-6">
-      <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+      <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
         <AuthImagePanel
           src={settings.signup_image_url || settings.hero_image_url || "https://images.unsplash.com/photo-1766104797322-3826d7158c64?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3ZWRkaW5nJTIwZHJlc3MlMjBmaXR0aW5nJTIwYnJpZGV8ZW58MXx8fHwxNzcwODk2NjM5fDA&ixlib=rb-4.1.0&q=80&w=1080"}
           alt="Bridal Fitting"
@@ -123,8 +123,12 @@ export default function Signup() {
         <div className="bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 dark:border-stone-700/50 p-12">
           <div className="max-w-md mx-auto space-y-8">
             <div className="text-center space-y-3">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 rounded-full">
-                <Sparkles className="w-8 h-8 text-stone-600" />
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 rounded-full overflow-hidden">
+                {settings.logo_image_url ? (
+                  <img src={settings.logo_image_url} alt="Logo" className="w-full h-full object-cover" />
+                ) : (
+                  <Sparkles className="w-8 h-8 text-stone-600" />
+                )}
               </div>
               <p className="font-serif text-sm text-stone-500 dark:text-stone-400 tracking-wide">
                 {brandName}
