@@ -1,178 +1,208 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import Header from "../components/common/Header";
+import HomeFooter from "../components/home/HomeFooter";
 
-const LAST_UPDATED = "April 24, 2025";
-const CONTACT_EMAIL = "info@mariabadari.com";
-const BRAND = "Maria Badari";
-const PLATFORM = "Maria Badari Haute Couture";
+const sections = [
+  {
+    title: "1. Information We Collect",
+    content: `When you use our website, we may collect the following types of information:
 
-const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <section className="mb-8">
-    <h2 className="font-serif text-xl text-stone-800 dark:text-stone-100 mb-3 pb-2 border-b border-stone-200 dark:border-stone-700">
-      {title}
-    </h2>
-    <div className="space-y-3 text-stone-600 dark:text-stone-400 text-sm leading-relaxed">
-      {children}
-    </div>
-  </section>
-);
+• **Account information**: When you sign up, we collect your name, email address, date of birth, and dress size to personalise your experience.
+• **Usage data**: We collect information about how you interact with our site — pages visited, features used, and time spent — to help us improve our service.
+• **Communications**: Messages you send through our Chat with Owner feature are stored to allow ongoing conversations and improve our support.
+• **Device information**: We may collect your browser type, operating system, and IP address for security and analytics purposes.`,
+  },
+  {
+    title: "2. How We Use Your Information",
+    content: `We use the information we collect to:
+
+• Provide, maintain, and improve our services
+• Personalise your experience and offer tailored dress recommendations
+• Communicate with you about your orders, appointments, and enquiries
+• Send you updates and promotional materials (only with your consent)
+• Analyse usage patterns to enhance site performance
+• Comply with legal obligations and protect our rights`,
+  },
+  {
+    title: "3. Cookies",
+    content: `Our website uses cookies to store information on your computer. Cookies are small text files placed on your device that help us:
+
+• Keep essential site functions working correctly
+• Remember your preferences and settings
+• Understand how visitors use our site through analytics
+
+**Essential cookies** are required for the site to function and cannot be disabled. **Analytics cookies** are optional and help us understand usage trends — you can decline these when you first visit our site.
+
+By continuing to use our site after accepting our cookie notice, you consent to the use of cookies as described in this policy.`,
+  },
+  {
+    title: "4. Data Sharing",
+    content: `We do not sell, trade, or rent your personal information to third parties. We may share your data with:
+
+• **Service providers**: Trusted partners who assist us in operating our website (such as Supabase for authentication and database services), under strict confidentiality agreements.
+• **Legal requirements**: If required by law or to protect our rights, safety, or the safety of others.
+• **Business transfers**: In the event of a merger or acquisition, your data may be transferred as part of that transaction.`,
+  },
+  {
+    title: "5. Data Retention",
+    content: `We retain your personal information for as long as your account is active or as needed to provide you with our services. You may request deletion of your account and associated data at any time by contacting us.
+
+Analytics data is retained in anonymised form for up to 24 months to help us identify long-term trends in site usage.`,
+  },
+  {
+    title: "6. Your Rights",
+    content: `Depending on your location, you may have the following rights regarding your personal data:
+
+• **Access**: Request a copy of the personal data we hold about you
+• **Correction**: Request that we correct inaccurate or incomplete data
+• **Deletion**: Request that we delete your personal data
+• **Objection**: Object to our processing of your data for certain purposes
+• **Portability**: Request that we transfer your data to another service
+
+To exercise any of these rights, please contact us using the details below.`,
+  },
+  {
+    title: "7. Security",
+    content: `We take reasonable technical and organisational measures to protect your personal information against unauthorised access, loss, or misuse. These include encrypted data transmission (HTTPS), secure authentication systems, and access controls.
+
+However, no method of transmission over the internet is 100% secure. While we strive to protect your data, we cannot guarantee absolute security.`,
+  },
+  {
+    title: "8. Changes to This Policy",
+    content: `We may update this Privacy Policy from time to time to reflect changes in our practices or legal requirements. When we make significant changes, we will notify you by updating the date at the top of this page or by displaying a notice on our website.
+
+We encourage you to review this policy periodically to stay informed about how we protect your information.`,
+  },
+  {
+    title: "9. Contact Us",
+    content: `If you have any questions, concerns, or requests regarding this Privacy Policy or how we handle your data, please contact us at:
+
+**Maria Badari**
+Email: privacy@mariabadari.com
+
+We aim to respond to all enquiries within 5 business days.`,
+  },
+];
+
+function renderContent(text: string) {
+  return text.split("\n").map((line, i) => {
+    if (line.trim() === "") return <br key={i} />;
+    const parts = line.split(/\*\*(.*?)\*\*/g);
+    return (
+      <p key={i} className={`mb-1 ${line.startsWith("•") ? "pl-2" : ""}`}>
+        {parts.map((part, j) =>
+          j % 2 === 1 ? (
+            <strong key={j} className="font-semibold text-stone-800 dark:text-stone-200">
+              {part}
+            </strong>
+          ) : (
+            part
+          )
+        )}
+      </p>
+    );
+  });
+}
 
 export default function PrivacyPolicyPage() {
   const navigate = useNavigate();
 
+  useEffect(() => {
+    document.documentElement.style.scrollbarWidth = "none";
+    const style = document.createElement("style");
+    style.id = "hide-scrollbar-privacy";
+    style.textContent = "html::-webkit-scrollbar { display: none; }";
+    document.head.appendChild(style);
+    return () => {
+      document.documentElement.style.scrollbarWidth = "";
+      document.getElementById("hide-scrollbar-privacy")?.remove();
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950 py-12 px-4">
-      <div className="max-w-2xl mx-auto">
-        <button
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
+      className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950"
+    >
+      <Header subtitle="Your Dream dress Awaits" />
+
+      <main className="max-w-3xl mx-auto px-6 py-16">
+
+        {/* Back button */}
+        <motion.button
+          initial={{ opacity: 0, x: -12 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-sm text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 mb-8 transition-colors"
+          className="flex items-center gap-2 text-sm text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 transition-colors mb-10 group"
         >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-          </svg>
-          Go back
-        </button>
+          <span className="group-hover:-translate-x-1 transition-transform">←</span>
+          Back
+        </motion.button>
 
-        <div className="bg-white dark:bg-stone-800 rounded-3xl shadow-xl border border-stone-200/50 dark:border-stone-700/50 p-8 md:p-12">
-          <div className="mb-10">
-            <p className="text-xs uppercase tracking-widest text-[#8f5b6a] font-medium mb-2">Legal</p>
-            <h1 className="font-serif text-4xl text-stone-800 dark:text-stone-100 mb-3">Privacy Policy</h1>
-            <p className="text-xs text-stone-400 dark:text-stone-500">Last updated: {LAST_UPDATED}</p>
-          </div>
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="mb-12"
+        >
+          <p className="text-xs uppercase tracking-widest text-stone-400 dark:text-stone-500 mb-3 font-medium">
+            Legal
+          </p>
+          <h1 className="text-4xl font-light text-stone-900 dark:text-stone-100 mb-4 tracking-tight">
+            Privacy Policy
+          </h1>
+          <div className="w-12 h-px bg-stone-300 dark:bg-stone-700 mb-4" />
+          <p className="text-sm text-stone-400 dark:text-stone-500">
+            Last updated: April 2026
+          </p>
+          <p className="mt-4 text-stone-600 dark:text-stone-400 leading-relaxed">
+            At Maria Badari, your privacy matters to us. This policy explains what information we collect,
+            how we use it, and the choices you have regarding your data.
+          </p>
+        </motion.div>
 
-          <Section title="1. Who We Are">
-            <p>
-              <strong className="text-stone-700 dark:text-stone-300">{BRAND}</strong> operates the{" "}
-              <strong className="text-stone-700 dark:text-stone-300">{PLATFORM}</strong> platform, a wedding
-              dress discovery and customization service. We are the data controller responsible for your
-              personal information collected through this website.
-            </p>
-            <p>
-              If you have any questions about this policy or how we handle your data, contact us at{" "}
-              <a href={`mailto:${CONTACT_EMAIL}`} className="text-[#8f5b6a] underline underline-offset-2">
-                {CONTACT_EMAIL}
-              </a>
-              .
-            </p>
-          </Section>
-
-          <Section title="2. Information We Collect">
-            <p>When you create an account or use our platform, we collect the following personal data:</p>
-            <ul className="mt-2 space-y-2">
-              {[
-                ["First & last name", "To identify you and personalise your experience"],
-                ["Email address", "To manage your account and send you relevant communications"],
-                ["Phone number", "To allow our team to contact you regarding your dress enquiry"],
-                ["Country", "To understand your location and tailor service offerings"],
-                ["Date of birth", "To verify eligibility and personalise recommendations"],
-                ["Profile picture", "To display on your account profile"],
-              ].map(([field, purpose]) => (
-                <li key={field} className="flex gap-3">
-                  <span className="mt-0.5 w-2 h-2 rounded-full bg-[#8f5b6a]/50 shrink-0 translate-y-1" />
-                  <span>
-                    <strong className="text-stone-700 dark:text-stone-300">{field}</strong> — {purpose}.
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-2">
-              We also collect usage data (pages visited, session duration) through cookies to improve our
-              service, subject to your cookie consent.
-            </p>
-          </Section>
-
-          <Section title="3. How We Use Your Information">
-            <p>We use your personal data to:</p>
-            <ul className="mt-2 space-y-1 list-disc list-inside">
-              <li>Create and manage your account on the {PLATFORM} platform</li>
-              <li>Connect you with our design team for dress consultations</li>
-              <li>Personalise dress recommendations and your Isabella AI consultation</li>
-              <li>Send you updates about your orders or enquiries</li>
-              <li>Improve our website and service through anonymous analytics (only with your consent)</li>
-            </ul>
-            <p className="mt-2">
-              We do not sell, rent, or share your personal data with third parties for their own marketing
-              purposes.
-            </p>
-          </Section>
-
-          <Section title="4. Legal Basis for Processing">
-            <p>We process your personal data on the following legal bases:</p>
-            <ul className="mt-2 space-y-1 list-disc list-inside">
-              <li>
-                <strong className="text-stone-700 dark:text-stone-300">Contract performance</strong> — to
-                provide the services you requested when creating an account
-              </li>
-              <li>
-                <strong className="text-stone-700 dark:text-stone-300">Legitimate interests</strong> — to
-                improve our platform and prevent fraud
-              </li>
-              <li>
-                <strong className="text-stone-700 dark:text-stone-300">Consent</strong> — for optional
-                analytics cookies, which you may withdraw at any time
-              </li>
-            </ul>
-          </Section>
-
-          <Section title="5. Data Retention">
-            <p>
-              We retain your personal data for as long as your account is active. If you delete your account,
-              we will remove your personal data within 30 days, except where we are required to retain it
-              by law (e.g. for accounting or legal dispute purposes).
-            </p>
-            <p>
-              Profile pictures stored in our image storage are deleted alongside your account data.
-            </p>
-          </Section>
-
-          <Section title="6. Cookies">
-            <p>
-              We use strictly necessary cookies to keep you logged in and make the site work. With your
-              consent, we also use analytics cookies (Google Analytics) to understand how visitors use our
-              site. You can change your cookie preferences at any time by clearing your browser cookies and
-              revisiting the site.
-            </p>
-          </Section>
-
-          <Section title="7. Your Rights">
-            <p>Depending on your jurisdiction, you have the right to:</p>
-            <ul className="mt-2 space-y-1 list-disc list-inside">
-              <li>Access the personal data we hold about you</li>
-              <li>Request correction of inaccurate data</li>
-              <li>Request deletion of your data ("right to be forgotten")</li>
-              <li>Withdraw consent for analytics cookies at any time</li>
-              <li>Lodge a complaint with your local data protection authority</li>
-            </ul>
-            <p className="mt-2">
-              To exercise any of these rights, email us at{" "}
-              <a href={`mailto:${CONTACT_EMAIL}`} className="text-[#8f5b6a] underline underline-offset-2">
-                {CONTACT_EMAIL}
-              </a>
-              .
-            </p>
-          </Section>
-
-          <Section title="8. Data Security">
-            <p>
-              Your data is stored securely using Supabase (PostgreSQL with row-level security) and is
-              transmitted over HTTPS. Profile images are stored in access-controlled cloud storage. We
-              apply industry-standard measures to protect your information from unauthorised access.
-            </p>
-          </Section>
-
-          <Section title="9. Changes to This Policy">
-            <p>
-              We may update this policy from time to time. When we do, we will revise the "Last updated"
-              date at the top. We encourage you to review this page periodically.
-            </p>
-          </Section>
-
-          <div className="mt-10 pt-6 border-t border-stone-200 dark:border-stone-700 text-center">
-            <p className="text-xs text-stone-400 dark:text-stone-500">
-              © {new Date().getFullYear()} {BRAND}. All rights reserved.
-            </p>
-          </div>
+        {/* Sections */}
+        <div className="space-y-10">
+          {sections.map((section, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35 + i * 0.05 }}
+              className="border-t border-stone-200 dark:border-stone-800 pt-8"
+            >
+              <h2 className="text-base font-semibold text-stone-800 dark:text-stone-200 mb-4 tracking-tight">
+                {section.title}
+              </h2>
+              <div className="text-sm text-stone-600 dark:text-stone-400 leading-relaxed space-y-1">
+                {renderContent(section.content)}
+              </div>
+            </motion.div>
+          ))}
         </div>
-      </div>
-    </div>
+
+        {/* Footer note */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.9 }}
+          className="mt-16 p-6 rounded-2xl bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800"
+        >
+          <p className="text-sm text-stone-500 dark:text-stone-400 text-center leading-relaxed">
+            This Privacy Policy applies to{" "}
+            <span className="text-stone-700 dark:text-stone-300 font-medium">mariabadari.com</span>.
+            By using our site, you acknowledge that you have read and understood this policy.
+          </p>
+        </motion.div>
+      </main>
+
+      <HomeFooter />
+    </motion.div>
   );
 }
