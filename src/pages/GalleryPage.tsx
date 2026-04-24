@@ -327,6 +327,10 @@ export default function GalleryPage() {
           isAdmin={isAdmin}
           isFavorite={favoriteDressIds.includes(String(selectedDress.id))}
           onToggleFavorite={toggleFavorite}
+          onRequestRent={() => {          
+          setRentDress(selectedDress);  // set the dress for RentModal
+          setSelectedDress(null);       // close the details modal
+        }}
         />
       )}
 
