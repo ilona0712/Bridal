@@ -27,8 +27,86 @@ type PushNotificationBody = {
 
 type NativePlatform = "ios" | "android" | "web";
 
+const WEB_PUSH_PUBLIC_KEY =
+  import.meta.env.VITE_WEB_PUSH_PUBLIC_KEY ??
+  import.meta.env.REACT_APP_WEB_PUSH_PUBLIC_KEY;
+
+let nativePushRegistrationStarted = false;
+let webPushRegistrationStarted = false;
+
 function isNativeRuntime() {
   return typeof window !== "undefined" && "Capacitor" in window;
+}
+
+function isBrowserPushSupported() {
+  return (
+    typeof window !== "undefined" &&
+    "Notification" in window &&
+    "serviceWorker" in navigator &&
+    "PushManager" in window
+  );
+}
+
+function urlBase64ToUint8Array(value: string) {
+  const padding = "=".repeat((4 - (value.length % 4 || 4)) % 4);
+  const base64 = `${value}${padding}`.replaceAll("-", "+").replaceAll("_", "/");
+  const raw = window.atob(base64);
+  const bytes = new Uint8Array(raw.length);
+
+  for (let index = 0; index < raw.length; index += 1) {
+    bytes[index] = raw.charCodeAt(index);
+  }
+
+  return bytes;
+}
+
+async function savePushToken(token: string, platform: NativePlatform) {
+  const { error } = await supabase.rpc("register_push_token", {
+    p_token: token,
+    p_platform: platform,
+  });
+
+  if (error) {
+    console.error("Failed to save push token:", error);
+    return false;
+  }
+
+  console.info("Push notification token saved.");
+  return true;
+}
+
+async function registerBrowserForPushNotifications() {
+  if (!isBrowserPushSupported()) return;
+  if (!WEB_PUSH_PUBLIC_KEY) {
+    console.warn("Web push public key is missing. Skipping browser push registration.");
+    return;
+  }
+  if (webPushRegistrationStarted) return;
+
+  webPushRegistrationStarted = true;
+
+  try {
+    const permission = await Notification.requestPermission();
+
+    if (permission !== "granted") {
+      console.warn("Browser notification permission was not granted:", permission);
+      return;
+    }
+
+    const registration = await navigator.serviceWorker.ready;
+    let subscription = await registration.pushManager.getSubscription();
+
+    if (!subscription) {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(WEB_PUSH_PUBLIC_KEY),
+      });
+    }
+
+    await savePushToken(JSON.stringify(subscription.toJSON()), "web");
+  } catch (error) {
+    console.error("Browser push notification registration failed:", error);
+  }
 }
 
 async function getCapacitorPlatform(): Promise<NativePlatform> {
@@ -43,11 +121,22 @@ async function getCapacitorPlatform(): Promise<NativePlatform> {
 }
 
 export async function registerDeviceForPushNotifications(userId: string) {
-  if (!userId || !isNativeRuntime()) return;
+  if (!userId) return;
+
+  if (!isNativeRuntime()) {
+    await registerBrowserForPushNotifications();
+    return;
+  }
 
   const platform = await getCapacitorPlatform();
 
-  if (platform === "web") return;
+  if (platform === "web") {
+    await registerBrowserForPushNotifications();
+    return;
+  }
+  if (nativePushRegistrationStarted) return;
+
+  nativePushRegistrationStarted = true;
 
   try {
     const { PushNotifications } = await import("@capacitor/push-notifications");
@@ -60,17 +149,7 @@ export async function registerDeviceForPushNotifications(userId: string) {
 
     await PushNotifications.addListener("registration", async ({ value }) => {
       console.info("Push notification token received.");
-
-      const { error } = await supabase.rpc("register_push_token", {
-        p_token: value,
-        p_platform: platform,
-      });
-
-      if (error) {
-        console.error("Failed to save push token:", error);
-      } else {
-        console.info("Push notification token saved.");
-      }
+      await savePushToken(value, platform);
     });
 
     await PushNotifications.addListener("registrationError", (error) => {
