@@ -29,6 +29,7 @@ export default function ProfilePage() {
   const [phone, setPhone] = useState("");
   const [country, setCountry] = useState("");
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [profileRole, setProfileRole] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -38,6 +39,14 @@ export default function ProfilePage() {
   const [profileLoading, setProfileLoading] = useState(true);
   const [saveLoading, setSaveLoading] = useState(false);
   const [saveError, setSaveError] = useState("");
+
+  const resolvedRole =
+    profileRole ||
+    role ||
+    (typeof session?.user?.user_metadata?.role === "string"
+      ? session.user.user_metadata.role
+      : null) ||
+    "customer";
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -53,7 +62,7 @@ export default function ProfilePage() {
       const { data, error } = await supabase
         .from("profiles")
         .select(
-          "full_name, dress_size, date_of_birth, profile_image_url, phone, country",
+          "full_name, dress_size, date_of_birth, profile_image_url, phone, country, role",
         )
         .eq("id", session.user.id)
         .maybeSingle();
@@ -69,6 +78,9 @@ export default function ProfilePage() {
         setDressSize(meta.dress_size || "");
         setDateOfBirth(meta.date_of_birth || "");
         setProfileImage(null);
+        setProfileRole(
+          typeof meta.role === "string" ? meta.role : role || "customer",
+        );
         setProfileLoading(false);
         return;
       }
@@ -88,11 +100,17 @@ export default function ProfilePage() {
       setProfileImage(profileRow?.profile_image_url || null);
       setPhone(profileRow?.phone || "");
       setCountry(profileRow?.country || "");
+      setProfileRole(
+        profileRow?.role ||
+          (typeof meta.role === "string" ? meta.role : null) ||
+          role ||
+          "customer",
+      );
       setProfileLoading(false);
     };
 
     loadProfile();
-  }, [session]);
+  }, [session, role]);
 
   useEffect(() => {
     const loadFavoriteDresses = async () => {
@@ -254,6 +272,7 @@ export default function ProfilePage() {
     const { error: profileError } = await supabase.from("profiles").upsert(
       {
         id: session.user.id,
+        role: resolvedRole,
         full_name: `${firstName} ${lastName}`.trim(),
         dress_size: dressSize || null,
         date_of_birth: dateOfBirth || null,
@@ -285,6 +304,7 @@ export default function ProfilePage() {
     const { error } = await supabase.from("profiles").upsert(
       {
         id: session.user.id,
+        role: resolvedRole,
         full_name: fullName,
         dress_size: dressSize || null,
         date_of_birth: dateOfBirth || null,
