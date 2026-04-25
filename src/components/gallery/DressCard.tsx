@@ -109,20 +109,18 @@ export default function DressCard({
           ) : null}
         </div>
 
-        {(dress.fabric || dress.sleeveStyle) && (
-          <div className="flex gap-2 text-xs text-stone-600 dark:text-stone-300">
-            {dress.fabric && (
-              <span className="rounded bg-stone-100/70 dark:bg-stone-700/70 px-2 py-1">
-                {dress.fabric}
-              </span>
-            )}
-            {dress.sleeveStyle && (
-              <span className="rounded bg-stone-100/70 dark:bg-stone-700/70 px-2 py-1">
-                {dress.sleeveStyle}
-              </span>
-            )}
-          </div>
-        )}
+        <div className="flex gap-2 text-xs text-stone-600 dark:text-stone-300 min-h-[28px]">
+          {dress.fabric && (
+            <span className="rounded bg-stone-100/70 dark:bg-stone-700/70 px-2 py-1 self-start">
+              {dress.fabric}
+            </span>
+          )}
+          {dress.sleeveStyle && (
+            <span className="rounded bg-stone-100/70 dark:bg-stone-700/70 px-2 py-1 self-start">
+              {dress.sleeveStyle}
+            </span>
+          )}
+        </div>
 
         <div className="mt-auto space-y-2">
           <button

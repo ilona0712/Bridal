@@ -1,6 +1,7 @@
 import { useEffect, useState, type MouseEvent } from "react";
-import { Link, useSearchParams } from "react-router-dom";
-import { Sparkles, SlidersHorizontal } from "lucide-react";
+import { motion } from "framer-motion";
+import { useSearchParams } from "react-router-dom";
+import { SlidersHorizontal } from "lucide-react";
 import { useRole, useSession } from "../routes";
 import { sizes } from "../data/galleryFilters";
 import type { Dress } from "../types/dress";
@@ -302,17 +303,24 @@ export default function GalleryPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filteredDresses.map((dress) => (
-                  <DressCard
+                {filteredDresses.map((dress, index) => (
+                  <motion.div
                     key={dress.id}
-                    dress={dress}
-                    onViewDetails={setSelectedDress}
-                    onRightClick={handleRightClick}
-                    isAdmin={isAdmin}
-                    isFavorite={favoriteDressIds.includes(dress.id)}
-                    onToggleFavorite={toggleFavorite}
-                    onRequestRent={setRentDress}
-                  />
+                    initial={{ opacity: 0, y: 24 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-40px" }}
+                    transition={{ duration: 0.35, delay: (index % 3) * 0.07, ease: "easeOut" }}
+                  >
+                    <DressCard
+                      dress={dress}
+                      onViewDetails={setSelectedDress}
+                      onRightClick={handleRightClick}
+                      isAdmin={isAdmin}
+                      isFavorite={favoriteDressIds.includes(dress.id)}
+                      onToggleFavorite={toggleFavorite}
+                      onRequestRent={setRentDress}
+                    />
+                  </motion.div>
                 ))}
               </div>
             )}
@@ -344,13 +352,6 @@ export default function GalleryPage() {
           onClose={() => setRentDress(null)}
         />
       )}
-
-      <Link
-        to="/isabella"
-        className="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-br from-stone-300 via-pink-200/40 to-stone-300 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform z-40"
-      >
-        <Sparkles className="w-7 h-7 text-stone-700" />
-      </Link>
 
       <DressContextMenu
         contextMenu={contextMenu}
