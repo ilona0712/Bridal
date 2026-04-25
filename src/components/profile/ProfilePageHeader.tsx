@@ -38,12 +38,6 @@ export default function ProfilePageHeader({
           >
             Gallery
           </Link>
-          <Link
-            to="/gallery"
-            className="text-sm text-stone-600 dark:text-stone-300 hover:text-stone-800 dark:hover:text-stone-100"
-          >
-            Consultant
-          </Link>
           <button
             onClick={onLogout}
             className="flex items-center gap-2 px-4 py-2 bg-stone-200/50 dark:bg-stone-700/50 hover:bg-stone-300/50 dark:hover:bg-stone-600/50 text-stone-700 dark:text-stone-200 rounded-full text-sm transition-all"

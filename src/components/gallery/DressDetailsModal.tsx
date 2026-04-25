@@ -10,6 +10,7 @@ type DressDetailsModalProps = {
   isAdmin?: boolean;
   isFavorite?: boolean;
   onToggleFavorite?: (dressId: string) => void;
+  onRequestRent?: () => void;
 };
 
 export default function DressDetailsModal({
@@ -18,6 +19,7 @@ export default function DressDetailsModal({
   isAdmin = false,
   isFavorite = false,
   onToggleFavorite,
+  onRequestRent,
 }: DressDetailsModalProps) {
   const images =
     dress.images && dress.images.length > 0 ? dress.images : [dress.image];
@@ -183,6 +185,7 @@ export default function DressDetailsModal({
         <div className="flex-shrink-0 border-t border-stone-200/50 dark:border-stone-700/50 bg-white/80 dark:bg-stone-900/80 backdrop-blur-sm px-8 py-5 rounded-b-3xl space-y-3">
           <button
             type="button"
+            onClick={onRequestRent}
             className="w-full py-3 bg-stone-800 dark:bg-stone-600 text-white rounded-xl hover:bg-stone-700 dark:hover:bg-stone-500 transition-all text-sm"
           >
             Request to Rent
