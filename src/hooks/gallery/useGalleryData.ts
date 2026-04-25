@@ -30,6 +30,7 @@ export function useGalleryData() {
             attribute_values ( value_key, label, attributes ( key ) )
           )
         `)
+        .eq("status", "published")
         .returns<GalleryDressRow[]>();
 
       if (error) {
