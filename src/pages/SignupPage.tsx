@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import AuthImagePanel from "../components/authentication/AuthImagePanel";
@@ -35,9 +35,21 @@ export default function Signup() {
   const isPasswordValid = passwordRegex.test(password);
 
   function handlePhotoSelect(file: File) {
+    if (photoPreview) {
+      URL.revokeObjectURL(photoPreview);
+    }
+
     setPhotoFile(file);
     setPhotoPreview(URL.createObjectURL(file));
   }
+
+  useEffect(() => {
+    return () => {
+      if (photoPreview) {
+        URL.revokeObjectURL(photoPreview);
+      }
+    };
+  }, [photoPreview]);
 
   async function handleSignup() {
     setError("");

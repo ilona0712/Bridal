@@ -11,7 +11,12 @@ export default function ProfilePhotoUpload({ onPhotoSelect, preview }: ProfilePh
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) onPhotoSelect(file);
+    if (file) {
+      onPhotoSelect(file);
+    }
+
+    // Allow selecting the same file again after editing/retrying.
+    e.target.value = "";
   };
 
   return (
@@ -43,6 +48,9 @@ export default function ProfilePhotoUpload({ onPhotoSelect, preview }: ProfilePh
             type="file"
             accept="image/*"
             onChange={handleChange}
+            onClick={(e) => {
+              e.currentTarget.value = "";
+            }}
             className="hidden"
           />
         </div>
