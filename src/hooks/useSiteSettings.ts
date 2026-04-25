@@ -10,6 +10,7 @@ export interface SiteSettings {
   hero_title:         string
   hero_subtitle:      string
   hero_cta_text:      string
+  image_generation_model: string
   price_filter_min:   string
   price_filter_max:   string
   price_filter_step:  string
@@ -24,6 +25,7 @@ export const DEFAULTS: SiteSettings = {
   hero_title:         "Find Your Perfect Dress",
   hero_subtitle:      "Chat with our intelligent consultant to design and customize your dream wedding dress. Every detail, every wish, brought to life.",
   hero_cta_text:      "Start Consultation",
+  image_generation_model: "gpt-image-1.5",
   price_filter_min:   "0",
   price_filter_max:   "2000",
   price_filter_step:  "100",
@@ -37,6 +39,8 @@ function normalizeSiteSettings(settings: SiteSettings): SiteSettings {
   return {
     ...settings,
     logo_image_url: settings.logo_image_url.trim() || DEFAULT_LOGO_IMAGE_URL,
+    image_generation_model:
+      settings.image_generation_model.trim() || DEFAULTS.image_generation_model,
   }
 }
 
