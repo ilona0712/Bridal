@@ -13,6 +13,27 @@ import { useSession, useRole, useRoleLoading } from "../routes";
 import type { ChatMessage } from "../types/chat";
 import { sendPushNotification } from "../services/pushNotificationService";
 
+function getSupportedAudioMimeType() {
+  if (typeof MediaRecorder === "undefined") return "";
+
+  return [
+    "audio/webm;codecs=opus",
+    "audio/webm",
+    "audio/mp4;codecs=mp4a.40.2",
+    "audio/mp4",
+    "audio/ogg;codecs=opus",
+  ].find((type) => MediaRecorder.isTypeSupported(type)) ?? "";
+}
+
+function getAudioExtension(mimeType: string) {
+  const cleanType = mimeType.split(";")[0];
+  if (cleanType === "audio/mp4") return "mp4";
+  if (cleanType === "audio/ogg") return "ogg";
+  if (cleanType === "audio/wav") return "wav";
+  if (cleanType === "audio/mpeg") return "mp3";
+  return "webm";
+}
+
 function appendMessageIfMissing(
   currentMessages: ChatMessage[],
   nextMessage: ChatMessage,
@@ -353,17 +374,20 @@ export default function ChatWithOwnerPage() {
 
   const handleStartRecording = async () => {
     try {
+      if (typeof MediaRecorder === "undefined") {
+        showToast("Voice recording is not supported on this device browser.", "error");
+        return;
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       // Prefer mp4 — it embeds duration metadata and plays on iOS/Android/Desktop.
       // webm often reports Infinity duration and is unsupported on iOS.
-      const mimeType =
-        MediaRecorder.isTypeSupported("audio/mp4;codecs=mp4a.40.2") ? "audio/mp4;codecs=mp4a.40.2" :
-        MediaRecorder.isTypeSupported("audio/mp4") ? "audio/mp4" :
-        MediaRecorder.isTypeSupported("audio/ogg;codecs=opus") ? "audio/ogg;codecs=opus" :
-        "audio/webm";
+      const mimeType = getSupportedAudioMimeType();
 
-const mediaRecorder = new MediaRecorder(stream, { mimeType });
-      mimeTypeRef.current = mimeType;
+      const mediaRecorder = mimeType
+        ? new MediaRecorder(stream, { mimeType })
+        : new MediaRecorder(stream);
+      mimeTypeRef.current = mediaRecorder.mimeType || mimeType || "audio/webm";
       setRecordingStream(stream);
       audioChunksRef.current = [];
       recordingStartedAtRef.current = performance.now();
@@ -384,7 +408,12 @@ const mediaRecorder = new MediaRecorder(stream, { mimeType });
           : null;
 
         const audioBlob = new Blob(audioChunksRef.current, { type: mimeTypeRef.current });
-        const ext = mimeTypeRef.current.split("/")[1].split(";")[0];
+        if (audioBlob.size === 0) {
+          showToast("Voice message was empty. Please try recording again.", "error");
+          return;
+        }
+
+        const ext = getAudioExtension(mimeTypeRef.current);
         const fileName = `${session?.user?.id}-${Date.now()}.${ext}`;
   const { data: uploadData, error: uploadError } = await supabase.storage
     .from("voice-notes")
@@ -392,6 +421,7 @@ const mediaRecorder = new MediaRecorder(stream, { mimeType });
 
   if (uploadError) {
     console.error("Audio upload failed:", uploadError);
+    showToast("Voice message could not be uploaded. Please try again.", "error");
     return;
   }
 
@@ -497,6 +527,31 @@ const mediaRecorder = new MediaRecorder(stream, { mimeType });
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showEmojiPicker]);
 
+  useEffect(() => {
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+
+    const updateChatViewportHeight = () => {
+      const height = window.visualViewport?.height ?? window.innerHeight;
+      document.documentElement.style.setProperty("--chat-viewport-height", `${height}px`);
+    };
+
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    updateChatViewportHeight();
+
+    window.visualViewport?.addEventListener("resize", updateChatViewportHeight);
+    window.addEventListener("resize", updateChatViewportHeight);
+
+    return () => {
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+      document.documentElement.style.removeProperty("--chat-viewport-height");
+      window.visualViewport?.removeEventListener("resize", updateChatViewportHeight);
+      window.removeEventListener("resize", updateChatViewportHeight);
+    };
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-stone-400">
@@ -506,7 +561,10 @@ const mediaRecorder = new MediaRecorder(stream, { mimeType });
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col overflow-hidden overscroll-none bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
+    <div
+      className="fixed inset-x-0 top-0 flex flex-col overflow-hidden overscroll-none bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950"
+      style={{ height: "var(--chat-viewport-height, 100dvh)" }}
+    >
       <Toast toasts={toasts} />
       <Header subtitle={role === "admin" ? "Client Conversation" : "Chat with Us"} />
       <OwnerChatMessagesList
