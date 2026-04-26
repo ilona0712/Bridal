@@ -5,6 +5,7 @@ import AuthImagePanel from "../components/authentication/AuthImagePanel";
 import PasswordInput from "../components/authentication/PasswordInput";
 import ProfilePhotoUpload from "../components/authentication/ProfilePhotoUpload";
 import NameFields from "../components/authentication/NameFields";
+import SocialLoginButtons from "../components/authentication/SocialLoginButtons";
 import { signUp } from "../auth";
 import { supabase } from "../../lib/supabase";
 import { useSiteSettings } from "../hooks/useSiteSettings";
@@ -296,6 +297,19 @@ export default function Signup() {
               >
                 {loading ? "Creating account..." : "Create Account"}
               </button>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-stone-200 dark:border-stone-600" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-4 bg-white/60 dark:bg-stone-800/60 text-stone-500 dark:text-stone-400">
+                    or sign up with
+                  </span>
+                </div>
+              </div>
+
+              <SocialLoginButtons />
 
               <div className="text-center text-sm text-stone-600 dark:text-stone-300">
                 Already have an account?{" "}
