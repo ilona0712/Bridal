@@ -14,6 +14,8 @@ import {
 import { supabase } from "../../../lib/supabase";
 import { useSiteSettings, DEFAULTS } from "../../hooks/useSiteSettings";
 import type { SiteSettings } from "../../hooks/useSiteSettings";
+import { Toast } from "../common/Toast";
+import { useToast } from "../../hooks/useToast";
 
 // ── Reusable image upload field ──────────────────────────────────────────────
 function ImageUploadField({
@@ -111,6 +113,7 @@ function ImageUploadField({
 
 // ── Main tab ─────────────────────────────────────────────────────────────────
 export default function AdminSiteSettingsTab() {
+  const { toasts, showToast } = useToast();
   const { settings, loading, invalidateCache } = useSiteSettings();
   const [form, setForm] = useState<SiteSettings | null>(null);
   const [saving, setSaving] = useState(false);
@@ -142,12 +145,13 @@ export default function AdminSiteSettingsTab() {
     setSaving(false);
 
     if (error) {
-      alert("Failed to save: " + error.message);
+      showToast("Failed to save: " + error.message, "error");
       return;
     }
 
     invalidateCache();
     setSaved(true);
+    showToast("Settings saved successfully!");
     setTimeout(() => setSaved(false), 3000);
   }
 
@@ -166,6 +170,7 @@ export default function AdminSiteSettingsTab() {
 
   return (
     <div className="space-y-6">
+      <Toast toasts={toasts} />
       <div className="bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-3xl shadow-xl border border-stone-200/50 dark:border-stone-700/50 p-8">
         <div className="flex items-center justify-between mb-8">
           <div>

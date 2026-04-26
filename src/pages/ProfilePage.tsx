@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Toast } from "../components/common/Toast";
+import { useToast } from "../hooks/useToast";
 import { signOut } from "../auth";
 import { useSession, useRole } from "../routes";
 import { supabase } from "../../lib/supabase";
@@ -14,6 +16,7 @@ import ProfileDressPreferencesSection from "../components/profile/ProfileDressPr
 import ProfileFavoritesSection from "../components/profile/ProfileFavoritesSection";
 
 export default function ProfilePage() {
+  const { toasts, showToast } = useToast();
   const navigate = useNavigate();
   const session = useSession();
   const role = useRole();
@@ -323,12 +326,10 @@ export default function ProfilePage() {
 
     setIsEditing(false);
     setHasChanges(false);
-    alert("Profile updated successfully!");
+    showToast("Profile updated successfully!");
   };
 
   const handleLogout = async () => {
-    if (!window.confirm("Are you sure you want to logout?")) return;
-
     await signOut();
     navigate("/login");
   };
@@ -370,6 +371,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
+      <Toast toasts={toasts} />
       <ProfilePageHeader onLogout={handleLogout} />
 
       <div className="container mx-auto px-6 py-12">

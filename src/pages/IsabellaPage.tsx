@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Check, ChevronRight, Sparkles } from "lucide-react";
 import Header from "../components/common/Header";
+import { Toast } from "../components/common/Toast";
+import { useToast } from "../hooks/useToast";
 import { supabase } from "../../lib/supabase";
 import { useSession } from "../routes";
 import type { Dress } from "../types/dress";
@@ -256,6 +258,7 @@ function buildRequestSummary(answers: PartialDressAnswers, dress?: Dress) {
 }
 
 export default function IsabellaPage() {
+  const { toasts, showToast } = useToast();
   const location = useLocation();
   const navigate = useNavigate();
   const session = useSession();
@@ -390,7 +393,7 @@ export default function IsabellaPage() {
     setIsSending(true);
     try {
       if (selectedAnswerCount === 0) {
-        alert("Please choose at least one customization option before sending your request.");
+        showToast("Please choose at least one customization option before sending your request.", "error");
         return;
       }
 
@@ -480,7 +483,7 @@ export default function IsabellaPage() {
       }, 1500);
     } catch (err) {
       console.error("Failed to send request:", err);
-      alert("Something went wrong. Please try again.");
+      showToast("Something went wrong. Please try again.", "error");
     } finally {
       setIsSending(false);
     }
@@ -498,6 +501,7 @@ export default function IsabellaPage() {
 
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
+      <Toast toasts={toasts} />
       <Header subtitle="Your Personal Bridal Consultant" />
 
       <div className="flex-1 min-h-0 flex">

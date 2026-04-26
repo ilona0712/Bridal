@@ -13,6 +13,8 @@ import {
   X,
 } from "lucide-react";
 import Header from "../components/common/Header";
+import { Toast } from "../components/common/Toast";
+import { useToast } from "../hooks/useToast";
 import { supabase } from "../../lib/supabase";
 import { sendPushNotification } from "../services/pushNotificationService";
 import type {
@@ -126,6 +128,7 @@ function getCustomizationLines(summary: string | null) {
 const PULL_THRESHOLD = 80;
 
 export default function AdminRequestsPage() {
+  const { toasts, showToast } = useToast();
   const navigate = useNavigate();
   const [requests, setRequests] = useState<AdminCustomizationRequest[]>([]);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(
@@ -380,7 +383,7 @@ export default function AdminRequestsPage() {
 
     if (updateError) {
       console.error("Failed to update request:", updateError);
-      alert(updateError.message);
+      showToast(updateError.message, "error");
       setSaving(false);
       return false;
     }
@@ -425,7 +428,7 @@ export default function AdminRequestsPage() {
     const nextPrompt = editablePrompt.trim();
 
     if (!nextPrompt) {
-      alert("The prompt cannot be empty before generation.");
+      showToast("The prompt cannot be empty before generation.", "error");
       return;
     }
 
@@ -458,7 +461,7 @@ export default function AdminRequestsPage() {
           sessionId: selectedRequest.id,
           requestStatus: "generation_failed",
         });
-        alert("You must be signed in to generate a preview.");
+        showToast("You must be signed in to generate a preview.", "error");
       setGenerating(false);
       return;
     }
@@ -499,7 +502,7 @@ export default function AdminRequestsPage() {
           sessionId: selectedRequest.id,
           requestStatus: "generation_failed",
         });
-        alert(errorMessage);
+        showToast(errorMessage, "error");
         setGenerating(false);
         return;
       }
@@ -518,7 +521,7 @@ export default function AdminRequestsPage() {
           sessionId: selectedRequest.id,
           requestStatus: "generation_failed",
         });
-        alert(fallbackError);
+        showToast(fallbackError, "error");
         setGenerating(false);
         return;
       }
@@ -553,7 +556,7 @@ export default function AdminRequestsPage() {
         sessionId: selectedRequest.id,
         requestStatus: "generation_failed",
       });
-      alert(message);
+      showToast(message, "error");
     } finally {
       setGenerating(false);
     }
@@ -565,12 +568,12 @@ export default function AdminRequestsPage() {
     const nextImageUrl = imageUrlInput.trim() || selectedRequest.imageUrl;
 
     if (!nextImageUrl) {
-      alert("An image URL is required before approving the generated image.");
+      showToast("An image URL is required before approving the generated image.", "error");
       return;
     }
 
     if (!selectedRequest.conversationId) {
-      alert("This request is not linked to a customer conversation.");
+      showToast("This request is not linked to a customer conversation.", "error");
       return;
     }
 
@@ -594,7 +597,7 @@ export default function AdminRequestsPage() {
 
     if (textError) {
       console.error("Failed to send customer update:", textError);
-      alert("The request was updated, but the customer message could not be sent.");
+      showToast("The request was updated, but the customer message could not be sent.", "error");
       return;
     }
 
@@ -608,7 +611,7 @@ export default function AdminRequestsPage() {
 
     if (imageError) {
       console.error("Failed to send generated image:", imageError);
-      alert("The request was updated, but the image could not be sent to chat.");
+      showToast("The request was updated, but the image could not be sent to chat.", "error");
       return;
     }
 
@@ -625,6 +628,7 @@ export default function AdminRequestsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
+      <Toast toasts={toasts} />
       <Header subtitle="Customization Requests" />
 
       {isPulling && (

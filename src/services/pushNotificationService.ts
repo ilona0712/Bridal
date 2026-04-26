@@ -34,6 +34,12 @@ const WEB_PUSH_PUBLIC_KEY =
 let nativePushRegistrationStarted = false;
 let webPushRegistrationStarted = false;
 
+function isLocalhost() {
+  if (typeof window === "undefined") return false;
+  const { hostname } = window.location;
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname.endsWith(".localhost");
+}
+
 function isNativeRuntime() {
   return typeof window !== "undefined" && "Capacitor" in window;
 }
@@ -76,6 +82,7 @@ async function savePushToken(token: string, platform: NativePlatform) {
 }
 
 async function registerBrowserForPushNotifications() {
+  if (isLocalhost()) return;
   if (!isBrowserPushSupported()) return;
   if (!WEB_PUSH_PUBLIC_KEY) {
     console.warn("Web push public key is missing. Skipping browser push registration.");

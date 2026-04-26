@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import EmojiPicker from "emoji-picker-react";
 import { ArrowLeft, User } from "lucide-react";
 import Header from "../components/common/Header";
+import { Toast } from "../components/common/Toast";
+import { useToast } from "../hooks/useToast";
 import OwnerChatMessagesList from "../components/chat/OwnerChatMessagesList";
 import OwnerChatInput from "../components/chat/OwnerChatInput";
 import CustomerProfilePanel from "../components/chat/CustomerProfilePanel";
@@ -12,6 +14,7 @@ import type { ChatMessage } from "../types/chat";
 import { sendPushNotification } from "../services/pushNotificationService";
 
 export default function ChatWithOwnerPage() {
+  const { toasts, showToast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const session = useSession();
@@ -348,7 +351,7 @@ const mediaRecorder = new MediaRecorder(stream, { mimeType });
       setIsRecording(true);
     } catch (error) {
       console.error("Microphone access error:", error);
-      alert("Unable to access microphone.");
+      showToast("Unable to access microphone.", "error");
     }
   };
 
@@ -406,6 +409,7 @@ const mediaRecorder = new MediaRecorder(stream, { mimeType });
 
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
+      <Toast toasts={toasts} />
       <Header subtitle={role === "admin" ? "Client Conversation" : "Chat with Us"} />
       <OwnerChatMessagesList
         messages={messages}

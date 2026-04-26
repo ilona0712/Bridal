@@ -6,7 +6,9 @@ import AdminDressListTab from "../components/admin/AdminDressListTab";
 import AdminPageHeader from "../components/admin/AdminPageHeader";
 import AdminTabs from "../components/admin/AdminTabs";
 import { useAdminDressForm } from "../hooks/admin/useAdminDressForm";
-import AdminSiteSettingsTab from "../components/admin/AdminSiteSettingsTab"
+import AdminSiteSettingsTab from "../components/admin/AdminSiteSettingsTab";
+import { Toast } from "../components/common/Toast";
+import { useToast } from "../hooks/useToast";
 import type {
   ActiveTab,
   AdminCollection,
@@ -30,6 +32,7 @@ import {
 import { sendPushNotification } from "../services/pushNotificationService";
 
 export default function AdminPage() {
+  const { toasts, showToast } = useToast();
   const [activeTab, setActiveTab] = useState<ActiveTab>("list");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [collectionNameError, setCollectionNameError] = useState("");
@@ -60,7 +63,7 @@ export default function AdminPage() {
     reorderImages,
     removeImage,
     startEditingDress,
-  } = useAdminDressForm();
+  } = useAdminDressForm((msg) => showToast(msg, "error"));
   const { availableSizes } = ADMIN_DRESS_FORM_OPTIONS;
 
   const {
@@ -81,12 +84,12 @@ export default function AdminPage() {
     e.preventDefault();
 
     if (!formData.name.trim()) {
-      alert("Dress name is required!");
+      showToast("Dress name is required!", "error");
       return;
     }
 
     if (formData.images.length === 0) {
-      alert("At least one image is required!");
+      showToast("At least one image is required!", "error");
       return;
     }
 
@@ -115,16 +118,15 @@ export default function AdminPage() {
           ),
         );
 
-        alert("Dress updated successfully!");
+        showToast("Dress updated successfully!");
         resetForm();
         setEditingDress(null);
         setActiveTab("list");
       } catch (err) {
         console.error("Unexpected update dress error:", err);
-        alert(
-          err instanceof Error
-            ? err.message
-            : "Unexpected error while updating dress.",
+        showToast(
+          err instanceof Error ? err.message : "Unexpected error while updating dress.",
+          "error",
         );
       } finally {
         setIsSubmitting(false);
@@ -155,17 +157,16 @@ export default function AdminPage() {
 
       setDresses((prev) => [createdDressForUi, ...prev]);
 
-      alert("Dress created successfully!");
+      showToast("Dress created successfully!");
 
       resetForm();
       setEditingDress(null);
       setActiveTab("list");
     } catch (err) {
       console.error("Unexpected create dress error:", err);
-      alert(
-        err instanceof Error
-          ? err.message
-          : "Unexpected error while creating dress.",
+      showToast(
+        err instanceof Error ? err.message : "Unexpected error while creating dress.",
+        "error",
       );
     } finally {
       setIsSubmitting(false);
@@ -179,20 +180,15 @@ export default function AdminPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this dress?")) {
-      return;
-    }
-
     try {
       await deleteDressById(id);
       setDresses((prev) => prev.filter((dress) => dress.id !== id));
-      alert("Dress deleted successfully!");
+      showToast("Dress deleted successfully!");
     } catch (err) {
       console.error("Unexpected delete dress error:", err);
-      alert(
-        err instanceof Error
-          ? err.message
-          : "Unexpected error while deleting dress.",
+      showToast(
+        err instanceof Error ? err.message : "Unexpected error while deleting dress.",
+        "error",
       );
     }
   };
@@ -201,7 +197,7 @@ export default function AdminPage() {
     const targetDress = dresses.find((dress) => dress.id === id);
 
     if (!targetDress) {
-      alert("Dress not found.");
+      showToast("Dress not found.", "error");
       return;
     }
 
@@ -217,10 +213,9 @@ export default function AdminPage() {
       );
     } catch (err) {
       console.error("Unexpected visibility update error:", err);
-      alert(
-        err instanceof Error
-          ? err.message
-          : "Unexpected error while updating visibility.",
+      showToast(
+        err instanceof Error ? err.message : "Unexpected error while updating visibility.",
+        "error",
       );
     }
   };
@@ -229,7 +224,7 @@ export default function AdminPage() {
     const trimmedName = newCollectionName.trim();
 
     if (!trimmedName) {
-      alert("Collection name cannot be empty!");
+      showToast("Collection name cannot be empty!", "error");
       return;
     }
 
@@ -275,13 +270,12 @@ export default function AdminPage() {
         collectionId: insertedCollection.id,
         collectionName: insertedCollection.name,
       });
-      alert("Collection created successfully!");
+      showToast("Collection created successfully!");
     } catch (err) {
       console.error("Unexpected create collection error:", err);
-      alert(
-        err instanceof Error
-          ? err.message
-          : "Unexpected error while creating collection.",
+      showToast(
+        err instanceof Error ? err.message : "Unexpected error while creating collection.",
+        "error",
       );
     }
     setCollectionNameError("");
@@ -293,7 +287,7 @@ export default function AdminPage() {
     const trimmedName = editingCollection.newName.trim();
 
     if (!trimmedName) {
-      alert("Collection name cannot be empty!");
+      showToast("Collection name cannot be empty!", "error");
       return;
     }
 
@@ -343,13 +337,12 @@ export default function AdminPage() {
 
       setEditingCollection(null);
       setSelectedDressesForEditCollection([]);
-      alert("Collection updated successfully!");
+      showToast("Collection updated successfully!");
     } catch (err) {
       console.error("Unexpected update collection error:", err);
-      alert(
-        err instanceof Error
-          ? err.message
-          : "Unexpected error while updating collection.",
+      showToast(
+        err instanceof Error ? err.message : "Unexpected error while updating collection.",
+        "error",
       );
     }
   };
@@ -359,13 +352,6 @@ export default function AdminPage() {
       dress.collections.includes(collection.name),
     );
 
-    if (dressesInCollection.length > 0) {
-      const confirmed = window.confirm(
-        `This collection has ${dressesInCollection.length} dress(es). Deleting will remove this collection from all dresses. Continue?`,
-      );
-
-      if (!confirmed) return;
-    }
 
     try {
       await deleteCollectionById(collection.id);
@@ -383,13 +369,12 @@ export default function AdminPage() {
         })),
       );
 
-      alert("Collection deleted successfully!");
+      showToast("Collection deleted successfully!");
     } catch (err) {
       console.error("Unexpected delete collection error:", err);
-      alert(
-        err instanceof Error
-          ? err.message
-          : "Unexpected error while deleting collection.",
+      showToast(
+        err instanceof Error ? err.message : "Unexpected error while deleting collection.",
+        "error",
       );
     }
   };
@@ -402,8 +387,9 @@ export default function AdminPage() {
     if (nextIsActive) {
       const currentlyActive = collections.filter((c) => c.isActive).length;
       if (currentlyActive >= MAX_HOMEPAGE_COLLECTIONS) {
-        alert(
+        showToast(
           `You can show at most ${MAX_HOMEPAGE_COLLECTIONS} collections on the homepage. Please hide another collection first.`,
+          "error",
         );
         return;
       }
@@ -418,10 +404,9 @@ export default function AdminPage() {
       );
     } catch (err) {
       console.error("Failed to toggle homepage visibility:", err);
-      alert(
-        err instanceof Error
-          ? err.message
-          : "Unexpected error while updating homepage visibility.",
+      showToast(
+        err instanceof Error ? err.message : "Unexpected error while updating homepage visibility.",
+        "error",
       );
     }
   };
@@ -444,6 +429,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
+      <Toast toasts={toasts} />
       <Header />
 
       <div className="max-w-7xl mx-auto px-6 py-12">
