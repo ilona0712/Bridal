@@ -715,14 +715,14 @@ export default function AdminRequestsPage() {
             </p>
           </div>
         ) : (
-          <div className="grid items-start gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
-            <aside className={`overflow-hidden rounded-3xl border border-stone-200/50 bg-white/70 shadow-xl backdrop-blur-sm dark:border-stone-700/50 dark:bg-stone-800/70 ${mobileView === "detail" ? "hidden lg:block" : "block"}`}>
+          <div className="grid items-stretch gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
+            <aside className={`flex flex-col overflow-hidden rounded-3xl border border-stone-200/50 bg-white/70 shadow-xl backdrop-blur-sm dark:border-stone-700/50 dark:bg-stone-800/70 ${mobileView === "detail" ? "hidden lg:block" : "block"}`}>
               <div className="border-b border-stone-200/50 px-5 py-4 dark:border-stone-700/50">
                 <p className="text-sm text-stone-500 dark:text-stone-400">
                   {filteredRequests.length} request{filteredRequests.length === 1 ? "" : "s"}
                 </p>
               </div>
-              <div>
+              <div className="min-h-0 flex-1 overflow-y-auto">
                 {filteredRequests.map((request) => {
                   const isSelected = request.id === selectedRequestId;
 
