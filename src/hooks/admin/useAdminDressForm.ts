@@ -8,7 +8,7 @@ import { EMPTY_DRESS_FORM } from "../../utils/admin/adminDressFormConfig";
 import type { DressFormData } from "../../types/admin";
 import type { Dress } from "../../types/dress";
 
-export function useAdminDressForm() {
+export function useAdminDressForm(onError?: (message: string) => void) {
   const [formData, setFormData] = useState<DressFormData>(EMPTY_DRESS_FORM);
   const [dragActive, setDragActive] = useState(false);
   const [imageFiles, setImageFiles] = useState<Array<File | null>>([]);
@@ -55,7 +55,7 @@ export function useAdminDressForm() {
     const incomingFiles = Array.from(files).slice(0, 6 - currentCount);
 
     if (incomingFiles.length === 0) {
-      alert("You can upload up to 6 images only.");
+      (onError ?? alert)("You can upload up to 6 images only.");
       return;
     }
 
@@ -91,7 +91,7 @@ export function useAdminDressForm() {
       })
       .catch((error) => {
         console.error("Image upload error:", error);
-        alert("Failed to upload one or more images.");
+        (onError ?? alert)("Failed to upload one or more images.");
       });
   };
 

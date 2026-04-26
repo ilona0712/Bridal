@@ -2,20 +2,58 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import EmojiPicker from "emoji-picker-react";
 import { ArrowLeft, User } from "lucide-react";
 import Header from "../components/common/Header";
+import { Toast } from "../components/common/Toast";
+import { useToast } from "../hooks/useToast";
 import OwnerChatMessagesList from "../components/chat/OwnerChatMessagesList";
 import OwnerChatInput from "../components/chat/OwnerChatInput";
 import CustomerProfilePanel from "../components/chat/CustomerProfilePanel";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
-import { useSession, useRole } from "../routes";
+import { useSession, useRole, useRoleLoading } from "../routes";
 import type { ChatMessage } from "../types/chat";
 import { sendPushNotification } from "../services/pushNotificationService";
 
+function getSupportedAudioMimeType() {
+  if (typeof MediaRecorder === "undefined") return "";
+
+  return [
+    "audio/webm;codecs=opus",
+    "audio/webm",
+    "audio/mp4;codecs=mp4a.40.2",
+    "audio/mp4",
+    "audio/ogg;codecs=opus",
+  ].find((type) => MediaRecorder.isTypeSupported(type)) ?? "";
+}
+
+function getAudioExtension(mimeType: string) {
+  const cleanType = mimeType.split(";")[0];
+  if (cleanType === "audio/mp4") return "mp4";
+  if (cleanType === "audio/ogg") return "ogg";
+  if (cleanType === "audio/wav") return "wav";
+  if (cleanType === "audio/mpeg") return "mp3";
+  return "webm";
+}
+
+function appendMessageIfMissing(
+  currentMessages: ChatMessage[],
+  nextMessage: ChatMessage,
+) {
+  if (currentMessages.some((message) => message.id === nextMessage.id)) {
+    return currentMessages;
+  }
+
+  return [...currentMessages, nextMessage].sort(
+    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+  );
+}
+
 export default function ChatWithOwnerPage() {
+  const { toasts, showToast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const session = useSession();
   const role = useRole();
+  const roleLoading = useRoleLoading();
 
   // admin passes conversationId + clientName + customerId via location.state
   const stateConversationId = location.state?.conversationId as string | undefined;
@@ -32,7 +70,6 @@ export default function ChatWithOwnerPage() {
   const [myAvatarUrl, setMyAvatarUrl] = useState<string | null>(null);
   const [otherAvatarUrl, setOtherAvatarUrl] = useState<string | null>(null);
   const [showProfile, setShowProfile] = useState(false);
-  console.log("conversationId:", conversationId, "role:", role);
 
   const senderName =
     session?.user?.user_metadata?.full_name ||
@@ -43,14 +80,20 @@ export default function ChatWithOwnerPage() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const mimeTypeRef = useRef<string>("audio/webm");
+  const recordingStartedAtRef = useRef<number | null>(null);
   const emojiPickerRef = useRef<HTMLDivElement | null>(null);
   const emojiButtonAreaRef = useRef<HTMLDivElement | null>(null);
 
   // Step 1: get or create conversation (customer only)
   useEffect(() => {
-    if (!session?.user) return;
+    if (!session?.user || roleLoading || !role) return;
+
     if (role === "admin") {
-      // admin already has conversationId from navigation state
+      // Admin gets the conversation from navigation state. Keep it synced in case
+      // React Router reuses this page instance for a different customer.
+      setConversationId(stateConversationId ?? null);
+      setMessages([]);
+
       if (stateConversationId) {
         supabase.from("conversation_reads").upsert(
           { conversation_id: stateConversationId, user_id: session.user.id, last_read_at: new Date().toISOString() },
@@ -97,11 +140,11 @@ export default function ChatWithOwnerPage() {
     };
 
     initConversation();
-  }, [session, role]);
+  }, [session?.user, role, roleLoading, stateConversationId]);
 
   // Fetch profile images for current user and the other party
   useEffect(() => {
-    if (!session?.user) return;
+    if (!session?.user || roleLoading || !role) return;
 
     const fetchAvatars = async () => {
       // Always fetch current user's avatar
@@ -114,11 +157,11 @@ export default function ChatWithOwnerPage() {
 
       if (role === "admin") {
         // For admin: fetch the customer's avatar from conversations
-        if (!stateConversationId) return;
+        if (!conversationId) return;
         const { data: conv } = await supabase
           .from("conversations")
           .select("customer_id")
-          .eq("id", stateConversationId)
+          .eq("id", conversationId)
           .single();
         if (conv?.customer_id) {
           const { data: clientProfile } = await supabase
@@ -140,7 +183,7 @@ export default function ChatWithOwnerPage() {
     };
 
     fetchAvatars();
-  }, [session, role, stateConversationId]);
+  }, [session?.user, role, roleLoading, conversationId]);
 
   const fetchMessages = useCallback(async () => {
     if (!conversationId) return;
@@ -150,14 +193,22 @@ export default function ChatWithOwnerPage() {
         .select("*")
         .eq("conversation_id", conversationId)
         .order("created_at", { ascending: true });
-        console.log("messages data:", data, "error:", error);
 
       if (error) {
         console.error("Failed to fetch messages:", error);
         return;
       }
       setMessages(data ?? []);
-  }, [conversationId]);
+
+      if (session?.user?.id) {
+        supabase.from("conversation_reads").upsert(
+          { conversation_id: conversationId, user_id: session.user.id, last_read_at: new Date().toISOString() },
+          { onConflict: "conversation_id,user_id" }
+        ).then(({ error: readError }) => {
+          if (readError) console.error("Failed to mark conversation as read:", readError);
+        });
+      }
+  }, [conversationId, session?.user?.id]);
 
   // Step 2: load messages when conversationId is ready
   useEffect(() => {
@@ -166,6 +217,7 @@ export default function ChatWithOwnerPage() {
     fetchMessages();
 
     // Step 3: subscribe to real-time new messages
+    // No server-side filter — filter client-side to avoid silent filter failures in Supabase
     const channel = supabase
       .channel(`messages:${conversationId}`)
       .on(
@@ -174,10 +226,12 @@ export default function ChatWithOwnerPage() {
           event: "INSERT",
           schema: "public",
           table: "messages",
-          filter: `conversation_id=eq.${conversationId}`,
         },
         (payload) => {
-          setMessages((prev) => [...prev, payload.new as ChatMessage]);
+          const msg = payload.new as ChatMessage;
+          if (msg.conversation_id === conversationId) {
+            setMessages((prev) => appendMessageIfMissing(prev, msg));
+          }
         }
       )
       .on(
@@ -186,14 +240,15 @@ export default function ChatWithOwnerPage() {
           event: "DELETE",
           schema: "public",
           table: "messages",
-          filter: `conversation_id=eq.${conversationId}`,
         },
         (payload) => {
-          setMessages((prev) => prev.filter((msg) => msg.id !== payload.old.id));
+          const old = payload.old as { id: string; conversation_id?: string };
+          if (!old.conversation_id || old.conversation_id === conversationId) {
+            setMessages((prev) => prev.filter((msg) => msg.id !== old.id));
+          }
         }
       )
       .subscribe((status) => {
-        console.log("Realtime status:", status);
         if (status === "SUBSCRIBED") {
           void fetchMessages();
         }
@@ -222,20 +277,41 @@ export default function ChatWithOwnerPage() {
     };
   }, [conversationId, fetchMessages]);
 
+  useEffect(() => {
+    if (!conversationId) return;
+
+    const intervalId = window.setInterval(() => {
+      if (document.visibilityState === "visible") {
+        void fetchMessages();
+      }
+    }, 5000);
+
+    return () => window.clearInterval(intervalId);
+  }, [conversationId, fetchMessages]);
+
   const handleSendMessage = async () => {
     const trimmed = inputValue.trim();
-    console.log("sending:", trimmed, "conversationId:", conversationId, "role:", role);
-    if (!trimmed || !conversationId) return;
+    if (!trimmed || !conversationId || !role) return;
 
     setInputValue("");
 
-    const { error } = await supabase.from("messages").insert({
+    const { data, error } = await supabase.from("messages").insert({
       conversation_id: conversationId,
       content: trimmed,
       sender_type: role === "admin" ? "designer" : "customer",
-    });
+    }).select("*").single();
 
-    if (error) console.error("Failed to send message:", error);
+    if (error) {
+      console.error("Failed to send message:", error);
+      setInputValue(trimmed);
+      showToast("Message could not be sent. Please try again.", "error");
+      return;
+    }
+
+    if (data) {
+      setMessages((prev) => appendMessageIfMissing(prev, data as ChatMessage));
+    }
+
     if (!error && session?.user?.id) {
       void sendPushNotification({
         type: "chat_message",
@@ -247,7 +323,7 @@ export default function ChatWithOwnerPage() {
   };
 
   const handleSendImage = async (file: File) => {
-    if (!conversationId) return;
+    if (!conversationId || !role) return;
 
     const fileName = `${session?.user?.id}-${Date.now()}.${file.name.split(".").pop()}`;
 
@@ -264,15 +340,24 @@ export default function ChatWithOwnerPage() {
       .from("chat-images")
       .getPublicUrl(uploadData.path);
 
-    const { error } = await supabase.from("messages").insert({
+    const { data, error } = await supabase.from("messages").insert({
       conversation_id: conversationId,
       content: urlData.publicUrl,
       sender_type: role === "admin" ? "designer" : "customer",
       attachment_url: urlData.publicUrl,
       attachment_type: "image",
-    });
+    }).select("*").single();
 
-    if (error) console.error("Failed to send image:", error);
+    if (error) {
+      console.error("Failed to send image:", error);
+      showToast("Image could not be sent. Please try again.", "error");
+      return;
+    }
+
+    if (data) {
+      setMessages((prev) => appendMessageIfMissing(prev, data as ChatMessage));
+    }
+
     if (!error && session?.user?.id) {
       void sendPushNotification({
         type: "chat_message",
@@ -289,17 +374,23 @@ export default function ChatWithOwnerPage() {
 
   const handleStartRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mimeType = MediaRecorder.isTypeSupported("audio/mp4")
-  ? "audio/mp4"
-  : MediaRecorder.isTypeSupported("audio/ogg")
-  ? "audio/ogg"
-  : "audio/webm";
+      if (typeof MediaRecorder === "undefined") {
+        showToast("Voice recording is not supported on this device browser.", "error");
+        return;
+      }
 
-const mediaRecorder = new MediaRecorder(stream, { mimeType });
-      mimeTypeRef.current = mimeType;
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Prefer mp4 — it embeds duration metadata and plays on iOS/Android/Desktop.
+      // webm often reports Infinity duration and is unsupported on iOS.
+      const mimeType = getSupportedAudioMimeType();
+
+      const mediaRecorder = mimeType
+        ? new MediaRecorder(stream, { mimeType })
+        : new MediaRecorder(stream);
+      mimeTypeRef.current = mediaRecorder.mimeType || mimeType || "audio/webm";
       setRecordingStream(stream);
       audioChunksRef.current = [];
+      recordingStartedAtRef.current = performance.now();
       mediaRecorderRef.current = mediaRecorder;
 
       mediaRecorder.ondataavailable = (event) => {
@@ -310,8 +401,19 @@ const mediaRecorder = new MediaRecorder(stream, { mimeType });
   stream.getTracks().forEach((track) => track.stop());
   setRecordingStream(null);
 
+        const recordingStartedAt = recordingStartedAtRef.current;
+        recordingStartedAtRef.current = null;
+        const durationMs = recordingStartedAt
+          ? Math.max(0, Math.round(performance.now() - recordingStartedAt))
+          : null;
+
         const audioBlob = new Blob(audioChunksRef.current, { type: mimeTypeRef.current });
-        const ext = mimeTypeRef.current.split("/")[1].split(";")[0];
+        if (audioBlob.size === 0) {
+          showToast("Voice message was empty. Please try recording again.", "error");
+          return;
+        }
+
+        const ext = getAudioExtension(mimeTypeRef.current);
         const fileName = `${session?.user?.id}-${Date.now()}.${ext}`;
   const { data: uploadData, error: uploadError } = await supabase.storage
     .from("voice-notes")
@@ -319,6 +421,7 @@ const mediaRecorder = new MediaRecorder(stream, { mimeType });
 
   if (uploadError) {
     console.error("Audio upload failed:", uploadError);
+    showToast("Voice message could not be uploaded. Please try again.", "error");
     return;
   }
 
@@ -326,14 +429,42 @@ const mediaRecorder = new MediaRecorder(stream, { mimeType });
     .from("voice-notes")
     .getPublicUrl(uploadData.path);
 
-  const { error: msgError } = await supabase.from("messages").insert({
+  if (!conversationId || !role) return;
+
+  const { data: messageData, error: msgError } = await supabase.from("messages").insert({
     conversation_id: conversationId,
     content: urlData.publicUrl,
     sender_type: role === "admin" ? "designer" : "customer",
     is_audio: true,
-  });
+  }).select("*").single();
 
-  if (msgError) console.error("Failed to send voice message:", msgError);
+  if (msgError) {
+    console.error("Failed to send voice message:", msgError);
+    showToast("Voice message could not be sent. Please try again.", "error");
+    return;
+  }
+
+  if (messageData) {
+    const messageWithDuration = {
+      ...(messageData as ChatMessage),
+      duration_ms: durationMs,
+    };
+
+    setMessages((prev) => appendMessageIfMissing(prev, messageWithDuration));
+
+    if (durationMs !== null) {
+      supabase
+        .from("messages")
+        .update({ duration_ms: durationMs } as Record<string, number>)
+        .eq("id", messageData.id)
+        .then(({ error: durationError }) => {
+          if (durationError) {
+            console.warn("Voice duration was not saved:", durationError.message);
+          }
+        });
+    }
+  }
+
   if (!msgError && session?.user?.id && conversationId) {
     void sendPushNotification({
       type: "chat_message",
@@ -348,7 +479,7 @@ const mediaRecorder = new MediaRecorder(stream, { mimeType });
       setIsRecording(true);
     } catch (error) {
       console.error("Microphone access error:", error);
-      alert("Unable to access microphone.");
+      showToast("Unable to access microphone.", "error");
     }
   };
 
@@ -396,6 +527,31 @@ const mediaRecorder = new MediaRecorder(stream, { mimeType });
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showEmojiPicker]);
 
+  useEffect(() => {
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+
+    const updateChatViewportHeight = () => {
+      const height = window.visualViewport?.height ?? window.innerHeight;
+      document.documentElement.style.setProperty("--chat-viewport-height", `${height}px`);
+    };
+
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    updateChatViewportHeight();
+
+    window.visualViewport?.addEventListener("resize", updateChatViewportHeight);
+    window.addEventListener("resize", updateChatViewportHeight);
+
+    return () => {
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+      document.documentElement.style.removeProperty("--chat-viewport-height");
+      window.visualViewport?.removeEventListener("resize", updateChatViewportHeight);
+      window.removeEventListener("resize", updateChatViewportHeight);
+    };
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-stone-400">
@@ -405,7 +561,11 @@ const mediaRecorder = new MediaRecorder(stream, { mimeType });
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
+    <div
+      className="fixed inset-x-0 top-0 flex flex-col overflow-hidden overscroll-none bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950"
+      style={{ height: "var(--chat-viewport-height, 100dvh)" }}
+    >
+      <Toast toasts={toasts} />
       <Header subtitle={role === "admin" ? "Client Conversation" : "Chat with Us"} />
       <OwnerChatMessagesList
         messages={messages}

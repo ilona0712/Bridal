@@ -330,12 +330,14 @@ export default function HomeHeroSection() {
           className="relative"
         >
           <div className="absolute inset-0 bg-gradient-to-br from-pink-100/20 to-transparent rounded-3xl" />
-          <div className="aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
-            <ImageWithFallback
-              src={loading ? "https://images.unsplash.com/photo-1761671613669-3b17b4a71bb9?auto=format&fit=crop&w=1080&q=80" : settings.hero_image_url}
-              alt="Happy Bride"
-              className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
-            />
+          <div className="aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl bg-stone-100 dark:bg-stone-800">
+            {!loading && (
+              <ImageWithFallback
+                src={settings.hero_image_url}
+                alt="Happy Bride"
+                className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+              />
+            )}
           </div>
         </motion.div>
       </div>

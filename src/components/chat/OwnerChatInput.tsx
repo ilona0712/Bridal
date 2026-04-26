@@ -68,7 +68,7 @@ export default function OwnerChatInput({
         }
       }, 100);
     } catch {
-      alert("Unable to access camera.");
+      console.error("Unable to access camera.");
     }
   };
 

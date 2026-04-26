@@ -152,8 +152,16 @@ function CustomerRoute({
 }) {
   const session = useSession()
   const role = useRole()
+  const roleLoading = useRoleLoading()
 
   if (!session) return <Navigate to="/login" replace />
+  if (roleLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-stone-400">
+        Loading…
+      </div>
+    )
+  }
   if (role === "admin" && !allowAdmin) return <Navigate to="/admin" replace />
 
   return <>{children}</>

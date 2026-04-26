@@ -5,6 +5,7 @@ export type ChatMessage = {
   sender_type: "customer" | "designer";
   created_at: string;
   is_audio: boolean;
+  duration_ms?: number | null;
   attachment_url: string | null;
   attachment_type: string | null;
 };
