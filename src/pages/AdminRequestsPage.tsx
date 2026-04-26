@@ -356,13 +356,14 @@ export default function AdminRequestsPage() {
 
     if (deleteError) {
       console.error("Failed to delete request:", deleteError);
-      alert(deleteError.message);
+      showToast(deleteError.message, "error");
       setDeletingRequestId(null);
       return;
     }
 
     setRequests((current) => current.filter((r) => r.id !== requestId));
     setDeletingRequestId(null);
+    showToast("Request deleted successfully!");
   };
 
   const updateRequest = async (
