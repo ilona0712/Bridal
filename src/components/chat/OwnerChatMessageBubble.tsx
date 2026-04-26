@@ -4,6 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { formatChatTime } from "../../utils/common/formatChatTime";
 
+function inferAudioType(url: string): string {
+  const ext = url.split("?")[0].split(".").pop()?.toLowerCase();
+  if (ext === "mp4" || ext === "m4a") return "audio/mp4";
+  if (ext === "ogg") return "audio/ogg";
+  return "audio/webm";
+}
+
 type OwnerChatMessageBubbleProps = {
   message: ChatMessage;
   role: string | null;
@@ -237,12 +244,21 @@ export default function OwnerChatMessageBubble({
   useEffect(() => {
     if (!hasAudio || !message.content) return;
     const audio = new Audio(message.content);
-    audio.addEventListener("loadedmetadata", () => {
-      const secs = Math.floor(audio.duration);
+    const updateDuration = () => {
+      const d = audio.duration;
+      if (!d || !isFinite(d)) return;
+      const secs = Math.floor(d);
       const m = Math.floor(secs / 60);
       const s = secs % 60;
       setDuration(`${m}:${s.toString().padStart(2, "0")}`);
-    });
+    };
+    audio.addEventListener("loadedmetadata", updateDuration);
+    audio.addEventListener("durationchange", updateDuration);
+    return () => {
+      audio.removeEventListener("loadedmetadata", updateDuration);
+      audio.removeEventListener("durationchange", updateDuration);
+      audio.src = "";
+    };
   }, [hasAudio, message.content]);
 
   return (
@@ -290,7 +306,7 @@ export default function OwnerChatMessageBubble({
                 </div>
                 {message.content ? (
                   <audio controls className="w-full h-8 rounded-xl" preload="metadata">
-                    <source src={message.content} />
+                    <source src={message.content} type={inferAudioType(message.content)} />
                   </audio>
                 ) : (
                   <p className="text-xs text-stone-400">Audio unavailable</p>

@@ -79,12 +79,20 @@ export default function OwnerChatMessagesList({
 }: OwnerChatMessagesListProps) {
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const initialScrollDone = useRef(false);
+  const lastMessageIdRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     if (messages.length === 0) return;
-    const behavior = initialScrollDone.current ? "smooth" : "instant";
-    bottomRef.current?.scrollIntoView({ behavior });
-    initialScrollDone.current = true;
+
+    const lastId = messages[messages.length - 1].id;
+    const isNewMessage = lastId !== lastMessageIdRef.current;
+    lastMessageIdRef.current = lastId;
+
+    if (!initialScrollDone.current || isNewMessage) {
+      const behavior = initialScrollDone.current ? "smooth" : "instant";
+      bottomRef.current?.scrollIntoView({ behavior });
+      initialScrollDone.current = true;
+    }
   }, [messages]);
 
   const displayItems = groupMessages(messages);

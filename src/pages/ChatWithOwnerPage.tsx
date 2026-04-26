@@ -9,9 +9,22 @@ import OwnerChatInput from "../components/chat/OwnerChatInput";
 import CustomerProfilePanel from "../components/chat/CustomerProfilePanel";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
-import { useSession, useRole } from "../routes";
+import { useSession, useRole, useRoleLoading } from "../routes";
 import type { ChatMessage } from "../types/chat";
 import { sendPushNotification } from "../services/pushNotificationService";
+
+function appendMessageIfMissing(
+  currentMessages: ChatMessage[],
+  nextMessage: ChatMessage,
+) {
+  if (currentMessages.some((message) => message.id === nextMessage.id)) {
+    return currentMessages;
+  }
+
+  return [...currentMessages, nextMessage].sort(
+    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+  );
+}
 
 export default function ChatWithOwnerPage() {
   const { toasts, showToast } = useToast();
@@ -19,6 +32,7 @@ export default function ChatWithOwnerPage() {
   const location = useLocation();
   const session = useSession();
   const role = useRole();
+  const roleLoading = useRoleLoading();
 
   // admin passes conversationId + clientName + customerId via location.state
   const stateConversationId = location.state?.conversationId as string | undefined;
@@ -35,7 +49,6 @@ export default function ChatWithOwnerPage() {
   const [myAvatarUrl, setMyAvatarUrl] = useState<string | null>(null);
   const [otherAvatarUrl, setOtherAvatarUrl] = useState<string | null>(null);
   const [showProfile, setShowProfile] = useState(false);
-  console.log("conversationId:", conversationId, "role:", role);
 
   const senderName =
     session?.user?.user_metadata?.full_name ||
@@ -51,9 +64,14 @@ export default function ChatWithOwnerPage() {
 
   // Step 1: get or create conversation (customer only)
   useEffect(() => {
-    if (!session?.user) return;
+    if (!session?.user || roleLoading || !role) return;
+
     if (role === "admin") {
-      // admin already has conversationId from navigation state
+      // Admin gets the conversation from navigation state. Keep it synced in case
+      // React Router reuses this page instance for a different customer.
+      setConversationId(stateConversationId ?? null);
+      setMessages([]);
+
       if (stateConversationId) {
         supabase.from("conversation_reads").upsert(
           { conversation_id: stateConversationId, user_id: session.user.id, last_read_at: new Date().toISOString() },
@@ -100,11 +118,11 @@ export default function ChatWithOwnerPage() {
     };
 
     initConversation();
-  }, [session, role]);
+  }, [session?.user, role, roleLoading, stateConversationId]);
 
   // Fetch profile images for current user and the other party
   useEffect(() => {
-    if (!session?.user) return;
+    if (!session?.user || roleLoading || !role) return;
 
     const fetchAvatars = async () => {
       // Always fetch current user's avatar
@@ -117,11 +135,11 @@ export default function ChatWithOwnerPage() {
 
       if (role === "admin") {
         // For admin: fetch the customer's avatar from conversations
-        if (!stateConversationId) return;
+        if (!conversationId) return;
         const { data: conv } = await supabase
           .from("conversations")
           .select("customer_id")
-          .eq("id", stateConversationId)
+          .eq("id", conversationId)
           .single();
         if (conv?.customer_id) {
           const { data: clientProfile } = await supabase
@@ -143,7 +161,7 @@ export default function ChatWithOwnerPage() {
     };
 
     fetchAvatars();
-  }, [session, role, stateConversationId]);
+  }, [session?.user, role, roleLoading, conversationId]);
 
   const fetchMessages = useCallback(async () => {
     if (!conversationId) return;
@@ -153,14 +171,22 @@ export default function ChatWithOwnerPage() {
         .select("*")
         .eq("conversation_id", conversationId)
         .order("created_at", { ascending: true });
-        console.log("messages data:", data, "error:", error);
 
       if (error) {
         console.error("Failed to fetch messages:", error);
         return;
       }
       setMessages(data ?? []);
-  }, [conversationId]);
+
+      if (session?.user?.id) {
+        supabase.from("conversation_reads").upsert(
+          { conversation_id: conversationId, user_id: session.user.id, last_read_at: new Date().toISOString() },
+          { onConflict: "conversation_id,user_id" }
+        ).then(({ error: readError }) => {
+          if (readError) console.error("Failed to mark conversation as read:", readError);
+        });
+      }
+  }, [conversationId, session?.user?.id]);
 
   // Step 2: load messages when conversationId is ready
   useEffect(() => {
@@ -169,6 +195,7 @@ export default function ChatWithOwnerPage() {
     fetchMessages();
 
     // Step 3: subscribe to real-time new messages
+    // No server-side filter — filter client-side to avoid silent filter failures in Supabase
     const channel = supabase
       .channel(`messages:${conversationId}`)
       .on(
@@ -177,10 +204,12 @@ export default function ChatWithOwnerPage() {
           event: "INSERT",
           schema: "public",
           table: "messages",
-          filter: `conversation_id=eq.${conversationId}`,
         },
         (payload) => {
-          setMessages((prev) => [...prev, payload.new as ChatMessage]);
+          const msg = payload.new as ChatMessage;
+          if (msg.conversation_id === conversationId) {
+            setMessages((prev) => appendMessageIfMissing(prev, msg));
+          }
         }
       )
       .on(
@@ -189,14 +218,15 @@ export default function ChatWithOwnerPage() {
           event: "DELETE",
           schema: "public",
           table: "messages",
-          filter: `conversation_id=eq.${conversationId}`,
         },
         (payload) => {
-          setMessages((prev) => prev.filter((msg) => msg.id !== payload.old.id));
+          const old = payload.old as { id: string; conversation_id?: string };
+          if (!old.conversation_id || old.conversation_id === conversationId) {
+            setMessages((prev) => prev.filter((msg) => msg.id !== old.id));
+          }
         }
       )
       .subscribe((status) => {
-        console.log("Realtime status:", status);
         if (status === "SUBSCRIBED") {
           void fetchMessages();
         }
@@ -225,20 +255,41 @@ export default function ChatWithOwnerPage() {
     };
   }, [conversationId, fetchMessages]);
 
+  useEffect(() => {
+    if (!conversationId) return;
+
+    const intervalId = window.setInterval(() => {
+      if (document.visibilityState === "visible") {
+        void fetchMessages();
+      }
+    }, 5000);
+
+    return () => window.clearInterval(intervalId);
+  }, [conversationId, fetchMessages]);
+
   const handleSendMessage = async () => {
     const trimmed = inputValue.trim();
-    console.log("sending:", trimmed, "conversationId:", conversationId, "role:", role);
-    if (!trimmed || !conversationId) return;
+    if (!trimmed || !conversationId || !role) return;
 
     setInputValue("");
 
-    const { error } = await supabase.from("messages").insert({
+    const { data, error } = await supabase.from("messages").insert({
       conversation_id: conversationId,
       content: trimmed,
       sender_type: role === "admin" ? "designer" : "customer",
-    });
+    }).select("*").single();
 
-    if (error) console.error("Failed to send message:", error);
+    if (error) {
+      console.error("Failed to send message:", error);
+      setInputValue(trimmed);
+      showToast("Message could not be sent. Please try again.", "error");
+      return;
+    }
+
+    if (data) {
+      setMessages((prev) => appendMessageIfMissing(prev, data as ChatMessage));
+    }
+
     if (!error && session?.user?.id) {
       void sendPushNotification({
         type: "chat_message",
@@ -250,7 +301,7 @@ export default function ChatWithOwnerPage() {
   };
 
   const handleSendImage = async (file: File) => {
-    if (!conversationId) return;
+    if (!conversationId || !role) return;
 
     const fileName = `${session?.user?.id}-${Date.now()}.${file.name.split(".").pop()}`;
 
@@ -267,15 +318,24 @@ export default function ChatWithOwnerPage() {
       .from("chat-images")
       .getPublicUrl(uploadData.path);
 
-    const { error } = await supabase.from("messages").insert({
+    const { data, error } = await supabase.from("messages").insert({
       conversation_id: conversationId,
       content: urlData.publicUrl,
       sender_type: role === "admin" ? "designer" : "customer",
       attachment_url: urlData.publicUrl,
       attachment_type: "image",
-    });
+    }).select("*").single();
 
-    if (error) console.error("Failed to send image:", error);
+    if (error) {
+      console.error("Failed to send image:", error);
+      showToast("Image could not be sent. Please try again.", "error");
+      return;
+    }
+
+    if (data) {
+      setMessages((prev) => appendMessageIfMissing(prev, data as ChatMessage));
+    }
+
     if (!error && session?.user?.id) {
       void sendPushNotification({
         type: "chat_message",
@@ -293,11 +353,13 @@ export default function ChatWithOwnerPage() {
   const handleStartRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mimeType = MediaRecorder.isTypeSupported("audio/mp4")
-  ? "audio/mp4"
-  : MediaRecorder.isTypeSupported("audio/ogg")
-  ? "audio/ogg"
-  : "audio/webm";
+      // Prefer mp4 — it embeds duration metadata and plays on iOS/Android/Desktop.
+      // webm often reports Infinity duration and is unsupported on iOS.
+      const mimeType =
+        MediaRecorder.isTypeSupported("audio/mp4;codecs=mp4a.40.2") ? "audio/mp4;codecs=mp4a.40.2" :
+        MediaRecorder.isTypeSupported("audio/mp4") ? "audio/mp4" :
+        MediaRecorder.isTypeSupported("audio/ogg;codecs=opus") ? "audio/ogg;codecs=opus" :
+        "audio/webm";
 
 const mediaRecorder = new MediaRecorder(stream, { mimeType });
       mimeTypeRef.current = mimeType;
@@ -329,14 +391,25 @@ const mediaRecorder = new MediaRecorder(stream, { mimeType });
     .from("voice-notes")
     .getPublicUrl(uploadData.path);
 
-  const { error: msgError } = await supabase.from("messages").insert({
+  if (!conversationId || !role) return;
+
+  const { data: messageData, error: msgError } = await supabase.from("messages").insert({
     conversation_id: conversationId,
     content: urlData.publicUrl,
     sender_type: role === "admin" ? "designer" : "customer",
     is_audio: true,
-  });
+  }).select("*").single();
 
-  if (msgError) console.error("Failed to send voice message:", msgError);
+  if (msgError) {
+    console.error("Failed to send voice message:", msgError);
+    showToast("Voice message could not be sent. Please try again.", "error");
+    return;
+  }
+
+  if (messageData) {
+    setMessages((prev) => appendMessageIfMissing(prev, messageData as ChatMessage));
+  }
+
   if (!msgError && session?.user?.id && conversationId) {
     void sendPushNotification({
       type: "chat_message",
