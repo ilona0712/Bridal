@@ -59,6 +59,7 @@ export default function ChatWithOwnerPage() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const mimeTypeRef = useRef<string>("audio/webm");
+  const recordingStartedAtRef = useRef<number | null>(null);
   const emojiPickerRef = useRef<HTMLDivElement | null>(null);
   const emojiButtonAreaRef = useRef<HTMLDivElement | null>(null);
 
@@ -365,6 +366,7 @@ const mediaRecorder = new MediaRecorder(stream, { mimeType });
       mimeTypeRef.current = mimeType;
       setRecordingStream(stream);
       audioChunksRef.current = [];
+      recordingStartedAtRef.current = performance.now();
       mediaRecorderRef.current = mediaRecorder;
 
       mediaRecorder.ondataavailable = (event) => {
@@ -374,6 +376,12 @@ const mediaRecorder = new MediaRecorder(stream, { mimeType });
       mediaRecorder.onstop = async () => {
   stream.getTracks().forEach((track) => track.stop());
   setRecordingStream(null);
+
+        const recordingStartedAt = recordingStartedAtRef.current;
+        recordingStartedAtRef.current = null;
+        const durationMs = recordingStartedAt
+          ? Math.max(0, Math.round(performance.now() - recordingStartedAt))
+          : null;
 
         const audioBlob = new Blob(audioChunksRef.current, { type: mimeTypeRef.current });
         const ext = mimeTypeRef.current.split("/")[1].split(";")[0];
@@ -407,7 +415,24 @@ const mediaRecorder = new MediaRecorder(stream, { mimeType });
   }
 
   if (messageData) {
-    setMessages((prev) => appendMessageIfMissing(prev, messageData as ChatMessage));
+    const messageWithDuration = {
+      ...(messageData as ChatMessage),
+      duration_ms: durationMs,
+    };
+
+    setMessages((prev) => appendMessageIfMissing(prev, messageWithDuration));
+
+    if (durationMs !== null) {
+      supabase
+        .from("messages")
+        .update({ duration_ms: durationMs } as Record<string, number>)
+        .eq("id", messageData.id)
+        .then(({ error: durationError }) => {
+          if (durationError) {
+            console.warn("Voice duration was not saved:", durationError.message);
+          }
+        });
+    }
   }
 
   if (!msgError && session?.user?.id && conversationId) {

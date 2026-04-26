@@ -1,4 +1,4 @@
-import { Mic, User, X, ChevronLeft, ChevronRight, MoreVertical } from "lucide-react";
+import { User, X, ChevronLeft, ChevronRight, MoreVertical, Play, Pause } from "lucide-react";
 import type { ChatMessage } from "../../types/chat";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -11,6 +11,17 @@ function inferAudioType(url: string): string {
   return "audio/webm";
 }
 
+function formatAudioDuration(durationMs: number): string {
+  const secs = Math.max(0, Math.round(durationMs / 1000));
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+function formatAudioSeconds(seconds: number): string {
+  return formatAudioDuration(seconds * 1000);
+}
+
 type OwnerChatMessageBubbleProps = {
   message: ChatMessage;
   role: string | null;
@@ -20,6 +31,102 @@ type OwnerChatMessageBubbleProps = {
   onDeleteMessage?: (messageId: string) => void;
   albumUrls?: string[];
 };
+
+function VoiceMessagePlayer({
+  src,
+  mimeType,
+  duration,
+}: {
+  src: string;
+  mimeType: string;
+  duration: string | null;
+}) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [metadataDuration, setMetadataDuration] = useState<string | null>(null);
+
+  const label = isPlaying
+    ? formatAudioSeconds(currentTime)
+    : duration ?? metadataDuration ?? "0:00";
+
+  const progress =
+    audioRef.current?.duration && isFinite(audioRef.current.duration)
+      ? Math.min(100, (currentTime / audioRef.current.duration) * 100)
+      : 0;
+
+  const togglePlayback = async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (isPlaying) {
+      audio.pause();
+      return;
+    }
+
+    await audio.play();
+  };
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handleLoadedMetadata = () => {
+      if (audio.duration && isFinite(audio.duration)) {
+        setMetadataDuration(formatAudioSeconds(audio.duration));
+      }
+    };
+
+    const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
+    const handlePlay = () => setIsPlaying(true);
+    const handlePause = () => setIsPlaying(false);
+    const handleEnded = () => {
+      setIsPlaying(false);
+      setCurrentTime(0);
+      audio.currentTime = 0;
+    };
+
+    audio.addEventListener("loadedmetadata", handleLoadedMetadata);
+    audio.addEventListener("durationchange", handleLoadedMetadata);
+    audio.addEventListener("timeupdate", handleTimeUpdate);
+    audio.addEventListener("play", handlePlay);
+    audio.addEventListener("pause", handlePause);
+    audio.addEventListener("ended", handleEnded);
+
+    return () => {
+      audio.pause();
+      audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      audio.removeEventListener("durationchange", handleLoadedMetadata);
+      audio.removeEventListener("timeupdate", handleTimeUpdate);
+      audio.removeEventListener("play", handlePlay);
+      audio.removeEventListener("pause", handlePause);
+      audio.removeEventListener("ended", handleEnded);
+    };
+  }, [src]);
+
+  return (
+    <div className="flex h-10 w-[190px] max-w-full items-center gap-2 rounded-full bg-white/90 px-3 text-stone-800 shadow-sm dark:bg-stone-100">
+      <audio ref={audioRef} preload="metadata">
+        <source src={src} type={mimeType} />
+      </audio>
+      <button
+        type="button"
+        onClick={togglePlayback}
+        className="flex h-6 w-6 flex-shrink-0 items-center justify-center text-stone-900"
+        aria-label={isPlaying ? "Pause voice message" : "Play voice message"}
+      >
+        {isPlaying ? <Pause className="h-4 w-4 fill-current" /> : <Play className="h-4 w-4 fill-current" />}
+      </button>
+      <span className="w-10 flex-shrink-0 text-sm tabular-nums text-stone-800">{label}</span>
+      <div className="relative h-1 flex-1 rounded-full bg-stone-300">
+        <div
+          className="absolute left-0 top-0 h-full rounded-full bg-stone-700"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+    </div>
+  );
+}
 
 // ── Lightbox carousel ────────────────────────────────────────────────────────
 function PhotoLightbox({
@@ -217,7 +324,11 @@ export default function OwnerChatMessageBubble({
   const hasImage = message.attachment_type === "image" && message.attachment_url;
   const isAlbum = albumUrls && albumUrls.length > 1;
 
-  const [duration, setDuration] = useState<string | null>(null);
+  const [duration, setDuration] = useState<string | null>(
+    typeof message.duration_ms === "number"
+      ? formatAudioDuration(message.duration_ms)
+      : null,
+  );
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [showMenu, setShowMenu] = useState(false);
 
@@ -243,14 +354,17 @@ export default function OwnerChatMessageBubble({
 
   useEffect(() => {
     if (!hasAudio || !message.content) return;
+    if (typeof message.duration_ms === "number") {
+      setDuration(formatAudioDuration(message.duration_ms));
+      return;
+    }
+
+    setDuration(null);
     const audio = new Audio(message.content);
     const updateDuration = () => {
       const d = audio.duration;
       if (!d || !isFinite(d)) return;
-      const secs = Math.floor(d);
-      const m = Math.floor(secs / 60);
-      const s = secs % 60;
-      setDuration(`${m}:${s.toString().padStart(2, "0")}`);
+      setDuration(formatAudioDuration(d * 1000));
     };
     audio.addEventListener("loadedmetadata", updateDuration);
     audio.addEventListener("durationchange", updateDuration);
@@ -259,7 +373,7 @@ export default function OwnerChatMessageBubble({
       audio.removeEventListener("durationchange", updateDuration);
       audio.src = "";
     };
-  }, [hasAudio, message.content]);
+  }, [hasAudio, message.content, message.duration_ms]);
 
   return (
     <div className={`flex gap-2 sm:gap-3 items-end ${isMine ? "justify-end" : ""}`}>
@@ -296,18 +410,13 @@ export default function OwnerChatMessageBubble({
             ].join(" ")}
           >
             {hasAudio ? (
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-1.5 text-xs text-stone-500 dark:text-stone-400">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center ${isMine ? "bg-white/50 border border-white/60" : "bg-amber-50 border border-amber-100"}`}>
-                    <Mic className="w-3 h-3" />
-                  </div>
-                  <span className="font-medium">Voice message</span>
-                  {duration && <span className="text-stone-400">{duration}</span>}
-                </div>
+              <div>
                 {message.content ? (
-                  <audio controls className="w-full h-8 rounded-xl" preload="metadata">
-                    <source src={message.content} type={inferAudioType(message.content)} />
-                  </audio>
+                  <VoiceMessagePlayer
+                    src={message.content}
+                    mimeType={inferAudioType(message.content)}
+                    duration={duration}
+                  />
                 ) : (
                   <p className="text-xs text-stone-400">Audio unavailable</p>
                 )}
