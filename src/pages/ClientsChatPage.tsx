@@ -84,6 +84,7 @@ export default function ClientsChatPage() {
       );
 
       const sorted = enriched.sort((a, b) => {
+        if (a.unread !== b.unread) return a.unread ? -1 : 1;
         if (!a.lastMessageAt && !b.lastMessageAt) return 0;
         if (!a.lastMessageAt) return 1;
         if (!b.lastMessageAt) return -1;
@@ -121,8 +122,9 @@ export default function ClientsChatPage() {
                 unread: msg.sender_type === "customer" ? true : conv.unread,
               };
             });
-            // Re-sort so the most recent floats to the top
+            // Re-sort: unread first, then by most recent message
             return [...updated].sort((a, b) => {
+              if (a.unread !== b.unread) return a.unread ? -1 : 1;
               if (!a.lastMessageAt && !b.lastMessageAt) return 0;
               if (!a.lastMessageAt) return 1;
               if (!b.lastMessageAt) return -1;

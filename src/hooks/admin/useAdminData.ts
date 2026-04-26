@@ -15,9 +15,20 @@ type CollectionRow = {
   is_active: boolean | null;
 };
 
+type AttributeValueRow = {
+  label: string;
+  sort_order: number;
+  attributes: { key: string };
+};
+
 export function useAdminData() {
   const [dresses, setDresses] = useState<Dress[]>([]);
   const [collections, setCollections] = useState<AdminCollection[]>([]);
+  const [necklines, setNecklines] = useState<string[]>([]);
+  const [silhouettes, setSilhouettes] = useState<string[]>([]);
+  const [fabrics, setFabrics] = useState<string[]>([]);
+  const [trainLengths, setTrainLengths] = useState<string[]>([]);
+  const [sleeveStyles, setSleeveStyles] = useState<string[]>([]);
   const [loadingInitialData, setLoadingInitialData] = useState(true);
   const [initialDataError, setInitialDataError] = useState<string | null>(null);
 
@@ -29,6 +40,7 @@ export function useAdminData() {
       const [
         { data: dressesData, error: dressesError },
         { data: collectionsData, error: collectionsError },
+        { data: attrValuesData, error: attrValuesError },
       ] = await Promise.all([
         supabase
           .from("dresses")
@@ -64,6 +76,11 @@ export function useAdminData() {
           .select("id, name, is_active")
           .order("name", { ascending: true })
           .returns<CollectionRow[]>(),
+        supabase
+          .from("attribute_values")
+          .select("label, sort_order, attributes!inner(key)")
+          .order("sort_order", { ascending: true })
+          .returns<AttributeValueRow[]>(),
       ]);
 
       if (dressesError) {
@@ -80,6 +97,13 @@ export function useAdminData() {
         return;
       }
 
+      if (attrValuesError) {
+        console.error("Admin attribute values fetch failed:", attrValuesError);
+        setInitialDataError(attrValuesError.message);
+        setLoadingInitialData(false);
+        return;
+      }
+
       const mappedDresses = (dressesData || []).map(mapDressRowToUiDress);
       const mappedCollections = (collectionsData || [])
         .filter((collection) => Boolean(collection.name))
@@ -89,8 +113,20 @@ export function useAdminData() {
           isActive: collection.is_active ?? false,
         }));
 
+      const grouped: Record<string, string[]> = {};
+      for (const row of attrValuesData || []) {
+        const key = row.attributes.key;
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(row.label);
+      }
+
       setDresses(mappedDresses);
       setCollections(mappedCollections);
+      setNecklines(grouped["neckline"] ?? []);
+      setSilhouettes(grouped["silhouette"] ?? []);
+      setFabrics(grouped["fabric"] ?? []);
+      setTrainLengths(grouped["train_length"] ?? []);
+      setSleeveStyles(grouped["sleeve_style"] ?? []);
       setLoadingInitialData(false);
     };
 
@@ -102,6 +138,11 @@ export function useAdminData() {
     setDresses,
     collections,
     setCollections,
+    necklines,
+    silhouettes,
+    fabrics,
+    trainLengths,
+    sleeveStyles,
     loadingInitialData,
     initialDataError,
   };

@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -8,6 +9,7 @@ import {
   RefreshCcw,
   Send,
   Sparkles,
+  Trash2,
   X,
 } from "lucide-react";
 import Header from "../components/common/Header";
@@ -141,6 +143,8 @@ export default function AdminRequestsPage() {
   const [fullscreenImageUrl, setFullscreenImageUrl] = useState<string | null>(
     null,
   );
+  const [deletingRequestId, setDeletingRequestId] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [mobileView, setMobileView] = useState<"list" | "detail">("list");
   const [pullDistance, setPullDistance] = useState(0);
   const [isPulling, setIsPulling] = useState(false);
@@ -258,22 +262,9 @@ export default function AdminRequestsPage() {
       };
     });
 
-    const filteredNextRequests =
-      statusFilter === "all"
-        ? nextRequests
-        : nextRequests.filter((request) => request.status === statusFilter);
-
-    const nextSelectedRequest =
-      (selectedRequestId
-        ? filteredNextRequests.find((request) => request.id === selectedRequestId)
-        : null) ??
-      filteredNextRequests[0] ??
-      null;
-
     setRequests(nextRequests);
-    handleSelectRequest(nextSelectedRequest);
     setLoading(false);
-  }, [selectedRequestId, statusFilter]);
+  }, [statusFilter]);
 
   useEffect(() => {
     const nextSelectedRequest =
@@ -342,6 +333,33 @@ export default function AdminRequestsPage() {
         request.id === requestId ? { ...request, ...patch } : request,
       ),
     );
+  };
+
+  const handleDeleteRequest = (requestId: string) => {
+    setDeleteConfirmId(requestId);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirmId) return;
+
+    const requestId = deleteConfirmId;
+    setDeleteConfirmId(null);
+    setDeletingRequestId(requestId);
+
+    const { error: deleteError } = await supabase
+      .from("chatbot_sessions")
+      .delete()
+      .eq("id", requestId);
+
+    if (deleteError) {
+      console.error("Failed to delete request:", deleteError);
+      alert(deleteError.message);
+      setDeletingRequestId(null);
+      return;
+    }
+
+    setRequests((current) => current.filter((r) => r.id !== requestId));
+    setDeletingRequestId(null);
   };
 
   const updateRequest = async (
@@ -704,11 +722,10 @@ export default function AdminRequestsPage() {
                   const isSelected = request.id === selectedRequestId;
 
                   return (
-                    <button
+                    <div
                       key={request.id}
-                      type="button"
                       onClick={() => handleTapRequest(request)}
-                      className={`w-full border-b border-stone-200/40 px-5 py-4 text-left transition last:border-b-0 dark:border-stone-700/40 ${
+                      className={`group relative w-full cursor-pointer border-b border-stone-200/40 px-5 py-4 text-left transition last:border-b-0 dark:border-stone-700/40 ${
                         isSelected
                           ? "bg-pink-50/70 dark:bg-stone-700/70"
                           : "hover:bg-stone-50/70 dark:hover:bg-stone-700/40"
@@ -723,11 +740,29 @@ export default function AdminRequestsPage() {
                             {request.dressName ?? "Custom design from scratch"}
                           </p>
                         </div>
-                        <span
-                          className={`rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_CLASSES[request.status]}`}
-                        >
-                          {STATUS_LABELS[request.status]}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              void handleDeleteRequest(request.id);
+                            }}
+                            disabled={deletingRequestId === request.id}
+                            aria-label="Delete request"
+                            className="inline-flex h-7 w-7 items-center justify-center rounded-full text-stone-400 transition-opacity hover:bg-rose-50 hover:text-rose-500 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 disabled:opacity-40 dark:hover:bg-rose-900/20 dark:hover:text-rose-400"
+                          >
+                            {deletingRequestId === request.id ? (
+                              <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-3.5 w-3.5" />
+                            )}
+                          </button>
+                          <span
+                            className={`rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_CLASSES[request.status]}`}
+                          >
+                            {STATUS_LABELS[request.status]}
+                          </span>
+                        </div>
                       </div>
                       <p className="line-clamp-3 whitespace-pre-line text-sm text-stone-600 dark:text-stone-300">
                         {getCustomizationLines(request.requestSummary).join("\n") ||
@@ -736,7 +771,7 @@ export default function AdminRequestsPage() {
                       <p className="mt-3 text-xs text-stone-400 dark:text-stone-500">
                         {formatRequestTime(request.createdAt)}
                       </p>
-                    </button>
+                    </div>
                   );
                 })}
               </div>
@@ -919,6 +954,55 @@ export default function AdminRequestsPage() {
           </div>
         )}
       </div>
+      <AnimatePresence>
+        {deleteConfirmId && (
+          <motion.div
+            key="delete-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9999] flex items-end justify-center bg-black/50 backdrop-blur-sm sm:items-center sm:p-6"
+            onClick={() => setDeleteConfirmId(null)}
+          >
+            <motion.div
+              key="delete-sheet"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              className="w-full rounded-t-3xl border border-stone-200/60 bg-white p-6 pb-10 shadow-2xl dark:border-stone-700/60 dark:bg-stone-900 sm:max-w-sm sm:rounded-3xl sm:pb-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-100 dark:bg-rose-900/30">
+                <Trash2 className="h-5 w-5 text-rose-600 dark:text-rose-400" />
+              </div>
+              <h2 className="mt-4 font-serif text-xl text-stone-800 dark:text-stone-100">
+                Delete this request?
+              </h2>
+              <p className="mt-2 text-sm text-stone-500 dark:text-stone-400">
+                This will permanently remove the request and cannot be undone.
+              </p>
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={() => void confirmDelete()}
+                  className="flex-1 rounded-2xl bg-rose-500 px-4 py-3 text-sm font-medium text-white transition hover:bg-rose-600"
+                >
+                  Delete
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDeleteConfirmId(null)}
+                  className="flex-1 rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {fullscreenImageUrl && (
         <div
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 p-6"

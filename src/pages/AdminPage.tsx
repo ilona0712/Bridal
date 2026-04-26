@@ -61,20 +61,18 @@ export default function AdminPage() {
     removeImage,
     startEditingDress,
   } = useAdminDressForm();
-  const {
-    necklines,
-    silhouettes,
-    fabrics,
-    trainLengths,
-    sleeveStyles,
-    availableSizes,
-  } = ADMIN_DRESS_FORM_OPTIONS;
+  const { availableSizes } = ADMIN_DRESS_FORM_OPTIONS;
 
   const {
     dresses,
     setDresses,
     collections,
     setCollections,
+    necklines,
+    silhouettes,
+    fabrics,
+    trainLengths,
+    sleeveStyles,
     loadingInitialData,
     initialDataError,
   } = useAdminData();

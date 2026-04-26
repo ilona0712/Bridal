@@ -12,7 +12,6 @@ import ProfileHeroSection from "../components/profile/ProfileHeroSection";
 import ProfilePersonalInfoSection from "../components/profile/ProfilePersonalInfoSection";
 import ProfileDressPreferencesSection from "../components/profile/ProfileDressPreferencesSection";
 import ProfileFavoritesSection from "../components/profile/ProfileFavoritesSection";
-import ProfileSaveActions from "../components/profile/ProfileSaveActions";
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -385,14 +384,20 @@ export default function ProfilePage() {
                 email={email}
                 isAdmin={isAdmin}
                 isEditing={isEditing}
+                hasChanges={hasChanges}
+                saveLoading={saveLoading}
                 profileImage={profileImage}
                 fileInputRef={fileInputRef}
                 onEditToggle={handleEditToggle}
                 onImageUpload={handleImageUpload}
+                onSave={handleSave}
               />
             </div>
 
             <div className="px-8 sm:px-12 py-8">
+              {saveError && (
+                <p className="text-sm text-red-500 mb-4">{saveError}</p>
+              )}
               <div className="space-y-6">
                 <ProfilePersonalInfoSection
                   isEditing={isEditing}
@@ -436,15 +441,6 @@ export default function ProfilePage() {
                   <ProfileFavoritesSection
                     favoriteDresses={favoriteDresses}
                     onRemoveFavorite={handleRemoveFavorite}
-                  />
-                )}
-                {saveError && (
-                  <p className="text-sm text-red-500">{saveError}</p>
-                )}
-                {isEditing && hasChanges && (
-                  <ProfileSaveActions
-                    onSave={handleSave}
-                    isLoading={saveLoading}
                   />
                 )}
               </div>
