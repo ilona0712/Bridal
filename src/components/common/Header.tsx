@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import {
-  Sparkles,
   MessageCircle,
   ClipboardList,
   User,
@@ -31,6 +30,7 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [customerUnreadCount, setCustomerUnreadCount] = useState(0);
   const [pendingReviewCount, setPendingReviewCount] = useState(0);
 
   const isAdmin = role === "admin";
@@ -120,6 +120,63 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
   }, [isAdmin, session?.user?.id]);
 
   useEffect(() => {
+    if (isAdmin || !session?.user) return;
+
+    const fetchCustomerUnreadCount = async () => {
+      const { data: conv } = await supabase
+        .from("conversations")
+        .select("id")
+        .eq("customer_id", session.user.id)
+        .maybeSingle();
+
+      if (!conv) {
+        setCustomerUnreadCount(0);
+        return;
+      }
+
+      const { data: readRow } = await supabase
+        .from("conversation_reads")
+        .select("last_read_at")
+        .eq("conversation_id", conv.id)
+        .eq("user_id", session.user.id)
+        .maybeSingle();
+
+      const lastReadAt = readRow?.last_read_at ?? null;
+      const base = supabase
+        .from("messages")
+        .select("id", { count: "exact", head: true })
+        .eq("conversation_id", conv.id)
+        .eq("sender_type", "designer");
+
+      const { count } = lastReadAt
+        ? await base.gt("created_at", lastReadAt)
+        : await base;
+
+      setCustomerUnreadCount(count ?? 0);
+    };
+
+    fetchCustomerUnreadCount();
+
+    const channel = supabase
+      .channel("header-customer-unread-count")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages" },
+        fetchCustomerUnreadCount,
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "conversation_reads" },
+        fetchCustomerUnreadCount,
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isAdmin, session?.user?.id]);
+
+  useEffect(() => {
     if (!isAdmin) return;
 
     const fetchPendingReviewCount = async () => {
@@ -179,15 +236,11 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
 
             <Link to="/" className="flex items-center gap-2 min-w-0">
               <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 overflow-hidden">
-                {settings.logo_image_url ? (
-                  <img
-                    src={settings.logo_image_url}
-                    alt="Logo"
-                    className="h-full w-full object-cover rounded-full"
-                  />
-                ) : (
-                  <Sparkles className="h-4 w-4 text-stone-600" />
-                )}
+                <img
+                  src="/logoMB.png"
+                  alt="Logo"
+                  className="h-full w-full object-cover rounded-full"
+                />
               </div>
               <div className="min-w-0">
                 <h1 className="truncate font-serif text-base text-stone-800 dark:text-stone-100">
@@ -203,15 +256,11 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
             className="hidden md:flex items-center gap-3 min-w-0 flex-shrink-0"
           >
             <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 overflow-hidden">
-              {settings.logo_image_url ? (
-                <img
-                  src={settings.logo_image_url}
-                  alt="Logo"
-                  className="h-full w-full object-cover rounded-full"
-                />
-              ) : (
-                <Sparkles className="h-5 w-5 text-stone-600" />
-              )}
+              <img
+                src="/logoMB.png"
+                alt="Logo"
+                className="h-full w-full object-cover rounded-full"
+              />
             </div>
             <div className="min-w-0">
               <h1 className="truncate font-serif text-xl text-stone-800 dark:text-stone-100">
@@ -277,10 +326,15 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
             ) : (
               <Link
                 to="/chat"
-                className="inline-flex items-center gap-2 rounded-full border border-amber-200/50 dark:border-amber-700/50 bg-gradient-to-r from-amber-100/60 via-amber-50/40 to-amber-100/60 dark:from-amber-900/30 dark:via-amber-800/20 dark:to-amber-900/30 px-4 py-2 text-sm text-stone-700 dark:text-stone-200 hover:shadow-md"
+                className="relative inline-flex items-center gap-2 rounded-full border border-amber-200/50 dark:border-amber-700/50 bg-gradient-to-r from-amber-100/60 via-amber-50/40 to-amber-100/60 dark:from-amber-900/30 dark:via-amber-800/20 dark:to-amber-900/30 px-4 py-2 text-sm text-stone-700 dark:text-stone-200 hover:shadow-md"
               >
                 <MessageCircle className="h-4 w-4" />
                 Chat with Owner
+                {customerUnreadCount > 0 && (
+                  <span className="absolute -right-2 -top-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-amber-500 px-1 text-xs font-medium text-white shadow-sm">
+                    {customerUnreadCount}
+                  </span>
+                )}
               </Link>
             )}
           </nav>
@@ -388,10 +442,15 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
             ) : (
               <Link
                 to="/chat"
-                className="inline-flex items-center gap-1 rounded-full border border-amber-200/50 dark:border-amber-700/50 bg-gradient-to-r from-amber-100/60 via-amber-50/40 to-amber-100/60 dark:from-amber-900/30 dark:via-amber-800/20 dark:to-amber-900/30 px-3 py-2 text-xs text-stone-700 dark:text-stone-200"
+                className="relative inline-flex items-center gap-1 rounded-full border border-amber-200/50 dark:border-amber-700/50 bg-gradient-to-r from-amber-100/60 via-amber-50/40 to-amber-100/60 dark:from-amber-900/30 dark:via-amber-800/20 dark:to-amber-900/30 px-3 py-2 text-xs text-stone-700 dark:text-stone-200"
               >
                 <MessageCircle className="h-4 w-4" />
                 Chat
+                {customerUnreadCount > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-amber-500 px-0.5 text-[10px] font-medium text-white shadow-sm">
+                    {customerUnreadCount}
+                  </span>
+                )}
               </Link>
             )}
             {session && (

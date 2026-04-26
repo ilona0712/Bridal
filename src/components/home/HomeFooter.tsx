@@ -1,4 +1,3 @@
-import { Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
 
@@ -11,9 +10,7 @@ export default function HomeFooter() {
       <div className="container mx-auto px-6 py-8">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-stone-200 via-pink-100/30 to-stone-300 rounded-full flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-stone-600" />
-            </div>
+            <img src="/logoMB.png" alt="logo" className="w-8 h-8 object-contain" />
             <span className="font-serif text-stone-800 dark:text-stone-100">{brandName}</span>
           </div>
 

@@ -73,14 +73,28 @@ export default function GalleryPage() {
     dress: Dress | null;
   }>({ visible: false, x: 0, y: 0, dress: null });
 
-  // ── Sync collection filter with URL params ───────────────
+  // ── Sync filters with URL params ─────────────────────────
   useEffect(() => {
     const collectionFromUrl = searchParams.get("collection");
-    if (collectionFromUrl) {
-      setSelectedCollections([collectionFromUrl]);
-    } else {
-      setSelectedCollections([]);
-    }
+    setSelectedCollections(collectionFromUrl ? [collectionFromUrl] : []);
+
+    const sizeFromUrl = searchParams.get("size");
+    if (sizeFromUrl) { const s = Number(sizeFromUrl); setMinSize(s); setMaxSize(s); }
+
+    const silhouetteFromUrl = searchParams.get("silhouette");
+    if (silhouetteFromUrl) setSelectedSilhouette(silhouetteFromUrl);
+
+    const necklineFromUrl = searchParams.get("neckline");
+    if (necklineFromUrl) setSelectedNeckline(necklineFromUrl);
+
+    const fabricFromUrl = searchParams.get("fabric");
+    if (fabricFromUrl) setSelectedFabric(fabricFromUrl);
+
+    const sleeveFromUrl = searchParams.get("sleeveStyle");
+    if (sleeveFromUrl) setSelectedSleeveStyle(sleeveFromUrl);
+
+    const trainFromUrl = searchParams.get("trainLength");
+    if (trainFromUrl) setSelectedTrainLength(trainFromUrl);
   }, [searchParams]);
 
   const toggleCollection = (collection: string) => {

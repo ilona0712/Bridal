@@ -7,10 +7,13 @@ type ProfileHeroSectionProps = {
   email: string;
   isAdmin: boolean;
   isEditing: boolean;
+  hasChanges: boolean;
+  saveLoading: boolean;
   profileImage: string | null;
   fileInputRef: RefObject<HTMLInputElement | null>;
   onEditToggle: () => void;
   onImageUpload: (e: ChangeEvent<HTMLInputElement>) => void;
+  onSave: () => void;
 };
 
 export default function ProfileHeroSection({
@@ -19,10 +22,13 @@ export default function ProfileHeroSection({
   email,
   isAdmin,
   isEditing,
+  hasChanges,
+  saveLoading,
   profileImage,
   fileInputRef,
   onEditToggle,
   onImageUpload,
+  onSave,
 }: ProfileHeroSectionProps) {
   return (
     <div className="flex flex-col sm:flex-row items-center sm:items-end gap-6 -mt-16 pb-6 border-b border-stone-200/50 dark:border-stone-700/50">
@@ -70,12 +76,23 @@ export default function ProfileHeroSection({
         )}
       </div>
 
-      <button
-        onClick={onEditToggle}
-        className="px-6 py-2 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 text-stone-700 rounded-full text-sm hover:shadow-lg transition-all"
-      >
-        {isEditing ? "Cancel" : "Edit Profile"}
-      </button>
+      <div className="flex items-center gap-3">
+        {isEditing && hasChanges && (
+          <button
+            onClick={onSave}
+            disabled={saveLoading}
+            className="px-6 py-2 bg-gradient-to-r from-pink-300 via-pink-200/60 to-pink-300 text-stone-700 rounded-full text-sm hover:shadow-lg transition-all disabled:opacity-60"
+          >
+            {saveLoading ? "Saving..." : "Save Changes"}
+          </button>
+        )}
+        <button
+          onClick={onEditToggle}
+          className="px-6 py-2 bg-gradient-to-r from-stone-300 via-pink-200/40 to-stone-300 text-stone-700 rounded-full text-sm hover:shadow-lg transition-all"
+        >
+          {isEditing ? "Cancel" : "Edit Profile"}
+        </button>
+      </div>
     </div>
   );
 }

@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { supabase } from "../../../lib/supabase";
+import { mapDressRowToUiDress } from "../../utils/common/mapDressRowToUiDress";
+import type { GalleryDressRow } from "../../utils/gallery/galleryDressHelper";
 
 export default function CollectionSection() {
   type CollectionWithImages = { name: string; images: string[] };
@@ -10,35 +12,55 @@ export default function CollectionSection() {
 
   useEffect(() => {
     const fetchCollections = async () => {
-      const { data } = await supabase
-        .from("collections")
-        .select(`
-          id,
-          name,
-          dresses (
-            id,
-            dress_images (
-              image_url,
-              is_primary
-            )
-          )
-        `)
-        .eq("is_active", true)
-        .order("name");
+      const [{ data: collectionsData, error: collectionsError }, { data: dressesData, error: dressesError }] =
+        await Promise.all([
+          supabase
+            .from("collections")
+            .select("name")
+            .eq("is_active", true)
+            .order("name"),
+          supabase
+            .from("dresses")
+            .select(`
+              id, name, base_price, status,
+              dress_images ( image_url, is_primary ),
+              dress_collections ( collections ( name ) ),
+              dress_attribute_values (
+                attribute_values ( value_key, label, attributes ( key ) )
+              )
+            `)
+            .eq("status", "published")
+            .returns<GalleryDressRow[]>(),
+        ]);
 
-      if (data) {
-        const mapped = data.map((c) => {
-          const allImages = c.dresses.flatMap((d) =>
-            d.dress_images.map((img) => img.image_url)
-          );
-          const primaryImages = c.dresses.flatMap((d) =>
-            d.dress_images.filter((img) => img.is_primary).map((img) => img.image_url)
-          );
-          return {
-            name: c.name,
-            images: primaryImages.length > 0 ? primaryImages : allImages,
-          };
-        });
+      if (collectionsError || dressesError) {
+        console.error("Collection section fetch failed:", collectionsError || dressesError);
+        return;
+      }
+
+      if (collectionsData && dressesData) {
+        const activeCollectionNames = new Set(
+          collectionsData
+            .map((collection) => collection.name)
+            .filter((name): name is string => Boolean(name)),
+        );
+
+        const publishedDresses = dressesData.map(mapDressRowToUiDress);
+        const mapped = Array.from(activeCollectionNames)
+          .map((collectionName) => {
+            const matchingDresses = publishedDresses.filter((dress) =>
+              dress.collections.includes(collectionName),
+            );
+
+            const images = matchingDresses.flatMap((dress) => dress.images);
+
+            return {
+              name: collectionName,
+              images,
+            };
+          })
+          .filter((collection) => collection.images.length > 0);
+
         setCollections(mapped);
       }
     };

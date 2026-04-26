@@ -71,6 +71,10 @@ export default function ChatWithOwnerPage() {
 
       if (existing) {
         setConversationId(existing.id);
+        supabase.from("conversation_reads").upsert(
+          { conversation_id: existing.id, user_id: session.user.id, last_read_at: new Date().toISOString() },
+          { onConflict: "conversation_id,user_id" }
+        ).then(({ error }) => { if (error) console.error("Failed to mark conversation as read:", error); });
       } else {
         // create new conversation
         const { data: created, error } = await supabase
@@ -84,6 +88,10 @@ export default function ChatWithOwnerPage() {
           return;
         }
         setConversationId(created.id);
+        supabase.from("conversation_reads").upsert(
+          { conversation_id: created.id, user_id: session.user.id, last_read_at: new Date().toISOString() },
+          { onConflict: "conversation_id,user_id" }
+        ).then(({ error }) => { if (error) console.error("Failed to mark conversation as read:", error); });
       }
       setLoading(false);
     };

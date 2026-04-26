@@ -17,6 +17,8 @@ type DressImageRow = {
   is_primary: boolean | null;
 };
 
+const DEFAULT_IMAGE_MODEL = "gpt-image-1.5";
+
 function jsonResponse(status: number, body: Record<string, unknown>) {
   return new Response(JSON.stringify(body), {
     status,
@@ -55,11 +57,12 @@ async function generateImageWithOpenAI(
   prompt: string,
   openAiKey: string,
   baseImageUrl: string | null,
+  imageModel: string,
 ) {
   if (baseImageUrl) {
     const imageFile = await fetchImageAsFile(baseImageUrl);
     const formData = new FormData();
-    formData.append("model", "gpt-image-1.5");
+    formData.append("model", imageModel);
     formData.append("prompt", prompt);
     formData.append("quality", "auto");
     formData.append("size", "1024x1536");
@@ -92,7 +95,7 @@ async function generateImageWithOpenAI(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "gpt-image-1.5",
+      model: imageModel,
       prompt,
       quality: "auto",
       size: "1024x1536",
@@ -109,6 +112,21 @@ async function generateImageWithOpenAI(
   }
 
   return payload;
+}
+
+async function fetchImageModelSetting(serviceClient: ReturnType<typeof createClient>) {
+  const { data, error } = await serviceClient
+    .from("site_settings")
+    .select("value")
+    .eq("key", "image_generation_model")
+    .maybeSingle();
+
+  if (error) {
+    console.error("Failed to load image generation model setting:", error);
+    return DEFAULT_IMAGE_MODEL;
+  }
+
+  return data?.value?.trim() || DEFAULT_IMAGE_MODEL;
 }
 
 Deno.serve(async (request) => {
@@ -231,7 +249,13 @@ Deno.serve(async (request) => {
       throw new Error("Failed to mark the request as generating.");
     }
 
-    const openAiPayload = await generateImageWithOpenAI(prompt, openAiKey, baseImageUrl);
+    const imageModel = await fetchImageModelSetting(serviceClient);
+    const openAiPayload = await generateImageWithOpenAI(
+      prompt,
+      openAiKey,
+      baseImageUrl,
+      imageModel,
+    );
     const imageData = openAiPayload?.data?.[0];
 
     if (!imageData) {

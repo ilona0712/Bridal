@@ -7,6 +7,7 @@ import {
   Type,
   AlignLeft,
   SlidersHorizontal,
+  Bot,
   Upload,
   X,
 } from "lucide-react";
@@ -317,6 +318,37 @@ export default function AdminSiteSettingsTab() {
             previewClass="w-full aspect-[4/3] rounded-xl object-cover border border-stone-200 dark:border-stone-600"
             hint="Large background image shown on the homepage hero section"
           />
+        </div>
+
+        <div className="mt-8 space-y-6">
+          <div className="flex items-center gap-2">
+            <Bot className="w-5 h-5 text-stone-400" />
+            <h3 className="font-medium text-stone-700 dark:text-stone-300">
+              AI Image Generation
+            </h3>
+          </div>
+
+          <p className="text-xs text-stone-400 dark:text-stone-500 -mt-2">
+            Controls which OpenAI image model is used when generating dress previews. Default is <code>gpt-image-1.5</code>.
+          </p>
+
+          <div className="space-y-2">
+            <label className="text-sm text-stone-600 dark:text-stone-300">
+              Image Generation Model
+            </label>
+            <input
+              type="text"
+              value={current.image_generation_model}
+              onChange={(e) =>
+                handleChange("image_generation_model", e.target.value)
+              }
+              placeholder="gpt-image-1.5"
+              className="w-full px-4 py-3 bg-stone-50/50 dark:bg-stone-700/50 border border-stone-200 dark:border-stone-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200/50 text-stone-800 dark:text-stone-100"
+            />
+            <p className="text-xs text-stone-400 dark:text-stone-500">
+              Enter any supported OpenAI image model name. Leave it as <code>gpt-image-1.5</code> unless you explicitly want a different model.
+            </p>
+          </div>
         </div>
 
         <div className="mt-8 space-y-6">

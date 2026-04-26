@@ -78,9 +78,13 @@ export default function OwnerChatMessagesList({
   headerOverlay,
 }: OwnerChatMessagesListProps) {
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const initialScrollDone = useRef(false);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messages.length === 0) return;
+    const behavior = initialScrollDone.current ? "smooth" : "instant";
+    bottomRef.current?.scrollIntoView({ behavior });
+    initialScrollDone.current = true;
   }, [messages]);
 
   const displayItems = groupMessages(messages);
