@@ -506,7 +506,7 @@ const mediaRecorder = new MediaRecorder(stream, { mimeType });
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
+    <div className="fixed inset-0 flex flex-col overflow-hidden overscroll-none bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
       <Toast toasts={toasts} />
       <Header subtitle={role === "admin" ? "Client Conversation" : "Chat with Us"} />
       <OwnerChatMessagesList

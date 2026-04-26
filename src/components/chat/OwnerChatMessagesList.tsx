@@ -99,7 +99,7 @@ export default function OwnerChatMessagesList({
 
   return (
     <div className="relative flex-1 min-h-0">
-      <div className="absolute inset-0 overflow-y-auto pt-16 p-6 space-y-4 bg-stone-50/30 dark:bg-stone-900/30">
+      <div className="absolute inset-0 overflow-y-auto overscroll-contain touch-pan-y pt-16 p-6 space-y-4 bg-stone-50/30 dark:bg-stone-900/30">
         {displayItems.map((item, index) => {
           const message =
             item.kind === "album"
