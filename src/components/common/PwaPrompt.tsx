@@ -7,6 +7,7 @@ import {
   enablePushNotifications,
   getBrowserNotificationPermission,
   isBrowserPushSupported,
+  type PushRegistrationResult,
 } from "../../services/pushNotificationService";
 
 const NOTIFICATION_PROMPT_DISMISSED_KEY = "mb_web_push_prompt_dismissed";
@@ -24,17 +25,37 @@ export default function PwaPrompt() {
   );
   const [isEnablingNotifications, setIsEnablingNotifications] = useState(false);
   const [installBusy, setInstallBusy] = useState(false);
+  const [notificationStatus, setNotificationStatus] = useState<{
+    tone: "success" | "error";
+    text: string;
+  } | null>(null);
 
   useEffect(() => {
-    if (getBrowserNotificationPermission() === "granted") {
-      setNotificationPromptDismissed(true);
+    // ✅ FIX: Only auto-dismiss if permission is granted AND we already have a subscription saved.
+    // Previously this dismissed the prompt the moment permission was "granted",
+    // which prevented the subscription from ever being saved to the DB.
+    async function checkExistingSubscription() {
+      if (getBrowserNotificationPermission() !== "granted") return;
+
+      try {
+        const reg = await navigator.serviceWorker.getRegistration();
+        const sub = await reg?.pushManager.getSubscription();
+        // Only hide the prompt if subscription exists (i.e. it was actually registered)
+        if (sub) {
+          setNotificationPromptDismissed(true);
+        }
+      } catch {
+        // If SW isn't registered yet, don't dismiss — let the user click Allow
+      }
     }
+
+    checkExistingSubscription();
   }, [session?.user?.id]);
 
   const showNotificationPrompt =
     Boolean(session?.user?.id) &&
     isBrowserPushSupported() &&
-    canRequestBrowserNotificationPermission() &&
+    canRequestBrowserNotificationPermission() && // now returns true unless explicitly "denied"
     !notificationPromptDismissed;
 
   const showInstallPrompt = canInstall && !isInstalled;
@@ -48,12 +69,21 @@ export default function PwaPrompt() {
     if (!session?.user?.id) return;
 
     setIsEnablingNotifications(true);
+    setNotificationStatus(null);
 
     try {
-      await enablePushNotifications(session.user.id);
-      if (getBrowserNotificationPermission() !== "default") {
+      const result = await enablePushNotifications(session.user.id);
+      const nextPermission = getBrowserNotificationPermission();
+
+      if (result === "success") {
+        // ✅ Only dismiss after confirmed successful save
+        setNotificationPromptDismissed(true);
+      } else if (nextPermission === "denied") {
+        // Permission was denied — dismiss and show error
         setNotificationPromptDismissed(true);
       }
+
+      setNotificationStatus(getNotificationStatusMessage(result, nextPermission));
     } finally {
       setIsEnablingNotifications(false);
     }
@@ -66,7 +96,6 @@ export default function PwaPrompt() {
 
   async function handleInstall() {
     setInstallBusy(true);
-
     try {
       await promptInstall();
     } finally {
@@ -118,6 +147,17 @@ export default function PwaPrompt() {
                 </button>
               )}
             </div>
+            {notificationStatus && (
+              <p
+                className={`mt-3 text-sm ${
+                  notificationStatus.tone === "success"
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : "text-rose-600 dark:text-rose-400"
+                }`}
+              >
+                {notificationStatus.text}
+              </p>
+            )}
           </div>
           {showNotificationPrompt && (
             <button
@@ -132,4 +172,63 @@ export default function PwaPrompt() {
       </div>
     </div>
   );
+}
+
+function getNotificationStatusMessage(
+  result: PushRegistrationResult,
+  permission: NotificationPermission,
+) {
+  if (result === "success") {
+    return {
+      tone: "success" as const,
+      text: "Notifications are enabled and this device subscription was saved.",
+    };
+  }
+
+  if (result === "localhost") {
+    return {
+      tone: "error" as const,
+      text: "Permission was requested, but localhost does not save web push subscriptions. Test this on HTTPS or a preview deployment.",
+    };
+  }
+
+  if (result === "permission_denied" || permission === "denied") {
+    return {
+      tone: "error" as const,
+      text: "Notifications were blocked by the browser. Re-enable them in site settings to receive alerts.",
+    };
+  }
+
+  if (result === "missing_public_key") {
+    return {
+      tone: "error" as const,
+      text: "The web push public key is missing, so this browser cannot be linked yet.",
+    };
+  }
+
+  if (result === "unsupported") {
+    return {
+      tone: "error" as const,
+      text: "This browser does not support web push notifications.",
+    };
+  }
+
+  if (result === "save_failed") {
+    return {
+      tone: "error" as const,
+      text: "Permission was granted, but saving the device subscription failed.",
+    };
+  }
+
+  if (result === "already_in_progress") {
+    return {
+      tone: "error" as const,
+      text: "Notification setup is already running. Give it a second and try again.",
+    };
+  }
+
+  return {
+    tone: "error" as const,
+    text: "Notification setup did not finish. Check the browser console and try again.",
+  };
 }

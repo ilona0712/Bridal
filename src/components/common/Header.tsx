@@ -17,6 +17,7 @@ import { supabase } from "../../../lib/supabase";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
 import { useTheme } from "../../contexts/ThemeContext";
 import { usePwaInstall } from "../../hooks/usePwaInstall";
+import { useCustomerChatUnreadCount } from "../../hooks/useCustomerChatUnreadCount";
 
 interface HeaderProps {
   subtitle?: string;
@@ -30,10 +31,10 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
   const { settings } = useSiteSettings();
   const { theme, toggleTheme } = useTheme();
   const { canInstall, promptInstall } = usePwaInstall();
+  const customerUnreadCount = useCustomerChatUnreadCount();
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [customerUnreadCount, setCustomerUnreadCount] = useState(0);
   const [pendingReviewCount, setPendingReviewCount] = useState(0);
   const [installing, setInstalling] = useState(false);
 
@@ -115,63 +116,6 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
         "postgres_changes",
         { event: "*", schema: "public", table: "conversation_reads" },
         fetchUnreadConvCount,
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [isAdmin, session?.user?.id]);
-
-  useEffect(() => {
-    if (isAdmin || !session?.user) return;
-
-    const fetchCustomerUnreadCount = async () => {
-      const { data: conv } = await supabase
-        .from("conversations")
-        .select("id")
-        .eq("customer_id", session.user.id)
-        .maybeSingle();
-
-      if (!conv) {
-        setCustomerUnreadCount(0);
-        return;
-      }
-
-      const { data: readRow } = await supabase
-        .from("conversation_reads")
-        .select("last_read_at")
-        .eq("conversation_id", conv.id)
-        .eq("user_id", session.user.id)
-        .maybeSingle();
-
-      const lastReadAt = readRow?.last_read_at ?? null;
-      const base = supabase
-        .from("messages")
-        .select("id", { count: "exact", head: true })
-        .eq("conversation_id", conv.id)
-        .eq("sender_type", "designer");
-
-      const { count } = lastReadAt
-        ? await base.gt("created_at", lastReadAt)
-        : await base;
-
-      setCustomerUnreadCount(count ?? 0);
-    };
-
-    fetchCustomerUnreadCount();
-
-    const channel = supabase
-      .channel("header-customer-unread-count")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "messages" },
-        fetchCustomerUnreadCount,
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "conversation_reads" },
-        fetchCustomerUnreadCount,
       )
       .subscribe();
 
@@ -339,12 +283,16 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
             ) : (
               <Link
                 to="/chat"
-                className="relative inline-flex items-center gap-2 rounded-full border border-amber-200/50 dark:border-amber-700/50 bg-gradient-to-r from-amber-100/60 via-amber-50/40 to-amber-100/60 dark:from-amber-900/30 dark:via-amber-800/20 dark:to-amber-900/30 px-4 py-2 text-sm text-stone-700 dark:text-stone-200 hover:shadow-md"
+                className={`relative inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition hover:shadow-md ${
+                  customerUnreadCount > 0
+                    ? "border-pink-200/60 dark:border-pink-700/50 bg-gradient-to-r from-stone-300 via-pink-200/45 to-stone-300 dark:from-stone-700 dark:via-pink-900/20 dark:to-stone-700 text-stone-700 dark:text-stone-200"
+                    : "border-stone-200/50 dark:border-stone-700/50 bg-white/80 dark:bg-stone-800/80 text-stone-700 dark:text-stone-200"
+                }`}
               >
                 <MessageCircle className="h-4 w-4" />
-                Chat with Owner
+                {customerUnreadCount > 0 ? "New Reply" : "Chat with Owner"}
                 {customerUnreadCount > 0 && (
-                  <span className="absolute -right-2 -top-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-amber-500 px-1 text-xs font-medium text-white shadow-sm">
+                  <span className="absolute -right-2 -top-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-pink-500 px-1 text-xs font-medium text-white shadow-sm">
                     {customerUnreadCount}
                   </span>
                 )}
@@ -475,12 +423,16 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
             ) : (
               <Link
                 to="/chat"
-                className="relative inline-flex items-center gap-1 rounded-full border border-amber-200/50 dark:border-amber-700/50 bg-gradient-to-r from-amber-100/60 via-amber-50/40 to-amber-100/60 dark:from-amber-900/30 dark:via-amber-800/20 dark:to-amber-900/30 px-3 py-2 text-xs text-stone-700 dark:text-stone-200"
+                className={`relative inline-flex items-center gap-1 rounded-full border px-3 py-2 text-xs ${
+                  customerUnreadCount > 0
+                    ? "border-pink-200/60 dark:border-pink-700/50 bg-gradient-to-r from-stone-300 via-pink-200/45 to-stone-300 dark:from-stone-700 dark:via-pink-900/20 dark:to-stone-700 text-stone-700 dark:text-stone-200"
+                    : "border-stone-200/50 dark:border-stone-700/50 bg-white/80 dark:bg-stone-800/80 text-stone-700 dark:text-stone-200"
+                }`}
               >
                 <MessageCircle className="h-4 w-4" />
-                Chat
+                {customerUnreadCount > 0 ? "Reply" : "Chat"}
                 {customerUnreadCount > 0 && (
-                  <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-amber-500 px-0.5 text-[10px] font-medium text-white shadow-sm">
+                  <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-pink-500 px-0.5 text-[10px] font-medium text-white shadow-sm">
                     {customerUnreadCount}
                   </span>
                 )}
@@ -548,6 +500,20 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
             >
               Gallery
             </Link>
+            {session && !isAdmin && (
+              <Link
+                to="/chat"
+                onClick={() => setMenuOpen(false)}
+                className={`flex items-center gap-2 px-1 text-sm ${
+                  customerUnreadCount > 0
+                    ? "text-pink-600 dark:text-pink-300"
+                    : "text-stone-600 dark:text-stone-300 hover:text-stone-800 dark:hover:text-stone-100"
+                }`}
+              >
+                <MessageCircle className="h-4 w-4" />
+                {customerUnreadCount > 0 ? `New Reply (${customerUnreadCount})` : "Chat with Owner"}
+              </Link>
+            )}
             {!session && (
               <Link
                 to="/login"

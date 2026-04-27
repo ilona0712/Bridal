@@ -27,6 +27,16 @@ type PushNotificationBody = {
 
 type NativePlatform = "ios" | "android" | "web";
 
+export type PushRegistrationResult =
+  | "success"
+  | "unsupported"
+  | "localhost"
+  | "missing_public_key"
+  | "permission_denied"
+  | "already_in_progress"
+  | "save_failed"
+  | "error";
+
 const WEB_PUSH_PUBLIC_KEY =
   import.meta.env.VITE_WEB_PUSH_PUBLIC_KEY ??
   import.meta.env.REACT_APP_WEB_PUSH_PUBLIC_KEY;
@@ -57,12 +67,17 @@ export function getBrowserNotificationPermission(): NotificationPermission {
   if (typeof window === "undefined" || !("Notification" in window)) {
     return "default";
   }
-
   return Notification.permission;
 }
 
+// ✅ FIX: Allow if "default" (never asked) OR "granted" (asked but maybe not subscribed yet)
+// This lets the subscribe flow re-run even after permission is granted, to ensure
+// the subscription is actually saved to the DB.
 export function canRequestBrowserNotificationPermission() {
-  return isBrowserPushSupported() && getBrowserNotificationPermission() === "default";
+  if (!isBrowserPushSupported()) return false;
+  const permission = getBrowserNotificationPermission();
+  // Only block if explicitly denied — otherwise always allow the flow to proceed
+  return permission !== "denied";
 }
 
 function urlBase64ToUint8Array(value: string) {
@@ -70,11 +85,9 @@ function urlBase64ToUint8Array(value: string) {
   const base64 = `${value}${padding}`.replaceAll("-", "+").replaceAll("_", "/");
   const raw = window.atob(base64);
   const bytes = new Uint8Array(raw.length);
-
   for (let index = 0; index < raw.length; index += 1) {
     bytes[index] = raw.charCodeAt(index);
   }
-
   return bytes;
 }
 
@@ -93,26 +106,36 @@ async function savePushToken(token: string, platform: NativePlatform) {
   return true;
 }
 
-export async function registerBrowserForPushNotifications() {
-  if (isLocalhost()) return;
-  if (!isBrowserPushSupported()) return;
+export async function registerBrowserForPushNotifications(): Promise<PushRegistrationResult> {
+  if (isLocalhost()) return "localhost";
+  if (!isBrowserPushSupported()) return "unsupported";
   if (!WEB_PUSH_PUBLIC_KEY) {
     console.warn("Web push public key is missing. Skipping browser push registration.");
-    return;
+    return "missing_public_key";
   }
-  if (webPushRegistrationStarted) return;
+  if (webPushRegistrationStarted) return "already_in_progress";
 
   webPushRegistrationStarted = true;
 
   try {
+    // ✅ FIX: Request permission first (required to be close to user gesture)
     const permission = await Notification.requestPermission();
 
     if (permission !== "granted") {
       console.warn("Browser notification permission was not granted:", permission);
-      return;
+      return "permission_denied";
     }
 
-    const registration = await navigator.serviceWorker.ready;
+    // ✅ FIX: Register SW explicitly if not yet registered
+    let registration = await navigator.serviceWorker.getRegistration();
+    if (!registration) {
+      registration = await navigator.serviceWorker.register("/sw.js");
+    }
+
+    // Wait for the SW to be active
+    await navigator.serviceWorker.ready;
+
+    // ✅ FIX: Always try to get or create subscription
     let subscription = await registration.pushManager.getSubscription();
 
     if (!subscription) {
@@ -122,10 +145,14 @@ export async function registerBrowserForPushNotifications() {
       });
     }
 
-    await savePushToken(JSON.stringify(subscription.toJSON()), "web");
+    // ✅ FIX: Always re-save — covers case where user allowed before but DB save failed
+    const saved = await savePushToken(JSON.stringify(subscription.toJSON()), "web");
+    return saved ? "success" : "save_failed";
   } catch (error) {
     console.error("Browser push notification registration failed:", error);
+    return "error";
   } finally {
+    // ✅ FIX: Always reset the flag so user can retry
     webPushRegistrationStarted = false;
   }
 }
@@ -133,31 +160,22 @@ export async function registerBrowserForPushNotifications() {
 async function getCapacitorPlatform(): Promise<NativePlatform> {
   const { Capacitor } = await import("@capacitor/core");
   const platform = Capacitor.getPlatform();
-
-  if (platform === "ios" || platform === "android") {
-    return platform;
-  }
-
+  if (platform === "ios" || platform === "android") return platform;
   return "web";
 }
 
 export async function registerDeviceForPushNotifications(userId: string) {
-  if (!userId) return;
+  if (!userId) return "error" as const;
 
   if (!isNativeRuntime()) {
-    if (getBrowserNotificationPermission() === "granted") {
-      await registerBrowserForPushNotifications();
-    }
-    return;
+    // ✅ FIX: Don't gate on current permission — let the flow handle it
+    return registerBrowserForPushNotifications();
   }
 
   const platform = await getCapacitorPlatform();
 
-  if (platform === "web") {
-    await registerBrowserForPushNotifications();
-    return;
-  }
-  if (nativePushRegistrationStarted) return;
+  if (platform === "web") return registerBrowserForPushNotifications();
+  if (nativePushRegistrationStarted) return "already_in_progress" as const;
 
   nativePushRegistrationStarted = true;
 
@@ -167,7 +185,7 @@ export async function registerDeviceForPushNotifications(userId: string) {
 
     if (permission.receive !== "granted") {
       console.warn("Push notification permission was not granted:", permission);
-      return;
+      return "permission_denied" as const;
     }
 
     await PushNotifications.addListener("registration", async ({ value }) => {
@@ -190,20 +208,19 @@ export async function registerDeviceForPushNotifications(userId: string) {
     );
 
     await PushNotifications.register();
+    return "success" as const;
   } catch (error) {
     console.error("Push notification registration failed:", error);
+    return "error" as const;
+  } finally {
+    nativePushRegistrationStarted = false;
   }
 }
 
 export async function enablePushNotifications(userId: string) {
-  if (!userId) return;
-
-  if (!isNativeRuntime()) {
-    await registerBrowserForPushNotifications();
-    return;
-  }
-
-  await registerDeviceForPushNotifications(userId);
+  if (!userId) return "error" as const;
+  if (!isNativeRuntime()) return registerBrowserForPushNotifications();
+  return registerDeviceForPushNotifications(userId);
 }
 
 export async function sendPushNotification(body: PushNotificationBody) {

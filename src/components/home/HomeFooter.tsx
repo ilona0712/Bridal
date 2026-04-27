@@ -1,8 +1,13 @@
 import { Link } from "react-router-dom";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { useSession, useRole } from "../../routes";
+import { useCustomerChatUnreadCount } from "../../hooks/useCustomerChatUnreadCount";
 
 export default function HomeFooter() {
   const { settings } = useSiteSettings();
+  const session = useSession();
+  const role = useRole();
+  const customerUnreadCount = useCustomerChatUnreadCount();
   const brandName = settings.logo_text || "Bride Me Up";
 
   return (
@@ -21,8 +26,20 @@ export default function HomeFooter() {
             <Link to="/terms" className="hover:text-stone-800 dark:hover:text-stone-100 transition-colors">
               Terms
             </Link>
-            <Link to="/chat" className="hover:text-stone-800 dark:hover:text-stone-100 transition-colors">
-              Contact
+            <Link
+              to="/chat"
+              className={`relative transition-colors ${
+                session && role !== "admin" && customerUnreadCount > 0
+                  ? "font-medium text-pink-600 dark:text-pink-300 hover:text-pink-700 dark:hover:text-pink-200"
+                  : "hover:text-stone-800 dark:hover:text-stone-100"
+              }`}
+            >
+              {session && role !== "admin" && customerUnreadCount > 0 ? "New Reply" : "Contact"}
+              {session && role !== "admin" && customerUnreadCount > 0 && (
+                <span className="absolute -right-4 -top-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-pink-500 px-0.5 text-[10px] font-medium text-white shadow-sm">
+                  {customerUnreadCount}
+                </span>
+              )}
             </Link>
           </div>
 
