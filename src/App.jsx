@@ -4,6 +4,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { Root, router } from "./routes";
 import useCookieConsent from "./hooks/useCookieConsent";
 import CookieBanner from "./components/CookieBanner";
+import PwaPrompt from "./components/common/PwaPrompt";
 import "./index.css";
 
 function loadGoogleAnalytics() {
@@ -40,6 +41,7 @@ export default function App() {
     <ThemeProvider>
       <Root>
         <RouterProvider router={router} />
+        <PwaPrompt />
         {showBanner && (
           <CookieBanner
             onAcceptAll={acceptAll}

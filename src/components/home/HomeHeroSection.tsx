@@ -90,7 +90,7 @@ export default function HomeHeroSection() {
     navigatingRef.current = false;
   }, [location.pathname]);
 
-  function goTo(gallery: boolean, extraPicks = picks, extraSize = selectedSize) {
+  function goTo(_gallery: boolean, extraPicks = picks, extraSize = selectedSize) {
     if (navigatingRef.current) return;
     navigatingRef.current = true;
     const params = new URLSearchParams();

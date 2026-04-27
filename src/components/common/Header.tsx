@@ -8,6 +8,7 @@ import {
   X,
   Moon,
   Sun,
+  Download,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSession, useRole } from "../../routes";
@@ -15,6 +16,7 @@ import { signOut } from "../../auth";
 import { supabase } from "../../../lib/supabase";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
 import { useTheme } from "../../contexts/ThemeContext";
+import { usePwaInstall } from "../../hooks/usePwaInstall";
 
 interface HeaderProps {
   subtitle?: string;
@@ -27,11 +29,13 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
   const navigate = useNavigate();
   const { settings } = useSiteSettings();
   const { theme, toggleTheme } = useTheme();
+  const { canInstall, promptInstall } = usePwaInstall();
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [customerUnreadCount, setCustomerUnreadCount] = useState(0);
   const [pendingReviewCount, setPendingReviewCount] = useState(0);
+  const [installing, setInstalling] = useState(false);
 
   const isAdmin = role === "admin";
   const displayName =
@@ -215,6 +219,15 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
     setMenuOpen(false);
   }
 
+  async function handleInstallClick() {
+    setInstalling(true);
+    try {
+      await promptInstall();
+    } finally {
+      setInstalling(false);
+    }
+  }
+
   return (
     <header
       className={`safe-area-top border-b border-stone-200/50 dark:border-stone-700/50 bg-white/80 dark:bg-stone-900/80 backdrop-blur-sm ${fixed ? "fixed" : "sticky"} top-0 z-40 w-full`}
@@ -341,6 +354,16 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
 
           {/* Desktop: account right */}
           <div className="hidden md:flex items-center gap-3 ml-auto">
+            {canInstall && (
+              <button
+                onClick={handleInstallClick}
+                disabled={installing}
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-stone-200 dark:border-stone-700 bg-white/70 dark:bg-stone-800/70 hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+                title="Install app"
+              >
+                <Download className="h-4 w-4 text-stone-600 dark:text-stone-300" />
+              </button>
+            )}
             <button
               onClick={toggleTheme}
               className="flex h-9 w-9 items-center justify-center rounded-full border border-stone-200 dark:border-stone-700 bg-white/70 dark:bg-stone-800/70 hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors"
@@ -402,6 +425,16 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
 
           {/* Mobile: right side actions */}
           <div className="flex md:hidden items-center gap-2">
+            {canInstall && (
+              <button
+                onClick={handleInstallClick}
+                disabled={installing}
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-stone-200 dark:border-stone-700 bg-white/70 dark:bg-stone-800/70 disabled:cursor-not-allowed disabled:opacity-60"
+                title="Install app"
+              >
+                <Download className="h-4 w-4 text-stone-600 dark:text-stone-300" />
+              </button>
+            )}
             <button
               onClick={toggleTheme}
               className="flex h-9 w-9 items-center justify-center rounded-full border border-stone-200 dark:border-stone-700 bg-white/70 dark:bg-stone-800/70"
@@ -523,6 +556,15 @@ export default function Header({ subtitle, fixed = false }: HeaderProps) {
               >
                 Sign In
               </Link>
+            )}
+            {canInstall && (
+              <button
+                onClick={handleInstallClick}
+                disabled={installing}
+                className="flex items-center gap-2 text-sm text-stone-600 dark:text-stone-300 hover:text-stone-800 dark:hover:text-stone-100 px-1 text-left disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <Download className="h-4 w-4" /> Install App
+              </button>
             )}
             {session && (
               <button

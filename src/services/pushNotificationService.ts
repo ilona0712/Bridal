@@ -44,13 +44,25 @@ function isNativeRuntime() {
   return typeof window !== "undefined" && "Capacitor" in window;
 }
 
-function isBrowserPushSupported() {
+export function isBrowserPushSupported() {
   return (
     typeof window !== "undefined" &&
     "Notification" in window &&
     "serviceWorker" in navigator &&
     "PushManager" in window
   );
+}
+
+export function getBrowserNotificationPermission(): NotificationPermission {
+  if (typeof window === "undefined" || !("Notification" in window)) {
+    return "default";
+  }
+
+  return Notification.permission;
+}
+
+export function canRequestBrowserNotificationPermission() {
+  return isBrowserPushSupported() && getBrowserNotificationPermission() === "default";
 }
 
 function urlBase64ToUint8Array(value: string) {
@@ -81,7 +93,7 @@ async function savePushToken(token: string, platform: NativePlatform) {
   return true;
 }
 
-async function registerBrowserForPushNotifications() {
+export async function registerBrowserForPushNotifications() {
   if (isLocalhost()) return;
   if (!isBrowserPushSupported()) return;
   if (!WEB_PUSH_PUBLIC_KEY) {
@@ -113,6 +125,8 @@ async function registerBrowserForPushNotifications() {
     await savePushToken(JSON.stringify(subscription.toJSON()), "web");
   } catch (error) {
     console.error("Browser push notification registration failed:", error);
+  } finally {
+    webPushRegistrationStarted = false;
   }
 }
 
@@ -131,7 +145,9 @@ export async function registerDeviceForPushNotifications(userId: string) {
   if (!userId) return;
 
   if (!isNativeRuntime()) {
-    await registerBrowserForPushNotifications();
+    if (getBrowserNotificationPermission() === "granted") {
+      await registerBrowserForPushNotifications();
+    }
     return;
   }
 
@@ -177,6 +193,17 @@ export async function registerDeviceForPushNotifications(userId: string) {
   } catch (error) {
     console.error("Push notification registration failed:", error);
   }
+}
+
+export async function enablePushNotifications(userId: string) {
+  if (!userId) return;
+
+  if (!isNativeRuntime()) {
+    await registerBrowserForPushNotifications();
+    return;
+  }
+
+  await registerDeviceForPushNotifications(userId);
 }
 
 export async function sendPushNotification(body: PushNotificationBody) {

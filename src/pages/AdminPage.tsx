@@ -348,11 +348,6 @@ export default function AdminPage() {
   };
 
   const handleDeleteCollection = async (collection: AdminCollection) => {
-    const dressesInCollection = dresses.filter((dress) =>
-      dress.collections.includes(collection.name),
-    );
-
-
     try {
       await deleteCollectionById(collection.id);
 
